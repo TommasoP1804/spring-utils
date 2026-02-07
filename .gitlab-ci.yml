@@ -1,0 +1,25 @@
+image: gradle:9.2.1-jdk21 # Use an image with Java installed; adjust JDK version as needed
+
+variables:
+  # Define the location of the Gradle cache
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  # If you're using a GitLab CI/CD variable for your token, specify it here
+  GITLAB_PRIVATE_TOKEN: $CI_JOB_TOKEN # Assuming you have defined CI_JOB_TOKEN in your GitLab CI/CD settings
+
+stages:
+  - build
+  - publish
+
+build:
+  stage: build
+  script:
+    - gradle build # Or `./gradlew build` if you're using the Gradle Wrapper
+
+publish:
+  stage: publish
+  script:
+    - echo "gitLabPrivateToken=${GITLAB_PRIVATE_TOKEN}" >> gradle.properties
+    - gradle publish # Or `./gradlew publish` if you're using the Gradle Wrapper
+  only:
+    - main
+    - development
