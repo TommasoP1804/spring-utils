@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.tommasop1804:spring-utils:1.0.0")
+    implementation("dev.tommasop1804:spring-utils:1.0.1")
 }
 ```
 
@@ -29,13 +29,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'dev.tommasop1804:spring-utils:1.0.0'
+    implementation 'dev.tommasop1804:spring-utils:1.0.1'
 }
 ```
 
 ## Documentation
 
-Full documentation will be soon available at: [https://tommasop1804.notion.site/spring-utils](https://tommasop1804.notion.site/spring-utils)
+Full documentation is available at: [https://tommasop1804.notion.site/spring-utils](https://tommasop1804.notion.site/spring-utils)
 
 ## Requirements
 

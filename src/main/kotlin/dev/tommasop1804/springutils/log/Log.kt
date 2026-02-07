@@ -60,9 +60,9 @@ class Log {
         )
     }
 
-    fun logException(clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: ULID?, e: Throwable?) {
+    fun logException(clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: ULID?, e: Throwable?, basePackage: String?) {
         val end = Instant()
-        val stackTrace: String = e.getPrettyStackTrace()
+        val stackTrace: String = e.getPrettyStackTrace(basePackage)
         var index = -1
         for (i in stackTrace.indices) {
             if (Character.isUpperCase(stackTrace[i])) {
@@ -101,7 +101,7 @@ class Log {
         )
     }
 
-    private fun Throwable?.getPrettyStackTrace(): String {
+    private fun Throwable?.getPrettyStackTrace(basePackage: String?): String {
         val stringWriter = StringWriter()
         val printWriter = PrintWriter(stringWriter)
         this!!.printStackTrace(printWriter)
@@ -110,9 +110,7 @@ class Log {
         val lines = stackTrace.split(System.lineSeparator().toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val sb = StringBuilder()
         for (line in lines) {
-            if (line.trim().startsWith("at com.sigeosrl.") && !line.trim()
-                    .startsWith("at com.sigeosrl.exceptionandlog.")
-            ) sb.append("\u001B[7m")
+            if (basePackage.isNotNullOrBlank() && line.trim().startsWith("at $basePackage")) sb.append("\u001B[7m")
             else if (line.trim().startsWith("Caused by")) sb.append("\u001B[1m")
             sb.append("\u001b[31m").append(line).append(System.lineSeparator()).append("\u001B[0m")
         }

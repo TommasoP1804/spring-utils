@@ -4,6 +4,9 @@
 
 package dev.tommasop1804.springutils.response
 
+import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.annotations.Since
+import dev.tommasop1804.kutils.classes.time.Duration
 import dev.tommasop1804.springutils.EmptyResponse
 import dev.tommasop1804.springutils.Response
 import dev.tommasop1804.springutils.annotations.Feature
@@ -12,9 +15,6 @@ import dev.tommasop1804.springutils.exception.PreconditionFailedException
 import dev.tommasop1804.springutils.exception.PreconditionRequiredException
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.toHeaderDate
-import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.annotations.Since
-import dev.tommasop1804.kutils.classes.time.Duration
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -44,8 +44,7 @@ import java.time.temporal.TemporalAccessor
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional headers to include in the response, if provided. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
- * @param lazyExceptionIfNotPresent A supplier for the exception to throw if validation preconditions are not met.
- *                                   Defaults to an exception indicating that preconditions are required.
+ * @param lazyExceptionIfNotPresent A supplier for the exception to throw if validation preconditions are not present (if required).
  * @param body A supplier for the body of the response. The resource body is only included in the response when the
  *             resource is considered modified.
  * @return A response entity containing the appropriate HTTP status, headers, and optional response body.

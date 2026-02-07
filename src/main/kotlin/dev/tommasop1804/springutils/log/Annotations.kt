@@ -7,7 +7,9 @@ package dev.tommasop1804.springutils.log
     AnnotationTarget.CLASS
 )
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Logging
+annotation class Logging(
+    val basePackage: String = ""
+)
 
 @Target(
     AnnotationTarget.FUNCTION,
@@ -34,4 +36,6 @@ annotation class LoggingAfter
     AnnotationTarget.CLASS
 )
 @Retention(AnnotationRetention.RUNTIME)
-annotation class LoggingAfterThrowing
+annotation class LoggingAfterThrowing(
+    val basePackage: String = ""
+)

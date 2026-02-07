@@ -2,6 +2,7 @@ package dev.tommasop1804.springutils.log
 
 import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.kutils.exceptions.*
+import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.*
@@ -89,11 +90,17 @@ class LoggingAspect(
         val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
         val featureCode = (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
+        var basePackage = signature.method.getAnnotation(LoggingAfterThrowing::class.java)?.basePackage
+            ?: signature.method.getAnnotation(Logging::class.java)?.basePackage
+            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfterThrowing::class.java)?.basePackage
+            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.basePackage
+        if (basePackage.isNotNull() && basePackage.isBlank()) basePackage = null
+
         isAfterThrowing.set(true)
 
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
-        log.logException(className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e)
+        log.logException(className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e, basePackage)
     }
 
     private fun checkStatus(e: Throwable): HttpStatus {

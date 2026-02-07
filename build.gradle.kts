@@ -15,10 +15,10 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "1.0.0"
+version = "1.0.1"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260130T124720Z
+// Last update: Tommaso Pastorelli | 20260207T152036Z
 
 repositories {
     mavenCentral()
@@ -30,7 +30,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jboss:jandex:3.1.7")
-    implementation(group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.40")
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -100,7 +99,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "1.0.0")
+    coordinates("dev.tommasop1804", "spring-utils", "1.0.1")
 
     pom {
         name.set("Spring Utils")
@@ -118,7 +117,7 @@ mavenPublishing {
         developers {
             developer {
                 id.set("tommasop1804")
-                name.set("Tommaso")
+                name.set("Tommaso Pastorelli")
                 url.set("https://tommasop1804.dev")
             }
         }
