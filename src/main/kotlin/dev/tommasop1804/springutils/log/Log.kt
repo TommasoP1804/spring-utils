@@ -33,7 +33,7 @@ object Log {
 
         LOGGER.info(
             "\u001B[34m⏵\u001B[0m STARTED "
-                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m " else String.EMPTY)
+                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
@@ -74,15 +74,14 @@ object Log {
         val end = Instant()
         val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
         val status = status whenTrue (LogComponent.STATUS in components)
-        val stackTrace = e.getPrettyStackTrace(basePackage) whenTrue (LogComponent.STACKTRACE in components)
+        val stackTrace = e.getPrettyStackTrace(basePackage)
         var index = -1
-        if (stackTrace.isNotNull())
-            for (i in stackTrace.indices) {
-                if (Character.isUpperCase(stackTrace[i])) {
-                    index = i
-                    break
-                }
+        for (i in stackTrace.indices) {
+            if (Character.isUpperCase(stackTrace[i])) {
+                index = i
+                break
             }
+        }
 
         LOGGER.error(
             "\u001B[31m✖\u001B[0m ENDED   "
@@ -94,8 +93,8 @@ object Log {
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
-                    + (if (LogComponent.EXCEPTION in components && stackTrace.isNotNull()) ", with exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
-                    + (if (stackTrace.isNotNull()) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
+                    + (if (LogComponent.EXCEPTION in components) ", with exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
+                    + (if (LogComponent.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
         )
     }
 
