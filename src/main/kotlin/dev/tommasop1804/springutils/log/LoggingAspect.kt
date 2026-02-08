@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component
 class LoggingAspect(
     private val id: ThreadLocal<ULID> = ThreadLocal<ULID>(),
     private val isAfterThrowing: ThreadLocal<Boolean> = ThreadLocal.withInitial { false },
-    private val log: Log,
 ) {
     /**
      * A computed property that retrieves the current unique identifier (ULID) associated
@@ -62,7 +61,7 @@ class LoggingAspect(
         val methodName = joinPoint.signature.name
         val className = joinPoint.target.javaClass.getSimpleName()
         if (id.get().isNull()) id.set(ULID(monotonic = true))
-        log.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
+        Log.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
     }
 
     @After("@annotation(LoggingAfter) || @annotation(Logging) || @within(LoggingAfter) || @within(Logging)")
@@ -83,7 +82,7 @@ class LoggingAspect(
         if (!isAfterThrowing.get()!!) {
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            log.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
+            Log.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
         }
         id.remove()
         isAfterThrowing.remove()
@@ -123,7 +122,7 @@ class LoggingAspect(
 
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
-        log.logException(finalComponents, className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e, basePackage)
+        Log.logException(finalComponents, className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e, basePackage)
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {

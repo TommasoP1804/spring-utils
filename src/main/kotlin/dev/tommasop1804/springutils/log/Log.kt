@@ -19,10 +19,8 @@ import kotlin.text.startsWith
 @Component
 @Suppress("LoggingSimilarMessage")
 @OptIn(ConditionNotPreventingExceptions::class)
-internal class Log {
-    companion object {
-        private val LOGGER = LoggerFactory.getLogger(Log::class.java)!!
-    }
+object Log {
+    private val LOGGER = LoggerFactory.getLogger(Log::class.java)!!
 
     // method, class, called by, from service, with id, feature code
     fun logStart(components: Array<LogComponent>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
