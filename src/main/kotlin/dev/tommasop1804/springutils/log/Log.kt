@@ -8,7 +8,6 @@ import dev.tommasop1804.kutils.get
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
-import dev.tommasop1804.kutils.then
 import dev.tommasop1804.kutils.whenTrue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -20,7 +19,7 @@ import kotlin.text.startsWith
 @Component
 @Suppress("LoggingSimilarMessage")
 @OptIn(ConditionNotPreventingExceptions::class)
-class Log {
+internal class Log {
     companion object {
         private val LOGGER = LoggerFactory.getLogger(Log::class.java)!!
     }
@@ -51,18 +50,17 @@ class Log {
         val method = method whenTrue (LogComponent.FUNCTION_NAME in components)
         val username = username whenTrue (LogComponent.USER in components)
         val service = service whenTrue (LogComponent.SERVICE in components)
-        val id = id whenTrue (LogComponent.ID in components)
         val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
         val end = Instant()
-        val elapsed = id?.then { Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli()) } whenTrue (LogComponent.ELAPSED_TIME in components)
+        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
 
         LOGGER.info(
             "\u001B[31m✖\u001B[0m ENDED   "
-                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m " else String.EMPTY)
+                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
-                    + (if (id.isNotNull()) ", with id: $id" else String.EMPTY)
+                    + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
         )
@@ -74,10 +72,9 @@ class Log {
         val method = method whenTrue (LogComponent.FUNCTION_NAME in components)
         val username = username whenTrue (LogComponent.USER in components)
         val service = service whenTrue (LogComponent.SERVICE in components)
-        val id = id whenTrue (LogComponent.ID in components)
         val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
         val end = Instant()
-        val elapsed = id?.then { Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli()) } whenTrue (LogComponent.ELAPSED_TIME in components)
+        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
         val status = status whenTrue (LogComponent.STATUS in components)
         val stackTrace = e.getPrettyStackTrace(basePackage) whenTrue (LogComponent.STACKTRACE in components)
         var index = -1
@@ -89,17 +86,17 @@ class Log {
                 }
             }
 
-        LOGGER.info(
+        LOGGER.error(
             "\u001B[31m✖\u001B[0m ENDED   "
-                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m " else String.EMPTY)
+                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
-                    + (if (id.isNotNull()) ", with id: $id" else String.EMPTY)
+                    + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
-                    + (if (stackTrace.isNotNull()) ", with exception:  \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
+                    + (if (LogComponent.EXCEPTION in components && stackTrace.isNotNull()) ", with exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
                     + (if (stackTrace.isNotNull()) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
         )
     }
