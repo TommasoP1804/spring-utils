@@ -1,9 +1,8 @@
 package dev.tommasop1804.springutils.log
 
+import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.kutils.exceptions.*
-import dev.tommasop1804.kutils.isNotNull
-import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.security.username
@@ -54,10 +53,16 @@ class LoggingAspect(
 
         isAfterThrowing.set(false)
 
+        val compontents = signature.method.getAnnotation(LoggingBefore::class.java)?.then { exclude to includeOnly }
+            ?: signature.method.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
+            ?: joinPoint.target.javaClass.getAnnotation(LoggingBefore::class.java)?.then { exclude to includeOnly }
+            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
+        val finalComponents = checkExcludeOrInclude(compontents?.first ?: emptyArray(), compontents?.second ?: emptyArray())
+
         val methodName = joinPoint.signature.name
         val className = joinPoint.target.javaClass.getSimpleName()
         if (id.get().isNull()) id.set(ULID(monotonic = true))
-        log.logStart(className, methodName, username, serviceValue, featureCode, id.get()!!)
+        log.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
     }
 
     @After("@annotation(LoggingAfter) || @annotation(Logging) || @within(LoggingAfter) || @within(Logging)")
@@ -69,10 +74,16 @@ class LoggingAspect(
         val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
         val featureCode = (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
+        val compontents = signature.method.getAnnotation(LoggingAfter::class.java)?.then { exclude to includeOnly }
+            ?: signature.method.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
+            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfter::class.java)?.then { exclude to includeOnly }
+            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
+        val finalComponents = checkExcludeOrInclude(compontents?.first ?: emptyArray(), compontents?.second ?: emptyArray())
+
         if (!isAfterThrowing.get()!!) {
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            log.logEnd(className, methodName, username, serviceValue, featureCode, id.get())
+            log.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
         }
         id.remove()
         isAfterThrowing.remove()
@@ -90,17 +101,36 @@ class LoggingAspect(
         val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
         val featureCode = (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
-        var basePackage = signature.method.getAnnotation(LoggingAfterThrowing::class.java)?.basePackage
-            ?: signature.method.getAnnotation(Logging::class.java)?.basePackage
-            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfterThrowing::class.java)?.basePackage
-            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.basePackage
-        if (basePackage.isNotNull() && basePackage.isBlank()) basePackage = null
+        var (basePackage, includeHighlight) = signature.method.getAnnotation(LoggingAfterThrowing::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
+            ?: signature.method.getAnnotation(Logging::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
+            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfterThrowing::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
+            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
+            ?: (null to false)
+        if (!includeHighlight) basePackage = null
+        else {
+            if (basePackage.isNull()) basePackage = tryOrNull {
+                signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+            } ?: joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+        }
+
+        val compontents = signature.method.getAnnotation(LoggingAfterThrowing::class.java)?.then { exclude to includeOnly }
+            ?: signature.method.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
+            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfterThrowing::class.java)?.then { exclude to includeOnly }
+            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
+        val finalComponents = checkExcludeOrInclude(compontents?.first ?: emptyArray(), compontents?.second ?: emptyArray())
 
         isAfterThrowing.set(true)
 
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
-        log.logException(className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e, basePackage)
+        log.logException(finalComponents, className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e, basePackage)
+    }
+
+    private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {
+        if (exclude.isEmpty() && includeOnly.isEmpty()) return LogComponent.entries.toTypedArray()
+        if (exclude.isNotEmpty() && includeOnly.isEmpty()) return LogComponent.entries.filterNot { it in exclude }.toTypedArray()
+        if (exclude.isEmpty()) return includeOnly
+        return LogComponent.entries.filterNot { it in exclude }.filter { it in includeOnly }.toTypedArray()
     }
 
     private fun checkStatus(e: Throwable): HttpStatus {

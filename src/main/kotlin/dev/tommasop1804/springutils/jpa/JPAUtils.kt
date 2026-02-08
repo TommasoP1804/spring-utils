@@ -96,6 +96,28 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
 @JvmName("existsByIdOrThrowLazyMessage")
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, lazyMessage: Supplier<Any>) =
     existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString())
+/**
+ * Checks whether an entity exists by its identifier in the repository. If the entity does not exist,
+ * a `ResourceNotFoundException` is thrown with the provided lazy message.
+ *
+ * @param id the identifier of the entity to check for existence.
+ * @param internalErrorCode Optional error code to be used in the exception message.
+ * @throws ResourceNotFoundException if no entity exists with the given identifier.
+ * @since 1.1.0
+ */
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, internalErrorCode: String) =
+    existsById(id) || throw ResourceNotFoundException(id, T::class, internalErrorCode = internalErrorCode)
+/**
+ * Checks whether an entity exists by its identifier in the repository. If the entity does not exist,
+ * a `ResourceNotFoundException` is thrown with the provided lazy message.
+ *
+ * @param id the identifier of the entity to check for existence.
+ * @param internalErrorCode Optional error code to be used in the exception message.
+ * @throws ResourceNotFoundException if no entity exists with the given identifier.
+ * @since 1.1.0
+ */
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) =
+    existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString(), internalErrorCode = internalErrorCode)
 
 /**
  * Finds an entity by its ID or throws an exception if the entity is not found.
@@ -112,14 +134,34 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
  * Finds an entity by its ID or throws a `ResourceNotFoundException` if the entity is not found.
  *
  * @param id The unique identifier of the entity to find.
- * @param internalErrorCode Optional error code to be used in the exception message.
  * @param lazyMessage A supplier providing the error message to be used if the entity is not found.
  * @return The entity of type `T` if found.
- * @since 1.0.0
+ * @since 1.1.0
  */
 @JvmName("findByIdOrThrowLazyMessage")
-inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String? = null, lazyMessage: Supplier<Any>): T =
-    findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMessage().toString(), internalErrorCode = internalErrorCode)
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, lazyMessage: Supplier<Any>): T =
+    findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMessage().toString())
+/**
+ * Finds an entity by its ID or throws a `ResourceNotFoundException` if the entity is not found.
+ *
+ * @param id The unique identifier of the entity to find.
+ * @param internalErrorCode Optional error code to be used in the exception message.
+ * @return The entity of type `T` if found.
+ * @since 1.1.0
+ */
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String?): T =
+    findById(id).getOrNull() ?: throw ResourceNotFoundException(id, T::class, internalErrorCode = internalErrorCode)
+/**
+ * Finds an entity by its ID or throws a `ResourceNotFoundException` if the entity is not found.
+ *
+ * @param id The unique identifier of the entity to find.
+ * @param internalErrorCode Optional error code to be used in the exception message.
+ * @param lazyMesage A supplier providing the error message to be used if the entity is not found.
+ * @return The entity of type `T` if found.
+ * @since 1.1.0
+ */
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String?, lazyMesage: Supplier<Any>): T =
+    findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMesage().toString(), internalErrorCode = internalErrorCode)
 
 /**
  * Finds all entities matching the given example and sorts the results based on the provided sort options.
@@ -160,7 +202,17 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @return The entity of type `T` if found in the repository.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String? = null, lazyMesage: Supplier<Any>): T = findByIdOrThrow(id, internalErrorCode, lazyMesage)
+inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String, lazyMesage: Supplier<Any>): T = findByIdOrThrow(id, internalErrorCode, lazyMesage)
+/**
+ * Provides a convenient operator to retrieve an entity by its ID from the repository
+ * or throw a `ResourceNotFoundException` if the entity is not found.
+ *
+ * @param id The unique identifier of the entity to retrieve.
+ * @param internalErrorCode Optional error code to include in the exception if the entity is not found.
+ * @return The entity of type `T` if found in the repository.
+ * @since 1.1.0
+ */
+inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String): T = findByIdOrThrow(id, internalErrorCode)
 /**
  * Retrieves an entity by its ID from the repository or throws an exception if the entity is not found.
  *
@@ -173,6 +225,17 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @since 1.0.0
  */
 inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, lazyException: ThrowableSupplier): T = findByIdOrThrow(id, lazyException)
+/**
+ * Provides a convenient operator to retrieve an entity by its ID from the repository
+ * or throw a `ResourceNotFoundException` if the entity is not found.
+ *
+ * @param id The unique identifier of the entity to retrieve.
+ * @param lazyMesage A supplier providing the error message to include in the exception if the entity is not found.
+ * @return The entity of type `T` if found in the repository.
+ * @since 1.1.0
+ */
+@JvmName("getLazyMessage")
+inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, lazyMesage: Supplier<Any>): T = findByIdOrThrow(id, lazyMesage)
 /**
  * Retrieves a list of entities with the specified IDs from the repository.
  *
@@ -377,19 +440,39 @@ inline fun <reified T : Any, R> JpaRepository<T, *>.count(vararg search: Pair<KP
  * @since 1.0.0
  */
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, T::class) }) =
-    (findById(id).getOrNull() ?: throw lazyException()) then (::delete)
+    existsByIdOrThrow(id, lazyException) then { deleteById(id) }
+/**
+ * Deletes an entity by its ID if it exists, or throws a `ResourceNotFoundException` with the specified internal error code if it does not.
+ *
+ * @param id The ID of the entity to delete.
+ * @param internalErrorCode Optional internal error code for the exception.
+ * @throws ResourceNotFoundException If no entity with the specified ID exists.
+ * @since 1.1.0
+ */
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, internalErrorCode: String) =
+    existsByIdOrThrow(id, internalErrorCode) then { deleteById(id) }
 /**
  * Deletes an entity by its ID if it exists, or throws a `ResourceNotFoundException` with the specified message if it does not.
  *
  * @param id The ID of the entity to delete.
- * @param internalErrorCode Optional internal error code for the exception.
- * @param lazyMessage A supplier function that provides the exception message if the entity does not exist.
+ * @param lazyMessage A supplier for the exception message to be used if the entity is not found
  * @throws ResourceNotFoundException If no entity with the specified ID exists.
- * @since 1.0.0
+ * @since 1.1.0
  */
 @JvmName("deleteByIdOrThrowLazyMessage")
-inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, internalErrorCode: String? = null, lazyMessage: Supplier<Any>) =
-    (findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMessage().toString(), internalErrorCode = internalErrorCode)) then { deleteById(id) }
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, lazyMessage: Supplier<Any>) =
+    existsByIdOrThrow(id, lazyMessage) then { deleteById(id) }
+/**
+ * Deletes an entity by its ID if it exists, or throws a `ResourceNotFoundException` with the specified message and internal error code if it does not.
+ *
+ * @param id The ID of the entity to delete.
+ * @param internalErrorCode Optional internal error code for the exception.
+ * @param lazyMessage A supplier for the exception message to be used if the entity is not found
+ * @throws ResourceNotFoundException If no entity with the specified ID exists.
+ * @since 1.1.0
+ */
+inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) =
+    existsByIdOrThrow(id, internalErrorCode, lazyMessage) then { deleteById(id) }
 
 /**
  * Checks if an entity with the given ID exists in the repository.

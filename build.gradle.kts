@@ -15,10 +15,10 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "1.0.1"
+version = "1.1.0"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260207T152036Z
+// Last update: Tommaso Pastorelli | 20260208T113723Z
 
 repositories {
     mavenCentral()
@@ -27,6 +27,8 @@ repositories {
 
 dependencies {
     // Spring Boot starter dependency
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jboss:jandex:3.1.7")
@@ -99,7 +101,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "1.0.1")
+    coordinates("dev.tommasop1804", "spring-utils", "1.1.0")
 
     pom {
         name.set("Spring Utils")

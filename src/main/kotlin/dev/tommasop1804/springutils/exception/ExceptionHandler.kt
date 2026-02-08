@@ -1,12 +1,14 @@
 package dev.tommasop1804.springutils.exception
 
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.JsonSerializer
+import com.fasterxml.jackson.databind.SerializerProvider
 import dev.tommasop1804.kutils.EMPTY
 import dev.tommasop1804.kutils.asSingleList
 import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
+import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.findCallerMethod
 import org.springframework.http.HttpHeaders
@@ -16,16 +18,43 @@ import org.springframework.security.authentication.LockedException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.annotation.JsonSerialize
 import kotlin.apply
 
 @ControllerAdvice
-@JsonInclude(JsonInclude.Include.NON_NULL)
 class ExceptionHandler : ResponseEntityExceptionHandler() {
+    @JsonSerialize(using = ErrorResponse.Companion.Serializer::class)
+    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = ErrorResponse.Companion.OldSerializer::class)
     data class ErrorResponse(
         val title: String,
         val description: String,
-        val internalErrorCode: String?
-    )
+        val internalErrorCode: String? = null
+    ) {
+        companion object {
+            class Serializer : ValueSerializer<ErrorResponse>() {
+                override fun serialize(value: ErrorResponse, gen: JsonGenerator, ctxt: SerializationContext) {
+                    gen.writeStartObject()
+                    gen.writeStringProperty("title", value.title)
+                    gen.writeStringProperty("description", value.description)
+                    if (value.internalErrorCode.isNotNullOrBlank()) gen.writeStringProperty("internalErrorCode", value.internalErrorCode)
+                    gen.writeEndObject()
+                }
+            }
+
+            class OldSerializer : JsonSerializer<ErrorResponse>() {
+                override fun serialize(value: ErrorResponse, gen: com.fasterxml.jackson.core.JsonGenerator, serializers: SerializerProvider) {
+                    gen.writeStartObject()
+                    gen.writeStringField("title", value.title)
+                    gen.writeStringField("description", value.description)
+                    if (value.internalErrorCode.isNotNullOrBlank()) gen.writeStringField("internalErrorCode", value.internalErrorCode)
+                    gen.writeEndObject()
+                }
+            }
+        }
+    }
 
     @ExceptionHandler(Exception::class)
     fun handleAllException(e: Exception): ResponseEntity<ErrorResponse> {
