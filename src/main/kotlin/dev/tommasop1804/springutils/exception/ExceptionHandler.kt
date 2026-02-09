@@ -56,9 +56,8 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         }
     }
 
-    @ExceptionHandler(Exception::class)
-    fun handleAllException(e: Exception): ResponseEntity<ErrorResponse> {
-        val status = when (e) {
+    companion object {
+        fun getStatus(e: Throwable) = when (e) {
             is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
             is BadRequestException, is RequiredFieldException, is RequiredParameterException -> HttpStatus.BAD_REQUEST
             is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException -> HttpStatus.CONFLICT
@@ -92,6 +91,11 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
             is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
             else -> HttpStatus.INTERNAL_SERVER_ERROR
         }
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleAllException(e: Exception): ResponseEntity<ErrorResponse> {
+        val status = getStatus(e)
 
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 

@@ -2,9 +2,8 @@ package dev.tommasop1804.springutils.log
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
-import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.Feature
-import dev.tommasop1804.springutils.exception.*
+import dev.tommasop1804.springutils.exception.ExceptionHandler
 import dev.tommasop1804.springutils.security.username
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.After
@@ -12,8 +11,6 @@ import org.aspectj.lang.annotation.AfterThrowing
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.annotation.Before
 import org.aspectj.lang.reflect.MethodSignature
-import org.springframework.http.HttpStatus
-import org.springframework.security.authentication.LockedException
 import org.springframework.stereotype.Component
 
 @Aspect
@@ -122,7 +119,7 @@ class LoggingAspect(
 
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
-        Log.logException(finalComponents, className, methodName, username, checkStatus(e).toString(), serviceValue, featureCode, id.get(), e, basePackage)
+        Log.logException(finalComponents, className, methodName, username, ExceptionHandler.getStatus(e).reasonPhrase, serviceValue, featureCode, id.get(), e, basePackage)
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {
@@ -130,42 +127,5 @@ class LoggingAspect(
         if (exclude.isNotEmpty() && includeOnly.isEmpty()) return LogComponent.entries.filterNot { it in exclude }.toTypedArray()
         if (exclude.isEmpty()) return includeOnly
         return LogComponent.entries.filterNot { it in exclude }.filter { it in includeOnly }.toTypedArray()
-    }
-
-    private fun checkStatus(e: Throwable): HttpStatus {
-        return when (e) {
-            is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
-            is BadRequestException, is RequiredFieldException, is RequiredParameterException -> HttpStatus.BAD_REQUEST
-            is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException -> HttpStatus.CONFLICT
-            is ExpectationFailedException -> HttpStatus.EXPECTATION_FAILED
-            is FailedDependencyException -> HttpStatus.FAILED_DEPENDENCY
-            is ForbiddenException, is InsufficientPermissionsException -> HttpStatus.FORBIDDEN
-            is GatewayTimeoutException -> HttpStatus.GATEWAY_TIMEOUT
-            is GoneException -> HttpStatus.GONE
-            is InsufficientStorageException -> HttpStatus.INSUFFICIENT_STORAGE
-            is LengthRequiredException -> HttpStatus.LENGTH_REQUIRED
-            is LockedException, is ResourceLockedException -> HttpStatus.LOCKED
-            is LoopDetectedException -> HttpStatus.LOOP_DETECTED
-            is MisdirectedRequestException -> HttpStatus.MISDIRECTED_REQUEST
-            is NetworkAuthenticationRequiredException -> HttpStatus.NETWORK_AUTHENTICATION_REQUIRED
-            is NotAcceptableException -> HttpStatus.NOT_ACCEPTABLE
-            is NotExtendedException -> HttpStatus.NOT_EXTENDED
-            is NotFoundException, is ResourceNotFoundException -> HttpStatus.NOT_FOUND
-            is NotImplementedException -> HttpStatus.NOT_IMPLEMENTED
-            is PayloadTooLargeException -> HttpStatus.PAYLOAD_TOO_LARGE
-            is PaymentRequiredException -> HttpStatus.PAYMENT_REQUIRED
-            is PreconditionFailedException -> HttpStatus.PRECONDITION_FAILED
-            is PreconditionRequiredException -> HttpStatus.PRECONDITION_REQUIRED
-            is RangeNotSatisfiableException -> HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE
-            is RequestTimeoutException -> HttpStatus.REQUEST_TIMEOUT
-            is TeapotException -> HttpStatus.I_AM_A_TEAPOT
-            is TooEarlyException -> HttpStatus.TOO_EARLY
-            is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
-            is UnauthorizedException -> HttpStatus.UNAUTHORIZED
-            is UnavailableForLegalReasonsException -> HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS
-            is UnprocessableEntityException, is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_ENTITY
-            is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
-            else -> HttpStatus.INTERNAL_SERVER_ERROR
-        }
     }
 }

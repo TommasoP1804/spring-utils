@@ -34,7 +34,7 @@ object Log {
         LOGGER.info(
             "\u001B[34m▶︎\u001B[0m STARTED "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
                     + (if (id.isNotNull()) ", with id: $id" else String.EMPTY)
@@ -55,7 +55,7 @@ object Log {
         LOGGER.info(
             "\u001B[32m✓\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
                     + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
@@ -86,7 +86,7 @@ object Log {
         LOGGER.error(
             "\u001B[31m✖\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
                     + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
