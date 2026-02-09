@@ -32,7 +32,7 @@ object Log {
         val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
 
         LOGGER.info(
-            "\u001B[34m⏵\u001B[0m STARTED "
+            "\u001B[34m▶︎\u001B[0m STARTED "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
@@ -53,7 +53,7 @@ object Log {
         val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
 
         LOGGER.info(
-            "\u001B[31m✖\u001B[0m ENDED   "
+            "\u001B[32m✓\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) "\u001b[3m in class $clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
