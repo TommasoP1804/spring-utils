@@ -3,7 +3,7 @@ package dev.tommasop1804.springutils.log
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.springutils.annotations.Feature
-import dev.tommasop1804.springutils.exception.ExceptionHandler
+import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.security.username
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.After
@@ -119,7 +119,7 @@ class LoggingAspect(
 
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
-        Log.logException(finalComponents, className, methodName, username, ExceptionHandler.getStatus(e).reasonPhrase, serviceValue, featureCode, id.get(), e, basePackage)
+        Log.logException(finalComponents, className, methodName, username, getStatus(e).reasonPhrase, serviceValue, featureCode, id.get(), e, basePackage)
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {

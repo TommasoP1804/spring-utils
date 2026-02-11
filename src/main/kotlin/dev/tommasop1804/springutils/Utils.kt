@@ -1,15 +1,20 @@
 @file:JvmName("UtilsKt")
-@file:Suppress("unused")
+@file:Suppress("unused", "FunctionName")
 
 package dev.tommasop1804.springutils
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.coding.JSON.Companion.toJSON
 import dev.tommasop1804.kutils.classes.time.TimeZone
-import dev.tommasop1804.kutils.exceptions.MalformedInputException
+import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.exception.*
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.ProblemDetail
+import org.springframework.security.authentication.LockedException
 import java.lang.reflect.Method
+import java.net.URI
 import java.time.Instant
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
@@ -53,6 +58,43 @@ fun HttpHeaders(
 fun HttpHeaders(
     vararg headers: Pair<String, Any>
 ) = HttpHeaders().apply { putAll(headers.associate { it.first to it.second.toString().asSingleList() }) }
+
+fun ProblemDetail(
+    title: String? = null,
+    status: HttpStatus,
+    type: URI? = null,
+    detail: String? = null,
+    instance: URI? = null,
+    internalErrorCode: String? = null,
+    exception: String? = null,
+    extensions: DataMapNN = emptyMap()
+): ExceptionHandler.ExtendedProblemDetail {
+    val result = ProblemDetail.forStatus(status)
+    if (title.isNotNull()) result.title = title
+    if (type.isNotNull()) result.type = type
+    if (detail.isNotNull()) result.detail = detail
+    if (instance.isNotNull()) result.instance = instance
+    for ((key, value) in extensions) result.setProperty(key, value)
+    return ExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
+}
+fun ProblemDetail(
+    title: String? = null,
+    status: Int,
+    type: URI? = null,
+    detail: String? = null,
+    instance: URI? = null,
+    internalErrorCode: String? = null,
+    exception: String? = null,
+    extensions: DataMapNN = emptyMap()
+): ExceptionHandler.ExtendedProblemDetail {
+    val result = ProblemDetail.forStatus(status)
+    if (title.isNotNull()) result.title = title
+    if (type.isNotNull()) result.type = type
+    if (detail.isNotNull()) result.detail = detail
+    if (instance.isNotNull()) result.instance = instance
+    for ((key, value) in extensions) result.setProperty(key, value)
+    return ExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
+}
 
 /**
  * Converts a string representation of a date, commonly found in HTTP headers, into an [Instant].
@@ -103,9 +145,10 @@ fun TemporalAccessor.toHeaderDate(): String = DateTimeFormatter.RFC_1123_DATE_TI
 internal fun findCallerMethod(): Method? = tryOrNull {
     val stackTrace = Thread.currentThread().stackTrace
 
-    for (i in 3 until stackTrace.size) {
+    for (i in 2 until stackTrace.size) {
         val element = stackTrace[i]
         try {
+            if (element.className.startsWith("java.") || element.className.startsWith("kotlin.")) continue
             val clazz = Class.forName(element.className)
             val methods = clazz.declaredMethods
 
@@ -120,4 +163,39 @@ internal fun findCallerMethod(): Method? = tryOrNull {
         }
     }
     null
+}
+
+internal fun getStatus(e: Throwable) = when (e) {
+    is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
+    is BadRequestException, is RequiredFieldException, is RequiredParameterException -> HttpStatus.BAD_REQUEST
+    is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException -> HttpStatus.CONFLICT
+    is ExpectationFailedException -> HttpStatus.EXPECTATION_FAILED
+    is FailedDependencyException -> HttpStatus.FAILED_DEPENDENCY
+    is ForbiddenException, is InsufficientPermissionsException -> HttpStatus.FORBIDDEN
+    is GatewayTimeoutException -> HttpStatus.GATEWAY_TIMEOUT
+    is GoneException -> HttpStatus.GONE
+    is InsufficientStorageException -> HttpStatus.INSUFFICIENT_STORAGE
+    is LengthRequiredException -> HttpStatus.LENGTH_REQUIRED
+    is LockedException, is ResourceLockedException -> HttpStatus.LOCKED
+    is LoopDetectedException -> HttpStatus.LOOP_DETECTED
+    is MisdirectedRequestException -> HttpStatus.MISDIRECTED_REQUEST
+    is NetworkAuthenticationRequiredException -> HttpStatus.NETWORK_AUTHENTICATION_REQUIRED
+    is NotAcceptableException -> HttpStatus.NOT_ACCEPTABLE
+    is NotExtendedException -> HttpStatus.NOT_EXTENDED
+    is NotFoundException, is ResourceNotFoundException -> HttpStatus.NOT_FOUND
+    is NotImplementedException -> HttpStatus.NOT_IMPLEMENTED
+    is PayloadTooLargeException -> HttpStatus.PAYLOAD_TOO_LARGE
+    is PaymentRequiredException -> HttpStatus.PAYMENT_REQUIRED
+    is PreconditionFailedException -> HttpStatus.PRECONDITION_FAILED
+    is PreconditionRequiredException -> HttpStatus.PRECONDITION_REQUIRED
+    is RangeNotSatisfiableException -> HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE
+    is RequestTimeoutException -> HttpStatus.REQUEST_TIMEOUT
+    is TeapotException -> HttpStatus.I_AM_A_TEAPOT
+    is TooEarlyException -> HttpStatus.TOO_EARLY
+    is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
+    is UnauthorizedException -> HttpStatus.UNAUTHORIZED
+    is UnavailableForLegalReasonsException -> HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS
+    is UnprocessableEntityException, is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_ENTITY
+    is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
+    else -> HttpStatus.INTERNAL_SERVER_ERROR
 }
