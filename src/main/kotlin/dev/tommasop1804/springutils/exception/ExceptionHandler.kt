@@ -133,15 +133,15 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
     ): ResponseEntity<Any>? {
         val httpStatus = HttpStatus.BAD_REQUEST
         val cause = ex.mostSpecificCause
-        val mismatch = ex.cause as? MismatchedInputException
+        val mismatch = ex.cause as? DatabindException
 
         val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
         val path = mismatch?.path?.joinToString(".") {
             val className = when (val from = it.from()) {
-                is Class<*> -> from.kotlin.qualifiedName
-                else -> from?.javaClass?.kotlin?.qualifiedName
+                is Class<*> -> from.kotlin.simpleName
+                else -> from?.javaClass?.kotlin?.simpleName
             }.orEmpty()
-            $$"$$className$$${it.propertyName.orEmpty()}"
+            $$"$$className$${if (it.propertyName.isNotNull()) "$" else ""}$${it.propertyName.orEmpty()}"
         }
         val detail = if (isMissing) {
             $$"Missing required property: $$path"
