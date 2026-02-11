@@ -7,6 +7,7 @@ import dev.tommasop1804.kutils.asSingleList
 import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
+import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.isNotNullOrEmpty
 import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.annotations.Feature
@@ -26,8 +27,8 @@ import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
 import tools.jackson.databind.exc.MismatchedInputException
 import kotlin.apply
+import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.primaryConstructor
 
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "RFC", matchIfMissing = true)
 @ControllerAdvice
@@ -91,6 +92,7 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
             val cause = ex.cause as? MismatchedInputException ?: return null
             val path = cause.path.takeIf { it.isNotEmpty() } ?: return null
             val fieldName = path.last().propertyName ?: return null
+            println("<> $fieldName")
 
             val containingClass = if (path.size > 1) {
                 path[path.size - 2].from()?.javaClass
@@ -98,9 +100,8 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
                 cause.targetType
             } ?: return null
 
-            return containingClass.kotlin.primaryConstructor
-                ?.parameters
-                ?.find { it.name == fieldName }
+            return containingClass.kotlin.declaredMembers
+                .find { it.name == fieldName }
                 ?.findAnnotation<InternalErrorCode>()
                 ?: containingClass.kotlin.findAnnotation<InternalErrorCode>()
         }
@@ -133,7 +134,10 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
 
         val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
         val detail = if (isMissing) {
-            val path = mismatch.path?.joinToString(".") { it.propertyName.orEmpty() }
+            val path = mismatch.path?.joinToString(".") {
+                val className = it.from()?.javaClass?.kotlin?.qualifiedName?.let { name -> "$name$" }.orEmpty()
+                "$className${it.propertyName.orEmpty()}"
+            }
             "Missing required property: $path"
         } else {
             "Failed to read request: ${cause.message}"
@@ -146,16 +150,19 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
                 ?.find { it.exception == cause::class }
                 ?.code
         }
+        val featureCode = findFeatureAnnotation()
 
         return ResponseEntity(
             ProblemDetail(
                 title = httpStatus.reasonPhrase,
                 status = httpStatus,
                 detail = detail,
-                internalErrorCode = internalCode
+                internalErrorCode = internalCode,
+                exception = isMissing(onFalse = { cause::class.simpleName })
             ),
             HttpHeaders().apply {
-                put("Feature-Code", findFeatureAnnotation().asSingleList())
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
             },
             httpStatus
         )

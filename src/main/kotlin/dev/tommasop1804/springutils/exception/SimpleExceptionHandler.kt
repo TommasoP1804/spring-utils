@@ -8,12 +8,9 @@ import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
-import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.extractErrorCode
 import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.findFeatureAnnotation
-import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
-import org.hibernate.internal.util.JdbcExceptionHelper.extractErrorCode
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -102,6 +99,7 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
                 ?.find { it.exception == cause::class }
                 ?.code
         }
+        val featureCode = findFeatureAnnotation()
 
         return ResponseEntity(
             SimpleErrorResponse(
@@ -110,7 +108,8 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
-                put("Feature-Code", findFeatureAnnotation().asSingleList())
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
             },
             httpStatus
         )
