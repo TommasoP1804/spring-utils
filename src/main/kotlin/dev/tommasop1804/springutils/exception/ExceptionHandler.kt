@@ -149,7 +149,7 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
             $$"$$path: $${cause.message}"
         }
 
-        val errorCode = extractErrorCode(ex, ex.cause as? MismatchedInputException)
+        val errorCode = extractErrorCode(ex, ex.cause as? DatabindException)
         val internalCode = when {
             isMissing -> errorCode?.ifMissing?.ifBlank { null }
             else -> errorCode?.ifInvalid

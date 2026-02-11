@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.DatabindException
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
@@ -98,7 +99,7 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
             $$"$$path: $${cause.message}"
         }
 
-        val errorCode = extractErrorCode(ex, ex.cause as? MismatchedInputException)
+        val errorCode = extractErrorCode(ex, ex.cause as? DatabindException)
         val internalCode = when {
             isMissing -> errorCode?.ifMissing?.ifBlank { null }
             else -> errorCode?.ifInvalid
