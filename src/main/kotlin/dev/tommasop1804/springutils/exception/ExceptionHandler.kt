@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.DatabindException
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
@@ -88,15 +89,18 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         internal fun findFeatureAnnotation() =
             findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
 
-        internal fun extractErrorCode(ex: HttpMessageNotReadableException, backup: MismatchedInputException?): InternalErrorCode? {
-            val cause = ex.cause as? MismatchedInputException ?: backup ?: return null
+        internal fun extractErrorCode(ex: HttpMessageNotReadableException, backup: DatabindException?): InternalErrorCode? {
+            val cause = ex.cause as? DatabindException ?: backup ?: return null
             val path = cause.path.takeIf { it.isNotEmpty() } ?: return null
             val fieldName = path.last().propertyName ?: return null
 
             val containingClass = if (path.size > 1) {
                 path[path.size - 2].from()?.javaClass
             } else {
-                cause.targetType
+                when (val from = path.last().from()) {
+                    is Class<*> -> from
+                    else -> from?.javaClass
+                }
             } ?: return null
 
             return containingClass.kotlin.declaredMembers
@@ -132,22 +136,22 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         val mismatch = ex.cause as? MismatchedInputException
 
         val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
+        val path = mismatch?.path?.joinToString(".") {
+            val className = when (val from = it.from()) {
+                is Class<*> -> from.kotlin.qualifiedName
+                else -> from?.javaClass?.kotlin?.qualifiedName
+            }.orEmpty()
+            $$"$$className$$${it.propertyName.orEmpty()}"
+        }
         val detail = if (isMissing) {
-            val path = mismatch.path?.joinToString(".") {
-                val className = when (val from = it.from()) {
-                    is Class<*> -> from.kotlin.qualifiedName
-                    else -> from?.javaClass?.kotlin?.qualifiedName
-                }.orEmpty()
-                $$"$$className$$${it.propertyName.orEmpty()}"
-            }
             $$"Missing required property: $$path"
         } else {
-            "Failed to read request: ${cause.message}"
+            $$"$$path: $${cause.message}"
         }
 
         val errorCode = extractErrorCode(ex, ex.cause as? MismatchedInputException)
         val internalCode = when {
-            isMissing -> errorCode?.ifMissing
+            isMissing -> errorCode?.ifMissing?.ifBlank { null }
             else -> errorCode?.ifInvalid
                 ?.find { cause::class in it.exceptions }
                 ?.code
