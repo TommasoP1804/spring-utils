@@ -82,6 +82,7 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
     ): ResponseEntity<Any>? {
         val httpStatus = HttpStatus.BAD_REQUEST
         val cause = ex.mostSpecificCause
+        println(ex.cause!!::class.simpleName)
         val mismatch = ex.cause as? MismatchedInputException
 
         val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
