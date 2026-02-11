@@ -119,7 +119,8 @@ class LoggingAspect(
 
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
-        Log.logException(finalComponents, className, methodName, username, getStatus(e).reasonPhrase, serviceValue, featureCode, id.get(), e, basePackage)
+        val status = getStatus(e)
+        Log.logException(finalComponents, className, methodName, username, "${status.value()} ${status.reasonPhrase}", serviceValue, featureCode, id.get(), e, basePackage)
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {

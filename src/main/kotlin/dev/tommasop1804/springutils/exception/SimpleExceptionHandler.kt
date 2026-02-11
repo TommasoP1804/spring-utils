@@ -9,8 +9,11 @@ import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.extractErrorCode
+import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.findFeatureAnnotation
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
+import org.hibernate.internal.util.JdbcExceptionHelper.extractErrorCode
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -25,21 +28,22 @@ import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
+import tools.jackson.databind.exc.MismatchedInputException
 import kotlin.apply
 
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @ControllerAdvice
 class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
-    @JsonSerialize(using = ErrorResponse.Companion.Serializer::class)
-    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = ErrorResponse.Companion.OldSerializer::class)
-    data class ErrorResponse(
+    @JsonSerialize(using = SimpleErrorResponse.Companion.Serializer::class)
+    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = SimpleErrorResponse.Companion.OldSerializer::class)
+    data class SimpleErrorResponse(
         val title: String,
         val description: String,
         val internalErrorCode: String? = null
     ) {
         companion object {
-            class Serializer : ValueSerializer<ErrorResponse>() {
-                override fun serialize(value: ErrorResponse, gen: JsonGenerator, ctxt: SerializationContext) {
+            class Serializer : ValueSerializer<SimpleErrorResponse>() {
+                override fun serialize(value: SimpleErrorResponse, gen: JsonGenerator, ctxt: SerializationContext) {
                     gen.writeStartObject()
                     gen.writeStringProperty("title", value.title)
                     gen.writeStringProperty("description", value.description)
@@ -48,8 +52,8 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
                 }
             }
 
-            class OldSerializer : JsonSerializer<ErrorResponse>() {
-                override fun serialize(value: ErrorResponse, gen: com.fasterxml.jackson.core.JsonGenerator, serializers: SerializerProvider) {
+            class OldSerializer : JsonSerializer<SimpleErrorResponse>() {
+                override fun serialize(value: SimpleErrorResponse, gen: com.fasterxml.jackson.core.JsonGenerator, serializers: SerializerProvider) {
                     gen.writeStartObject()
                     gen.writeStringField("title", value.title)
                     gen.writeStringField("description", value.description)
@@ -61,12 +65,12 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleAllException(e: Exception): ResponseEntity<ErrorResponse> {
+    fun handleAllException(e: Exception): ResponseEntity<SimpleErrorResponse> {
         val status = getStatus(e)
 
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
-        return ResponseEntity(ErrorResponse(
+        return ResponseEntity(SimpleErrorResponse(
             status.reasonPhrase + e.cause.isNotNull()({ ": " + (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { String.EMPTY }),
             message,
             e.message?.before(" @@@ ")?.ifBlank { null }
@@ -79,15 +83,36 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
         status: HttpStatusCode,
         request: WebRequest
     ): ResponseEntity<Any>? {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity(ErrorResponse(
-            title = status.reasonPhrase,
-            description = "Failed to read request: ${ex.message}",
-            internalErrorCode = ex.message?.before(" @@@ ")?.ifBlank { null }
-        ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
+        val httpStatus = HttpStatus.BAD_REQUEST
+        val cause = ex.mostSpecificCause
+        val mismatch = ex.cause as? MismatchedInputException
+
+        val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
+        val detail = if (isMissing) {
+            val path = mismatch.path?.joinToString(".") { it.propertyName.orEmpty() }
+            "Missing required property: $path"
+        } else {
+            "Failed to read request: ${cause.message}"
+        }
+
+        val errorCode = extractErrorCode(ex)
+        val internalCode = when {
+            isMissing -> errorCode?.ifMissing
+            else -> errorCode?.ifInvalid
+                ?.find { it.exception == cause::class }
+                ?.code
+        }
+
+        return ResponseEntity(
+            SimpleErrorResponse(
+                title = httpStatus.reasonPhrase,
+                description = detail,
+                internalErrorCode = internalCode
+            ),
+            HttpHeaders().apply {
+                put("Feature-Code", findFeatureAnnotation().asSingleList())
+            },
+            httpStatus
+        )
     }
-
-
-    private fun findFeatureAnnotation() =
-        findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
 }

@@ -8,7 +8,9 @@ import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrEmpty
+import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.annotations.InternalErrorCode
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -22,7 +24,10 @@ import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
+import tools.jackson.databind.exc.MismatchedInputException
 import kotlin.apply
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.primaryConstructor
 
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "RFC", matchIfMissing = true)
 @ControllerAdvice
@@ -78,18 +83,42 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         }
     }
 
+    companion object {
+        internal fun findFeatureAnnotation() =
+            findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
+
+        internal fun extractErrorCode(ex: HttpMessageNotReadableException): InternalErrorCode? {
+            val cause = ex.cause as? MismatchedInputException ?: return null
+            val path = cause.path.takeIf { it.isNotEmpty() } ?: return null
+            val fieldName = path.last().propertyName ?: return null
+
+            val containingClass = if (path.size > 1) {
+                path[path.size - 2].from()?.javaClass
+            } else {
+                cause.targetType
+            } ?: return null
+
+            return containingClass.kotlin.primaryConstructor
+                ?.parameters
+                ?.find { it.name == fieldName }
+                ?.findAnnotation<InternalErrorCode>()
+                ?: containingClass.kotlin.findAnnotation<InternalErrorCode>()
+        }
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleAllException(e: Exception): ResponseEntity<ExtendedProblemDetail> {
         val status = getStatus(e)
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
-        return ResponseEntity(dev.tommasop1804.springutils.ProblemDetail(
-            title = status.reasonPhrase,
-            status = status,
-            detail = message,
-            internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null },
-            exception = e.cause.isNotNull()({ ": " + (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName })
-        ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = message,
+                internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null },
+                exception = e.cause.isNotNull()({ (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName })
+            ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
 
     override fun handleHttpMessageNotReadable(
@@ -98,14 +127,37 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         status: HttpStatusCode,
         request: WebRequest
     ): ResponseEntity<Any>? {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity(dev.tommasop1804.springutils.ProblemDetail(
-            title = status.reasonPhrase,
-            status = status,
-            detail = "Failed to read request: ${ex.mostSpecificCause.message}"
-        ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
-    }
+        val httpStatus = HttpStatus.BAD_REQUEST
+        val cause = ex.mostSpecificCause
+        val mismatch = ex.cause as? MismatchedInputException
 
-    private fun findFeatureAnnotation() =
-        findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
+        val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
+        val detail = if (isMissing) {
+            val path = mismatch.path?.joinToString(".") { it.propertyName.orEmpty() }
+            "Missing required property: $path"
+        } else {
+            "Failed to read request: ${cause.message}"
+        }
+
+        val errorCode = extractErrorCode(ex)
+        val internalCode = when {
+            isMissing -> errorCode?.ifMissing
+            else -> errorCode?.ifInvalid
+                ?.find { it.exception == cause::class }
+                ?.code
+        }
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = httpStatus.reasonPhrase,
+                status = httpStatus,
+                detail = detail,
+                internalErrorCode = internalCode
+            ),
+            HttpHeaders().apply {
+                put("Feature-Code", findFeatureAnnotation().asSingleList())
+            },
+            httpStatus
+        )
+    }
 }
