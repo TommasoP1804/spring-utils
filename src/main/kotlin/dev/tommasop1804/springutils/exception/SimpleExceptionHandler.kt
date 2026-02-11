@@ -13,9 +13,13 @@ import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
@@ -23,7 +27,7 @@ import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
 import kotlin.apply
 
-@ConditionalOnProperty(prefix = "spring-utils.exceptions.body", havingValue = "simple")
+@ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @ControllerAdvice
 class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
     @JsonSerialize(using = ErrorResponse.Companion.Serializer::class)
@@ -68,6 +72,21 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
             e.message?.before(" @@@ ")?.ifBlank { null }
         ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
+
+    override fun handleHttpMessageNotReadable(
+        ex: HttpMessageNotReadableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val status = HttpStatus.BAD_REQUEST
+        return ResponseEntity(ErrorResponse(
+            title = status.reasonPhrase,
+            description = "Failed to read request: ${ex.message}",
+            internalErrorCode = ex.message?.before(" @@@ ")?.ifBlank { null }
+        ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
+    }
+
 
     private fun findFeatureAnnotation() =
         findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY

@@ -12,11 +12,11 @@ import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.http.HttpHeaders
-import org.springframework.http.ProblemDetail
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
@@ -24,7 +24,7 @@ import tools.jackson.databind.ValueSerializer
 import tools.jackson.databind.annotation.JsonSerialize
 import kotlin.apply
 
-@ConditionalOnProperty(prefix = "spring-utils.exceptions.body", havingValue = "RFC", matchIfMissing = true)
+@ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "RFC", matchIfMissing = true)
 @ControllerAdvice
 class ExceptionHandler : ResponseEntityExceptionHandler() {
     @JsonSerialize(using = ExtendedProblemDetail.Companion.Serializer::class)
@@ -89,6 +89,20 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
             detail = message,
             internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null },
             exception = e.cause.isNotNull()({ ": " + (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName })
+        ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
+    }
+
+    override fun handleHttpMessageNotReadable(
+        ex: HttpMessageNotReadableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val status = HttpStatus.BAD_REQUEST
+        return ResponseEntity(dev.tommasop1804.springutils.ProblemDetail(
+            title = status.reasonPhrase,
+            status = status,
+            detail = "Failed to read request: ${ex.message}"
         ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
 
