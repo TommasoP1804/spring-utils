@@ -92,7 +92,6 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
             val cause = ex.cause as? MismatchedInputException ?: return null
             val path = cause.path.takeIf { it.isNotEmpty() } ?: return null
             val fieldName = path.last().propertyName ?: return null
-            println("<> $fieldName")
 
             val containingClass = if (path.size > 1) {
                 path[path.size - 2].from()?.javaClass
@@ -135,7 +134,10 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
         val detail = if (isMissing) {
             val path = mismatch.path?.joinToString(".") {
-                val className = it.from()?.javaClass?.kotlin?.qualifiedName?.let { name -> "$name$" }.orEmpty()
+                val className = when (val from = it.from()) {
+                    is Class<*> -> from.kotlin.qualifiedName
+                    else -> from?.javaClass?.kotlin?.qualifiedName
+                }?.let { name -> "$name." }.orEmpty()
                 "$className${it.propertyName.orEmpty()}"
             }
             "Missing required property: $path"
@@ -147,7 +149,7 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         val internalCode = when {
             isMissing -> errorCode?.ifMissing
             else -> errorCode?.ifInvalid
-                ?.find { it.exception == cause::class }
+                ?.find { cause::class in it.exceptions }
                 ?.code
         }
         val featureCode = findFeatureAnnotation()

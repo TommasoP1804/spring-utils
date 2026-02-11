@@ -11,7 +11,7 @@ annotation class InternalErrorCode(
     @Target()
     @Retention(AnnotationRetention.RUNTIME)
     annotation class InvalidMapping(
-        val exception: KClass<out Throwable>,
+        val exceptions: Array<KClass<out Throwable>>,
         val code: String
     )
 }

@@ -96,7 +96,7 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
         val internalCode = when {
             isMissing -> errorCode?.ifMissing
             else -> errorCode?.ifInvalid
-                ?.find { it.exception == cause::class }
+                ?.find { cause::class in it.exceptions }
                 ?.code
         }
         val featureCode = findFeatureAnnotation()
