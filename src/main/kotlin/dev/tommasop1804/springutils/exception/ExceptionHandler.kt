@@ -102,7 +102,7 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         return ResponseEntity(dev.tommasop1804.springutils.ProblemDetail(
             title = status.reasonPhrase,
             status = status,
-            detail = "Failed to read request: ${ex.message}"
+            detail = "Failed to read request: ${ex.mostSpecificCause.message}"
         ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
 
