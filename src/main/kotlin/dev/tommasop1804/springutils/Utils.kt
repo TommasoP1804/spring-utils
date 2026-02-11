@@ -167,7 +167,7 @@ internal fun findCallerMethod(): Method? = tryOrNull {
 
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
-    is BadRequestException, is RequiredFieldException, is RequiredParameterException -> HttpStatus.BAD_REQUEST
+    is BadRequestException, is RequiredFieldException, is RequiredParameterException, is MalformedInputException -> HttpStatus.BAD_REQUEST
     is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException -> HttpStatus.CONFLICT
     is ExpectationFailedException -> HttpStatus.EXPECTATION_FAILED
     is FailedDependencyException -> HttpStatus.FAILED_DEPENDENCY

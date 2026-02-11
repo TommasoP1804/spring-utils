@@ -86,7 +86,13 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
 
         val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
         val detail = if (isMissing) {
-            val path = mismatch.path?.joinToString(".") { it.propertyName.orEmpty() }
+            val path = mismatch.path?.joinToString(".") {
+                val className = when (val from = it.from()) {
+                    is Class<*> -> from.kotlin.qualifiedName
+                    else -> from?.javaClass?.kotlin?.qualifiedName
+                }?.let { name -> "$name$" }.orEmpty()
+                "$className${it.propertyName.orEmpty()}"
+            }
             "Missing required property: $path"
         } else {
             "Failed to read request: ${cause.message}"
