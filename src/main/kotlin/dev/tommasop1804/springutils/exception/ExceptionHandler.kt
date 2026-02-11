@@ -9,7 +9,6 @@ import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.isNotNullOrEmpty
-import dev.tommasop1804.kutils.println
 import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.annotations.InternalErrorCode
@@ -89,8 +88,8 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         internal fun findFeatureAnnotation() =
             findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
 
-        internal fun extractErrorCode(ex: HttpMessageNotReadableException): InternalErrorCode? {
-            val cause = ex.cause as? MismatchedInputException ?: return null
+        internal fun extractErrorCode(ex: HttpMessageNotReadableException, backup: MismatchedInputException?): InternalErrorCode? {
+            val cause = ex.cause as? MismatchedInputException ?: backup ?: return null
             val path = cause.path.takeIf { it.isNotEmpty() } ?: return null
             val fieldName = path.last().propertyName ?: return null
 
@@ -138,19 +137,19 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
                 val className = when (val from = it.from()) {
                     is Class<*> -> from.kotlin.qualifiedName
                     else -> from?.javaClass?.kotlin?.qualifiedName
-                }?.let { name -> "$name$" }.orEmpty()
-                "$className${it.propertyName.orEmpty()}"
+                }.orEmpty()
+                $$"$$className$$${it.propertyName.orEmpty()}"
             }
-            "Missing required property: $path"
+            $$"Missing required property: $$path"
         } else {
             "Failed to read request: ${cause.message}"
         }
 
-        val errorCode = extractErrorCode(ex)
+        val errorCode = extractErrorCode(ex, ex.cause as? MismatchedInputException)
         val internalCode = when {
             isMissing -> errorCode?.ifMissing
             else -> errorCode?.ifInvalid
-                ?.find { cause::class.qualifiedName.println(); it.exceptions.forEach { println(it.qualifiedName) }; cause::class in it.exceptions }
+                ?.find { cause::class in it.exceptions }
                 ?.code
         }
         val featureCode = findFeatureAnnotation()

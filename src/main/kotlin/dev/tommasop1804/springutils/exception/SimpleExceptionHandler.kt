@@ -90,15 +90,15 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
                 val className = when (val from = it.from()) {
                     is Class<*> -> from.kotlin.qualifiedName
                     else -> from?.javaClass?.kotlin?.qualifiedName
-                }?.let { name -> "$name$" }.orEmpty()
-                "$className${it.propertyName.orEmpty()}"
+                }.orEmpty()
+                $$"$$className$$${it.propertyName.orEmpty()}"
             }
-            "Missing required property: $path"
+            $$"Missing required property: $$path"
         } else {
             "Failed to read request: ${cause.message}"
         }
 
-        val errorCode = extractErrorCode(ex)
+        val errorCode = extractErrorCode(ex, ex.cause as? MismatchedInputException)
         val internalCode = when {
             isMissing -> errorCode?.ifMissing
             else -> errorCode?.ifInvalid
