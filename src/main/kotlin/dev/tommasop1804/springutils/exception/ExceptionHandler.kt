@@ -168,6 +168,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
         if (internalCode.isNull()) internalCode = environment
             .getProperty("spring-utils.exceptions.internal-error-code.${cause::class.simpleName}")
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+            ?: (if (isMissing) environment.getProperty("spring-utils.exceptions.internal-error-code.missing-property") else null)
         val featureCode = findFeatureAnnotation()
 
         return ResponseEntity(

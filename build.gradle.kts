@@ -15,10 +15,10 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "1.2.1"
+version = "1.2.2"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260212T204807Z
+// Last update: Tommaso Pastorelli | 20260212T211717Z
 
 repositories {
     mavenCentral()
