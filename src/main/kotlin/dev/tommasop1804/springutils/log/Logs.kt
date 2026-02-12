@@ -19,8 +19,8 @@ import kotlin.text.startsWith
 @Component
 @Suppress("LoggingSimilarMessage")
 @OptIn(ConditionNotPreventingExceptions::class)
-object Log {
-    private val LOGGER = LoggerFactory.getLogger(Log::class.java)!!
+object Logs {
+    private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
     // method, class, called by, from service, with id, feature code
     fun logStart(components: Array<LogComponent>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
@@ -36,7 +36,7 @@ object Log {
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
-                    + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
+                    + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + (if (id.isNotNull()) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
         )
@@ -57,7 +57,7 @@ object Log {
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
-                    + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
+                    + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
@@ -88,7 +88,7 @@ object Log {
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
-                    + (if (service.isNotNullOrBlank()) ", from $service" else String.EMPTY)
+                    + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)

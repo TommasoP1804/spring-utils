@@ -8,10 +8,12 @@ import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
+import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.extractErrorCode
 import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.findFeatureAnnotation
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -31,7 +33,7 @@ import kotlin.apply
 
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @ControllerAdvice
-class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
+class SimpleExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
     @JsonSerialize(using = SimpleErrorResponse.Companion.Serializer::class)
     @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = SimpleErrorResponse.Companion.OldSerializer::class)
     data class SimpleErrorResponse(
@@ -100,7 +102,7 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
         }
 
         val errorCode = extractErrorCode(ex, ex.cause as? DatabindException)
-        val internalCode = when {
+        var internalCode = when {
             isMissing -> errorCode?.ifMissing?.ifBlank { null }
             else -> errorCode?.ifInvalid
                 ?.find { mapping ->
@@ -109,6 +111,9 @@ class SimpleExceptionHandler : ResponseEntityExceptionHandler() {
                     }
                 }?.code
         }
+        if (internalCode.isNull()) internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.${cause::class.simpleName}")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val featureCode = findFeatureAnnotation()
 
         return ResponseEntity(

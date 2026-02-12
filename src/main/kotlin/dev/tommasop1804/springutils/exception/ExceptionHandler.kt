@@ -9,12 +9,14 @@ import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.isNotNullOrEmpty
+import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.annotations.InternalErrorCode
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.core.env.Environment
 import org.springframework.http.*
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -33,7 +35,7 @@ import kotlin.reflect.full.findAnnotation
 
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "RFC", matchIfMissing = true)
 @ControllerAdvice
-class ExceptionHandler : ResponseEntityExceptionHandler() {
+class ExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
     @JsonSerialize(using = ExtendedProblemDetail.Companion.Serializer::class)
     @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = ExtendedProblemDetail.Companion.OldSerializer::class)
     data class ExtendedProblemDetail(
@@ -115,12 +117,16 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         val status = getStatus(e)
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.${e::class.simpleName}")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+
         return ResponseEntity(
             ProblemDetail(
                 title = status.reasonPhrase,
                 status = status,
                 detail = message,
-                internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null },
+                internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode,
                 exception = e.cause.isNotNull()({ (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName })
             ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
@@ -150,7 +156,7 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
         }
 
         val errorCode = extractErrorCode(ex, ex.cause as? DatabindException)
-        val internalCode = when {
+        var internalCode = when {
             isMissing -> errorCode?.ifMissing?.ifBlank { null }
             else -> errorCode?.ifInvalid
                 ?.find { mapping ->
@@ -159,6 +165,9 @@ class ExceptionHandler : ResponseEntityExceptionHandler() {
                     }
                 }?.code
         }
+        if (internalCode.isNull()) internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.${cause::class.simpleName}")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val featureCode = findFeatureAnnotation()
 
         return ResponseEntity(

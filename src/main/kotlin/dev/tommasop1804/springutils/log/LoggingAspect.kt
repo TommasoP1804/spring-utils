@@ -58,7 +58,7 @@ class LoggingAspect(
         val methodName = joinPoint.signature.name
         val className = joinPoint.target.javaClass.getSimpleName()
         if (id.get().isNull()) id.set(ULID(monotonic = true))
-        Log.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
+        Logs.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
     }
 
     @After("@annotation(LoggingAfter) || @annotation(Logging) || @within(LoggingAfter) || @within(Logging)")
@@ -79,7 +79,7 @@ class LoggingAspect(
         if (!isAfterThrowing.get()!!) {
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            Log.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
+            Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
         }
         id.remove()
         isAfterThrowing.remove()
@@ -120,7 +120,7 @@ class LoggingAspect(
         val className = joinPoint.target.javaClass.getSimpleName()
         val methodName = joinPoint.signature.name
         val status = getStatus(e)
-        Log.logException(finalComponents, className, methodName, username, "${status.value()} ${status.reasonPhrase}", serviceValue, featureCode, id.get(), e, basePackage)
+        Logs.logException(finalComponents, className, methodName, username, "${status.value()} ${status.reasonPhrase}", serviceValue, featureCode, id.get(), e, basePackage)
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {
