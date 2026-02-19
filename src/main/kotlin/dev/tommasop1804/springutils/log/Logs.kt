@@ -32,12 +32,12 @@ object Logs {
         val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
 
         LOGGER.info(
-            "\u001B[34m▶︎\u001B[0m STARTED "
+            (if (id.isNotNull()) "$id | " else String.EMPTY)
+                    + "\u001B[34m▶︎\u001B[0m STARTED "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
-                    + (if (id.isNotNull()) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
         )
     }
@@ -53,18 +53,17 @@ object Logs {
         val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
 
         LOGGER.info(
-            "\u001B[32m✓\u001B[0m ENDED   "
+            (if (LogComponent.ID in components) "$id | " else String.EMPTY)
+                    + "\u001B[32m✓\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
-                    + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
         )
     }
 
-    // method, class, called by, from service, with id, feature code, elapsed time, status, exception, stacktrace
     fun logException(components: Array<LogComponent>, clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: ULID, e: Throwable?, basePackage: String?) {
         val clazz = clazz whenTrue (LogComponent.CLASS_NAME in components)
         val method = method whenTrue (LogComponent.FUNCTION_NAME in components)
@@ -84,12 +83,12 @@ object Logs {
         }
 
         LOGGER.error(
-            "\u001B[31m✖\u001B[0m ENDED   "
+            (if (LogComponent.ID in components) "$id | " else String.EMPTY)
+                    + "\u001B[31m✖\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
-                    + (if (LogComponent.ID in components) ", with id: $id" else String.EMPTY)
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)

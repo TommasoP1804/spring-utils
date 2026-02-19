@@ -15,14 +15,26 @@ import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.annotations.InternalErrorCode
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
+import org.springframework.beans.ConversionNotSupportedException
+import org.springframework.beans.TypeMismatchException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.env.Environment
 import org.springframework.http.*
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.http.converter.HttpMessageNotWritableException
+import org.springframework.web.HttpMediaTypeNotAcceptableException
+import org.springframework.web.HttpMediaTypeNotSupportedException
+import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingPathVariableException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.multipart.MaxUploadSizeExceededException
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.DatabindException
 import tools.jackson.databind.SerializationContext
@@ -167,8 +179,8 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
         }
         if (internalCode.isNull()) internalCode = environment
             .getProperty("spring-utils.exceptions.internal-error-code.${cause::class.simpleName}")
-            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
             ?: (if (isMissing) environment.getProperty("spring-utils.exceptions.internal-error-code.missing-property") else null)
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val featureCode = findFeatureAnnotation()
 
         return ResponseEntity(
@@ -184,6 +196,343 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                     put("Feature-Code", featureCode.asSingleList())
             },
             httpStatus
+        )
+    }
+
+    override fun handleMissingPathVariable(
+        ex: MissingPathVariableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.missing-path-variable")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}$$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleMissingServletRequestParameter(
+        ex: MissingServletRequestParameterException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.missing-request-param")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        val methodParameter = ex.methodParameter
+        val methodParameterPresent = ex.methodParameter.isNotNull()
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) "(`${methodParameter!!.containingClass.simpleName}$${methodParameter.method}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
+                internalErrorCode = internalCode
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleMissingServletRequestPart(
+        ex: MissingServletRequestPartException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.missing-request-part")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = $$"Missing request part: $${ex.requestPartName}",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleHttpRequestMethodNotSupported(
+        ex: HttpRequestMethodNotSupportedException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.method-not-supported")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "HTTP method not supported: ${ex.method}${if (ex.supportedMethods.isNotNull() && ex.supportedMethods!!.isNotEmpty()) ". Choose one of [${ex.supportedMethods!!.joinToString(", ")}]" else String.EMPTY}",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleHttpMediaTypeNotSupported(
+        ex: HttpMediaTypeNotSupportedException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.media-type-not-supported")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "HTTP media type not supported: ${ex.contentType}. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleHttpMediaTypeNotAcceptable(
+        ex: HttpMediaTypeNotAcceptableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.media-type-not-acceptable")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "HTTP media type not acceptable. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleMethodArgumentNotValid(
+        ex: MethodArgumentNotValidException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.invalid-method-argument")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Invalid parameter: ${ex.parameter} ${"(`${ex.parameter.containingClass.simpleName}$${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
+                internalErrorCode = internalErrorCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleNoResourceFoundException(
+        ex: NoResourceFoundException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.resource-not-found")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Resource not found: ${ex.resourcePath} with method ${ex.httpMethod}",
+                internalErrorCode = internalErrorCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleConversionNotSupported(
+        ex: ConversionNotSupportedException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.conversion-not-supported")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.INTERNAL_SERVER_ERROR
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Conversion not supported: ${ex.message}",
+                internalErrorCode = internalErrorCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleTypeMismatch(
+        ex: TypeMismatchException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.type-mismatch")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.INTERNAL_SERVER_ERROR
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Type mismatch. Required `${ex.requiredType?.simpleName}`",
+                internalErrorCode = internalErrorCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleMaxUploadSizeExceededException(
+        ex: MaxUploadSizeExceededException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.max-upload-size-exceeded")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Maximum upload size exceeded. Allowed: ${(if (ex.maxUploadSize == -1L) "unknown number of" else ex.maxUploadSize)} bytes",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    override fun handleHttpMessageNotWritable(
+        ex: HttpMessageNotWritableException,
+        headers: HttpHeaders,
+        status: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.http-message-not-writable")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.INTERNAL_SERVER_ERROR
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Failed to write HTTP message. ${ex.message}",
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
         )
     }
 }
