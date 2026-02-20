@@ -83,7 +83,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
         return ResponseEntity(SimpleErrorResponse(
-            status.reasonPhrase + e.cause.isNotNull()({ ": " + (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName ?: e::class.qualifiedName }),
+            status.reasonPhrase + ": " + e.cause.isNotNull()({ e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName }, { e::class.simpleName ?: e::class.qualifiedName }),
             message,
             e.message?.before(" @@@ ")?.ifBlank { null }
         ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
@@ -131,7 +131,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = httpStatus.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = httpStatus.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = detail,
                 internalErrorCode = internalCode
             ),
@@ -157,7 +157,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}$$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
                 internalErrorCode = internalCode
             ),
@@ -185,7 +185,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
         val methodParameterPresent = ex.methodParameter.isNotNull()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) "(`${methodParameter!!.containingClass.simpleName}$${methodParameter.method}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
@@ -211,7 +211,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = $$"Missing request part: $${ex.requestPartName}",
                 internalErrorCode = internalCode
             ),
@@ -237,7 +237,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "HTTP method not supported: ${ex.method}${if (ex.supportedMethods.isNotNull() && ex.supportedMethods!!.isNotEmpty()) ". Choose one of [${ex.supportedMethods!!.joinToString(", ")}]" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
@@ -263,7 +263,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "HTTP media type not supported: ${ex.contentType}. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode
             ),
@@ -289,7 +289,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "HTTP media type not acceptable. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode
             ),
@@ -315,7 +315,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Invalid parameter: ${ex.parameter} ${"(`${ex.parameter.containingClass.simpleName}$${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
                 internalErrorCode = internalErrorCode
             ),
@@ -341,8 +341,8 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
-                description = "Resource not found: ${ex.resourcePath} with method ${ex.httpMethod}",
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                description = "Resource with this path not found: ${ex.resourcePath}",
                 internalErrorCode = internalErrorCode
             ),
             HttpHeaders().apply {
@@ -367,7 +367,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Conversion not supported: ${ex.message}",
                 internalErrorCode = internalErrorCode
             ),
@@ -393,7 +393,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Type mismatch. Required `${ex.requiredType?.simpleName}`",
                 internalErrorCode = internalErrorCode
             ),
@@ -419,7 +419,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Maximum upload size exceeded. Allowed: ${(if (ex.maxUploadSize == -1L) "unknown number of" else ex.maxUploadSize)} bytes",
                 internalErrorCode = internalCode
             ),
@@ -445,7 +445,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Failed to write HTTP message. ${ex.message}",
                 internalErrorCode = internalCode
             ),

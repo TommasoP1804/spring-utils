@@ -217,7 +217,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}$$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -246,7 +246,8 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 title = status.reasonPhrase,
                 status = status,
                 detail = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) "(`${methodParameter!!.containingClass.simpleName}$${methodParameter.method}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
-                internalErrorCode = internalCode
+                internalErrorCode = internalCode,
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -274,7 +275,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = $$"Missing request part: $${ex.requestPartName}",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -302,7 +303,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "HTTP method not supported: ${ex.method}${if (ex.supportedMethods.isNotNull() && ex.supportedMethods!!.isNotEmpty()) ". Choose one of [${ex.supportedMethods!!.joinToString(", ")}]" else String.EMPTY}",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -330,7 +331,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "HTTP media type not supported: ${ex.contentType}. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -358,7 +359,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "HTTP media type not acceptable. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -386,7 +387,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "Invalid parameter: ${ex.parameter} ${"(`${ex.parameter.containingClass.simpleName}$${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
                 internalErrorCode = internalErrorCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -412,9 +413,9 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
             ProblemDetail(
                 title = status.reasonPhrase,
                 status = status,
-                detail = "Resource not found: ${ex.resourcePath} with method ${ex.httpMethod}",
+                detail = "Resource with this path not found",
                 internalErrorCode = internalErrorCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -442,7 +443,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "Conversion not supported: ${ex.message}",
                 internalErrorCode = internalErrorCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -470,7 +471,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "Type mismatch. Required `${ex.requiredType?.simpleName}`",
                 internalErrorCode = internalErrorCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -498,7 +499,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "Maximum upload size exceeded. Allowed: ${(if (ex.maxUploadSize == -1L) "unknown number of" else ex.maxUploadSize)} bytes",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
@@ -526,7 +527,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = "Failed to write HTTP message. ${ex.message}",
                 internalErrorCode = internalCode,
-                exception = ex.cause.isNotNull()({ ": " + (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) }, { ex::class.simpleName ?: ex::class.qualifiedName })
+                exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
