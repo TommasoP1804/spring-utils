@@ -9,27 +9,27 @@ import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.whenTrue
+import dev.tommasop1804.springutils.log.LogExecution.Component
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.Duration
 import kotlin.text.startsWith
+import org.springframework.stereotype.Component as SpringComponent
 
-@Component
+@SpringComponent
 @Suppress("LoggingSimilarMessage")
 @OptIn(ConditionNotPreventingExceptions::class)
 object Logs {
     private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
-    // method, class, called by, from service, with id, feature code
-    fun logStart(components: Array<LogComponent>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
-        val clazz = clazz whenTrue (LogComponent.CLASS_NAME in components)
-        val method = method whenTrue (LogComponent.FUNCTION_NAME in components)
-        val username = username whenTrue (LogComponent.USER in components)
-        val service = service whenTrue (LogComponent.SERVICE in components)
-        val id = id whenTrue (LogComponent.ID in components)
-        val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
+    fun logStart(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
+        val clazz = clazz whenTrue (Component.CLASS_NAME in components)
+        val method = method whenTrue (Component.FUNCTION_NAME in components)
+        val username = username whenTrue (Component.USER in components)
+        val service = service whenTrue (Component.SERVICE in components)
+        val id = id whenTrue (Component.ID in components)
+        val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
 
         LOGGER.info(
             (if (id.isNotNull()) "$id | " else String.EMPTY)
@@ -42,18 +42,17 @@ object Logs {
         )
     }
 
-    // method, class, called by, from service, with id, feature code, elapsed time
-    fun logEnd(components: Array<LogComponent>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
-        val clazz = clazz whenTrue (LogComponent.CLASS_NAME in components)
-        val method = method whenTrue (LogComponent.FUNCTION_NAME in components)
-        val username = username whenTrue (LogComponent.USER in components)
-        val service = service whenTrue (LogComponent.SERVICE in components)
-        val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
+    fun logEnd(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
+        val clazz = clazz whenTrue (Component.CLASS_NAME in components)
+        val method = method whenTrue (Component.FUNCTION_NAME in components)
+        val username = username whenTrue (Component.USER in components)
+        val service = service whenTrue (Component.SERVICE in components)
+        val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
         val end = Instant()
-        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
+        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ELAPSED_TIME in components)
 
         LOGGER.info(
-            (if (LogComponent.ID in components) "$id | " else String.EMPTY)
+            (if (Component.ID in components) "$id | " else String.EMPTY)
                     + "\u001B[32m✓\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
@@ -64,15 +63,15 @@ object Logs {
         )
     }
 
-    fun logException(components: Array<LogComponent>, clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: ULID, e: Throwable?, basePackage: String?) {
-        val clazz = clazz whenTrue (LogComponent.CLASS_NAME in components)
-        val method = method whenTrue (LogComponent.FUNCTION_NAME in components)
-        val username = username whenTrue (LogComponent.USER in components)
-        val service = service whenTrue (LogComponent.SERVICE in components)
-        val featureCode = featureCode whenTrue (LogComponent.FEATURE_CODE in components)
+    fun logException(components: Array<Component>, clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: ULID, e: Throwable?, basePackage: String?) {
+        val clazz = clazz whenTrue (Component.CLASS_NAME in components)
+        val method = method whenTrue (Component.FUNCTION_NAME in components)
+        val username = username whenTrue (Component.USER in components)
+        val service = service whenTrue (Component.SERVICE in components)
+        val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
         val end = Instant()
-        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (LogComponent.ELAPSED_TIME in components)
-        val status = status whenTrue (LogComponent.STATUS in components)
+        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ELAPSED_TIME in components)
+        val status = status whenTrue (Component.STATUS in components)
         val stackTrace = e.getPrettyStackTrace(basePackage)
         var index = -1
         for (i in stackTrace.indices) {
@@ -83,7 +82,7 @@ object Logs {
         }
 
         LOGGER.error(
-            (if (LogComponent.ID in components) "$id | " else String.EMPTY)
+            (if (Component.ID in components) "$id | " else String.EMPTY)
                     + "\u001B[31m✖\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
@@ -92,8 +91,8 @@ object Logs {
                     + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
-                    + (if (LogComponent.EXCEPTION in components) ", with exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
-                    + (if (LogComponent.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
+                    + (if (Component.EXCEPTION in components) ", with exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
+                    + (if (Component.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
         )
     }
 

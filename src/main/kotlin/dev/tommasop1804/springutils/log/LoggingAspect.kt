@@ -38,95 +38,113 @@ class LoggingAspect(
         id.get()
     } else ULID(id.get().toString())
 
-    @Before("@annotation(LoggingBefore) || @annotation(Logging) || @within(LoggingBefore) || @within(Logging)")
+    @Before("@annotation(LogExecution) || @within(LogExecution)")
     fun logBefore(joinPoint: JoinPoint) {
-        val signature = joinPoint.signature as MethodSignature
-        val parameterNames = signature.parameterNames
-        val args = joinPoint.args
-        val serviceIndex = parameterNames.indexOf("fromService")
-        val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
-        val featureCode = (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
-
-        isAfterThrowing.set(false)
-
-        val compontents = signature.method.getAnnotation(LoggingBefore::class.java)?.then { exclude to includeOnly }
-            ?: signature.method.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
-            ?: joinPoint.target.javaClass.getAnnotation(LoggingBefore::class.java)?.then { exclude to includeOnly }
-            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
-        val finalComponents = checkExcludeOrInclude(compontents?.first ?: emptyArray(), compontents?.second ?: emptyArray())
-
-        val methodName = joinPoint.signature.name
-        val className = joinPoint.target.javaClass.getSimpleName()
         if (id.get().isNull()) id.set(ULID(monotonic = true))
-        Logs.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
-    }
-
-    @After("@annotation(LoggingAfter) || @annotation(Logging) || @within(LoggingAfter) || @within(Logging)")
-    fun logAfter(joinPoint: JoinPoint) {
         val signature = joinPoint.signature as MethodSignature
-        val parameterNames = signature.parameterNames
-        val args = joinPoint.args
-        val serviceIndex = parameterNames.indexOf("fromService")
-        val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
-        val featureCode = (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+        val annotation = signature.method.getAnnotation(LogExecution::class.java)
+            ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
-        val compontents = signature.method.getAnnotation(LoggingAfter::class.java)?.then { exclude to includeOnly }
-            ?: signature.method.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
-            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfter::class.java)?.then { exclude to includeOnly }
-            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
-        val finalComponents = checkExcludeOrInclude(compontents?.first ?: emptyArray(), compontents?.second ?: emptyArray())
+        if (annotation?.behaviour == LogExecution.Behaviour.ALL || annotation?.behaviour == LogExecution.Behaviour.BEFORE) {
+            val parameterNames = signature.parameterNames
+            val args = joinPoint.args
+            val serviceIndex = parameterNames.indexOf("fromService")
+            val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
+            val featureCode =
+                (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
-        if (!isAfterThrowing.get()!!) {
+            isAfterThrowing.set(false)
+
+            val compontents = annotation.then { exclude to includeOnly }
+            val finalComponents =
+                checkExcludeOrInclude(compontents.first, compontents.second)
+
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
+            Logs.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, id.get()!!)
+        }
+    }
+
+    @After("@annotation(LogExecution) || @within(LogExecution)")
+    fun logAfter(joinPoint: JoinPoint) {
+        val signature = joinPoint.signature as MethodSignature
+        val annotation = signature.method.getAnnotation(LogExecution::class.java)
+            ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
+
+        if (annotation?.behaviour == LogExecution.Behaviour.ALL || annotation?.behaviour == LogExecution.Behaviour.AFTER) {
+            val parameterNames = signature.parameterNames
+            val args = joinPoint.args
+            val serviceIndex = parameterNames.indexOf("fromService")
+            val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
+            val featureCode =
+                (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+
+            val compontents = annotation.then { exclude to includeOnly }
+            val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
+
+            if (!isAfterThrowing.get()!!) {
+                val methodName = joinPoint.signature.name
+                val className = joinPoint.target.javaClass.getSimpleName()
+                Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
+            }
         }
         id.remove()
         isAfterThrowing.remove()
     }
 
     @AfterThrowing(
-        pointcut = "@annotation(dev.tommasop1804.springutils.log.LoggingAfterThrowing) || @annotation(dev.tommasop1804.springutils.log.Logging) || @within(dev.tommasop1804.springutils.log.LoggingAfterThrowing) || @within(dev.tommasop1804.springutils.log.Logging)",
+        pointcut = "@annotation(LogExecution) || @within(LogExecution)",
         throwing = "e"
     )
     fun logAfterThrowing(joinPoint: JoinPoint, e: Throwable) {
         val signature = joinPoint.signature as MethodSignature
-        val parameterNames = signature.parameterNames
-        val args = joinPoint.args
-        val serviceIndex = parameterNames.indexOf("fromService")
-        val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
-        val featureCode = (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+        val annotation = signature.method.getAnnotation(LogExecution::class.java)
+            ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
-        var (basePackage, includeHighlight) = signature.method.getAnnotation(LoggingAfterThrowing::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
-            ?: signature.method.getAnnotation(Logging::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
-            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfterThrowing::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
-            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { basePackage.ifEmpty { null } to includeHighlight }
-            ?: (null to false)
-        if (!includeHighlight) basePackage = null
-        else {
-            if (basePackage.isNull()) basePackage = tryOrNull {
-                signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
-            } ?: joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+        if (annotation?.behaviour == LogExecution.Behaviour.ALL || annotation?.behaviour == LogExecution.Behaviour.AFTER_THROWING) {
+            val parameterNames = signature.parameterNames
+            val args = joinPoint.args
+            val serviceIndex = parameterNames.indexOf("fromService")
+            val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
+            val featureCode =
+                (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+
+            var (basePackage, includeHighlight) = annotation.then { basePackage.ifEmpty { null } to includeHighlight }
+            if (!includeHighlight) basePackage = null
+            else {
+                if (basePackage.isNull()) basePackage = tryOrNull {
+                    signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+                } ?: joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+            }
+
+            val compontents = annotation.then { exclude to includeOnly }
+            val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
+
+            isAfterThrowing.set(true)
+
+            val className = joinPoint.target.javaClass.getSimpleName()
+            val methodName = joinPoint.signature.name
+            val status = getStatus(e)
+            Logs.logException(
+                finalComponents,
+                className,
+                methodName,
+                username,
+                "${status.value()} ${status.reasonPhrase}",
+                serviceValue,
+                featureCode,
+                id.get(),
+                e,
+                basePackage
+            )
         }
-
-        val compontents = signature.method.getAnnotation(LoggingAfterThrowing::class.java)?.then { exclude to includeOnly }
-            ?: signature.method.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
-            ?: joinPoint.target.javaClass.getAnnotation(LoggingAfterThrowing::class.java)?.then { exclude to includeOnly }
-            ?: joinPoint.target.javaClass.getAnnotation(Logging::class.java)?.then { exclude to includeOnly }
-        val finalComponents = checkExcludeOrInclude(compontents?.first ?: emptyArray(), compontents?.second ?: emptyArray())
-
-        isAfterThrowing.set(true)
-
-        val className = joinPoint.target.javaClass.getSimpleName()
-        val methodName = joinPoint.signature.name
-        val status = getStatus(e)
-        Logs.logException(finalComponents, className, methodName, username, "${status.value()} ${status.reasonPhrase}", serviceValue, featureCode, id.get(), e, basePackage)
+        id.remove()
     }
 
-    private fun checkExcludeOrInclude(exclude: Array<LogComponent>, includeOnly: Array<LogComponent>): Array<LogComponent> {
-        if (exclude.isEmpty() && includeOnly.isEmpty()) return LogComponent.entries.toTypedArray()
-        if (exclude.isNotEmpty() && includeOnly.isEmpty()) return LogComponent.entries.filterNot { it in exclude }.toTypedArray()
+    private fun checkExcludeOrInclude(exclude: Array<LogExecution.Component>, includeOnly: Array<LogExecution.Component>): Array<LogExecution.Component> {
+        if (exclude.isEmpty() && includeOnly.isEmpty()) return LogExecution.Component.entries.toTypedArray()
+        if (exclude.isNotEmpty() && includeOnly.isEmpty()) return LogExecution.Component.entries.filterNot { it in exclude }.toTypedArray()
         if (exclude.isEmpty()) return includeOnly
-        return LogComponent.entries.filterNot { it in exclude }.filter { it in includeOnly }.toTypedArray()
+        return LogExecution.Component.entries.filterNot { it in exclude }.filter { it in includeOnly }.toTypedArray()
     }
 }
