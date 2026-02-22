@@ -82,10 +82,14 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
+        val internalCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.${e::class.simpleName}")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+
         return ResponseEntity(SimpleErrorResponse(
             status.reasonPhrase + ": " + e.cause.isNotNull()({ e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName }, { e::class.simpleName ?: e::class.qualifiedName }),
             message,
-            e.message?.before(" @@@ ")?.ifBlank { null }
+            e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
         ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
 
