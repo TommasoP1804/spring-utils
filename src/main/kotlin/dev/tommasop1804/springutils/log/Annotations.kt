@@ -8,7 +8,7 @@ package dev.tommasop1804.springutils.log
 )
 @Retention(AnnotationRetention.RUNTIME)
 annotation class LogExecution(
-    val behaviour: Behaviour = Behaviour.ALL,
+    val behaviour: Array<Behaviour> = [Behaviour.BEFORE, Behaviour.AFTER, Behaviour.AFTER_THROWING],
     val basePackage: String = "",
     val includeHighlight: Boolean = true,
     val exclude: Array<Component> = [],
@@ -31,7 +31,6 @@ annotation class LogExecution(
         BEFORE,
         AFTER,
         AFTER_THROWING,
-        ALL,
         @Suppress("unused") NONE
     }
 }

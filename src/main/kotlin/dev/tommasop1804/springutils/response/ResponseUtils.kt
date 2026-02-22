@@ -216,7 +216,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
-            if (eTag !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+            if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -286,7 +286,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
-        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
@@ -359,7 +359,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
-            if (eTag !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+            if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -429,7 +429,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
-        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
@@ -494,7 +494,7 @@ fun <T : Any> conditionalUpdate(
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
-            if (eTag !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+            if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -555,7 +555,7 @@ fun <T : Any> conditionalUpdate(
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
-        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
@@ -619,7 +619,7 @@ fun <T : Any> conditionalUpdate(
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
-            if (eTag !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+            if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -681,7 +681,7 @@ fun <T : Any> conditionalUpdate(
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
-        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch mappedTo { it - Char.QUOTATION_MARK })
+        if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
@@ -1294,8 +1294,8 @@ internal fun generateMultiStatusMap(results: List<ResourceResult>, httpVersion: 
 }
 internal fun generateMultiStatusGroupedMap(results: List<ResourceResult>, httpVersion: String): MultiMap<HttpStatus, DataMap> {
     val grouped = results groupedBy ResourceResult::statusCode
-    return grouped valuesMappedTo {
-        it.value mappedTo { result ->
+    return grouped.mapValues {
+        it.value.map { result ->
             val map: DataMMap = emptyMMap()
             map["reference"] = result.reference
             map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value() + Char.SPACE + result.statusCode.reasonPhrase
@@ -1305,11 +1305,11 @@ internal fun generateMultiStatusGroupedMap(results: List<ResourceResult>, httpVe
     }
 }
 internal fun generateMultiStatusGroupedByCategoryMap(results: List<ResourceResult>, httpVersion: String): MultiMap<String, DataMap> {
-    val status1x = results { it.statusCode.is1xxInformational }
-    val status2x = results { it.statusCode.is2xxSuccessful }
-    val status3x = results { it.statusCode.is3xxRedirection }
-    val status4x = results { it.statusCode.is4xxClientError }
-    val status5x = results { it.statusCode.is5xxServerError }
+    val status1x = results.filter { it.statusCode.is1xxInformational }
+    val status2x = results.filter { it.statusCode.is2xxSuccessful }
+    val status3x = results.filter { it.statusCode.is3xxRedirection }
+    val status4x = results.filter { it.statusCode.is4xxClientError }
+    val status5x = results.filter { it.statusCode.is5xxServerError }
 
     val map: MMap<String, List<DataMap>> = emptyMMap()
     if (status1x.isNotEmpty()) map["informational"] = generateMultiStatusMap(status1x, httpVersion)
@@ -1447,7 +1447,6 @@ fun <T : Any> IMUsedResponse(
  * @param location The URI to which the user agent should be redirected.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
- * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param retryAfter optional duration after which the client should retry the request
  * @param action An optional action to be executed during the response building process.
  * @return A `Response` instance with the specified HTTP status, headers, and location.
@@ -1516,7 +1515,6 @@ fun SeeOtherResponse(
  * @param location The URI to which the user agent should be redirected.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
- * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param retryAfter optional duration after which the client should retry the request
  * @param action An optional action to be executed during the response building process.
  * @return A `Response` instance with the specified HTTP status, headers, and location.
@@ -1740,8 +1738,6 @@ fun MovedPermanentlyResponse(
  * Creates a response with HTTP status 301 (Moved Permanently).
  *
  * @param featureCode a string representing the feature code to be added as a custom header in the response.
- * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
- * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional HTTP headers to be included in the response (overrides any other header parameters of this method).
  * @param location a URI indicating the new location of the requested resource.
  * @param action an optional action to be executed during the construction of the response.

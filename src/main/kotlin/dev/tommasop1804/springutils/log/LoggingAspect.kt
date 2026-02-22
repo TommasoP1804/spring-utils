@@ -45,7 +45,7 @@ class LoggingAspect(
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
-        if (annotation?.behaviour == LogExecution.Behaviour.ALL || annotation?.behaviour == LogExecution.Behaviour.BEFORE) {
+        if (annotation?.behaviour?.contains(LogExecution.Behaviour.BEFORE) == true) {
             val parameterNames = signature.parameterNames
             val args = joinPoint.args
             val serviceIndex = parameterNames.indexOf("fromService")
@@ -71,7 +71,7 @@ class LoggingAspect(
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
-        if (annotation?.behaviour == LogExecution.Behaviour.ALL || annotation?.behaviour == LogExecution.Behaviour.AFTER) {
+        if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER) == true) {
             val parameterNames = signature.parameterNames
             val args = joinPoint.args
             val serviceIndex = parameterNames.indexOf("fromService")
@@ -101,7 +101,7 @@ class LoggingAspect(
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
-        if (annotation?.behaviour == LogExecution.Behaviour.ALL || annotation?.behaviour == LogExecution.Behaviour.AFTER_THROWING) {
+        if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER_THROWING) == true) {
             val parameterNames = signature.parameterNames
             val args = joinPoint.args
             val serviceIndex = parameterNames.indexOf("fromService")

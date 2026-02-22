@@ -19,7 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  *
  * Returns `null` if the header is not present.
  *
- * The parameter type of the annotated method parameter must be `Pair<UInt, UInt>`.
+ * The parameter type of the annotated method parameter must be `Pair<Int, Int>`.
  * The first element is the incremental directive, the second is the urgency parameter.
  * @since 1.0.0
  * @author Tommaso Pastorelli
@@ -39,13 +39,13 @@ class PriorityArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): MonoPair<UInt>? = webRequest.getHeader("Priority")
+    ): Int2? = webRequest.getHeader("Priority")
         ?.then {
             try {
                 val newValue = if ("u=" in this) this / Char.COMMA else asSingleList()
-                if (newValue.isSingleElement) newValue[0].toUInt() to 3u
-                else newValue[{ it notStartsWith "u=" }]!!.toUInt() to (newValue[{ it startsWith "u=" }]!! after "u=").toUInt().validate { this in 0u..7u }
-            } catch (e: Exception) {
+                if (newValue.isSingleElement) newValue[0].toInt() to 3
+                else newValue[{ notStartsWith("u=") }]!!.toInt() to (newValue[{ startsWith("u=") }]!! after "u=").toInt().validate { this in 0..7 }
+            } catch (_: Exception) {
                 throw BadRequestException("Malformed header Priority")
             }
         }
