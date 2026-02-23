@@ -97,6 +97,8 @@ class LoggingAspect(
         throwing = "e"
     )
     fun logAfterThrowing(joinPoint: JoinPoint, e: Throwable) {
+        isAfterThrowing.set(true)
+
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
@@ -119,8 +121,6 @@ class LoggingAspect(
 
             val compontents = annotation.then { exclude to includeOnly }
             val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
-
-            isAfterThrowing.set(true)
 
             val className = joinPoint.target.javaClass.getSimpleName()
             val methodName = joinPoint.signature.name

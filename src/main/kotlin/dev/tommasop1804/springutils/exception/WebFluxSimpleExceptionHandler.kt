@@ -48,7 +48,7 @@ class WebFluxSimpleExceptionHandler(
         response.headers.put("Feature-Code", findFeatureAnnotation().asSingleList())
         response.headers.contentType = MediaType.APPLICATION_JSON
         val body = SimpleErrorResponse(
-            status.reasonPhrase + ": " + e.cause.isNotNull()({ e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName }, { e::class.simpleName ?: e::class.qualifiedName }),
+            status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
             message,
             e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
         )

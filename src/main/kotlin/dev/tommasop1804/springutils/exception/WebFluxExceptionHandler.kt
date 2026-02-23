@@ -52,7 +52,7 @@ class WebFluxExceptionHandler(
             status = status,
             detail = message,
             internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode,
-            exception = e.cause.isNotNull()({ (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName })
+            exception = e::class.simpleName
         )
         return response.writeWith(Mono.just(response.bufferFactory().wrap(objectMapper.writeValueAsString(body).toByteArray(Charsets.UTF_8))))
     }

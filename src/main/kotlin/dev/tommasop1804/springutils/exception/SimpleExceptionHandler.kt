@@ -87,7 +87,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
 
         return ResponseEntity(SimpleErrorResponse(
-            status.reasonPhrase + ": " + e.cause.isNotNull()({ e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName }, { e::class.simpleName ?: e::class.qualifiedName }),
+            status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
             message,
             e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
         ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)

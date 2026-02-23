@@ -9,6 +9,10 @@ import dev.tommasop1804.kutils.classes.time.TimeZone
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.*
+import dev.tommasop1804.springutils.reactive.request.MalformedPathVariableException
+import dev.tommasop1804.springutils.reactive.request.MalformedQueryParamException
+import dev.tommasop1804.springutils.reactive.request.RequiredPathVariableException
+import dev.tommasop1804.springutils.reactive.request.RequiredQueryParamException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -167,7 +171,13 @@ internal fun findCallerMethod(): Method? = tryOrNull {
 
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
-    is BadRequestException, is RequiredFieldException, is RequiredParameterException, is MalformedInputException -> HttpStatus.BAD_REQUEST
+    is BadRequestException,
+    is RequiredFieldException,
+    is RequiredParameterException,
+    is RequiredPathVariableException,
+    is RequiredQueryParamException,
+    is RequiredHeaderException,
+    is MalformedInputException -> HttpStatus.BAD_REQUEST
     is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException -> HttpStatus.CONFLICT
     is ExpectationFailedException -> HttpStatus.EXPECTATION_FAILED
     is FailedDependencyException -> HttpStatus.FAILED_DEPENDENCY

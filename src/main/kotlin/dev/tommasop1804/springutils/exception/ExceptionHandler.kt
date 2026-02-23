@@ -139,7 +139,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
                 status = status,
                 detail = message,
                 internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode,
-                exception = e.cause.isNotNull()({ (e.cause!!::class.simpleName ?: e.cause!!::class.qualifiedName) }, { e::class.simpleName })
+                exception = e::class.simpleName ?: e::class.qualifiedName
             ), HttpHeaders().apply { put("Feature-Code", findFeatureAnnotation().asSingleList()) }, status)
     }
 
