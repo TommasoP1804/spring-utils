@@ -183,7 +183,7 @@ internal fun getStatus(e: Throwable) = when (e) {
     is FailedDependencyException -> HttpStatus.FAILED_DEPENDENCY
     is ForbiddenException, is InsufficientPermissionsException -> HttpStatus.FORBIDDEN
     is GatewayTimeoutException -> HttpStatus.GATEWAY_TIMEOUT
-    is GoneException -> HttpStatus.GONE
+    is GoneException, is ResourceDeletedException -> HttpStatus.GONE
     is InsufficientStorageException -> HttpStatus.INSUFFICIENT_STORAGE
     is LengthRequiredException -> HttpStatus.LENGTH_REQUIRED
     is LockedException, is ResourceLockedException -> HttpStatus.LOCKED

@@ -56,8 +56,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:1.1.5")
-    implementation("dev.tommasop1804:kotlin-utils:1.1.5")
+    aspect("dev.tommasop1804:kotlin-utils:1.1.6")
+    implementation("dev.tommasop1804:kotlin-utils:1.1.6")
 }
 
 kotlin {
@@ -103,7 +103,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "2.0.0-BETA2")
+    coordinates("dev.tommasop1804", "spring-utils", "2.0.0-BETA3")
 
     pom {
         name.set("Spring Utils")
