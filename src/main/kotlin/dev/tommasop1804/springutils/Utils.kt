@@ -9,8 +9,6 @@ import dev.tommasop1804.kutils.classes.time.TimeZone
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.*
-import dev.tommasop1804.springutils.reactive.request.MalformedPathVariableException
-import dev.tommasop1804.springutils.reactive.request.MalformedQueryParamException
 import dev.tommasop1804.springutils.reactive.request.RequiredPathVariableException
 import dev.tommasop1804.springutils.reactive.request.RequiredQueryParamException
 import org.springframework.http.HttpHeaders
@@ -72,14 +70,14 @@ fun ProblemDetail(
     internalErrorCode: String? = null,
     exception: String? = null,
     extensions: DataMapNN = emptyMap()
-): ExceptionHandler.ExtendedProblemDetail {
+): ServletExceptionHandler.ExtendedProblemDetail {
     val result = ProblemDetail.forStatus(status)
     if (title.isNotNull()) result.title = title
     if (type.isNotNull()) result.type = type
     if (detail.isNotNull()) result.detail = detail
     if (instance.isNotNull()) result.instance = instance
     for ((key, value) in extensions) result.setProperty(key, value)
-    return ExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
+    return ServletExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
 }
 fun ProblemDetail(
     title: String? = null,
@@ -90,14 +88,14 @@ fun ProblemDetail(
     internalErrorCode: String? = null,
     exception: String? = null,
     extensions: DataMapNN = emptyMap()
-): ExceptionHandler.ExtendedProblemDetail {
+): ServletExceptionHandler.ExtendedProblemDetail {
     val result = ProblemDetail.forStatus(status)
     if (title.isNotNull()) result.title = title
     if (type.isNotNull()) result.type = type
     if (detail.isNotNull()) result.detail = detail
     if (instance.isNotNull()) result.instance = instance
     for ((key, value) in extensions) result.setProperty(key, value)
-    return ExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
+    return ServletExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
 }
 
 /**
