@@ -6,7 +6,7 @@ import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.security.username
 import org.aspectj.lang.JoinPoint
-import org.aspectj.lang.annotation.After
+import org.aspectj.lang.annotation.AfterReturning
 import org.aspectj.lang.annotation.AfterThrowing
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.annotation.Before
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component
 @Suppress("unused")
 class LoggingAspect(
     private val id: ThreadLocal<ULID> = ThreadLocal<ULID>(),
-    private val isAfterThrowing: ThreadLocal<Boolean> = ThreadLocal.withInitial { false },
 ) {
     /**
      * A computed property that retrieves the current unique identifier (ULID) associated
@@ -53,8 +52,6 @@ class LoggingAspect(
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
-            isAfterThrowing.set(false)
-
             val compontents = annotation.then { exclude to includeOnly }
             val finalComponents =
                 checkExcludeOrInclude(compontents.first, compontents.second)
@@ -65,7 +62,7 @@ class LoggingAspect(
         }
     }
 
-    @After("@annotation(LogExecution) || @within(LogExecution)")
+    @AfterReturning("@annotation(LogExecution) || @within(LogExecution)")
     fun logAfter(joinPoint: JoinPoint) {
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
@@ -82,14 +79,11 @@ class LoggingAspect(
             val compontents = annotation.then { exclude to includeOnly }
             val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
 
-            if (!isAfterThrowing.get()!!) {
-                val methodName = joinPoint.signature.name
-                val className = joinPoint.target.javaClass.getSimpleName()
-                Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
-            }
+            val methodName = joinPoint.signature.name
+            val className = joinPoint.target.javaClass.getSimpleName()
+            Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, id.get())
         }
         id.remove()
-        isAfterThrowing.remove()
     }
 
     @AfterThrowing(
@@ -97,8 +91,6 @@ class LoggingAspect(
         throwing = "e"
     )
     fun logAfterThrowing(joinPoint: JoinPoint, e: Throwable) {
-        isAfterThrowing.set(true)
-
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)

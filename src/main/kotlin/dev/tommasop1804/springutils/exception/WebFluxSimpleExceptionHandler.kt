@@ -9,6 +9,7 @@ import dev.tommasop1804.springutils.exception.ExceptionHandler.Companion.findFea
 import dev.tommasop1804.springutils.exception.SimpleExceptionHandler.SimpleErrorResponse
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.core.annotation.Order
 import org.springframework.core.codec.DecodingException
 import org.springframework.core.env.Environment
@@ -26,6 +27,7 @@ import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.exc.MismatchedInputException
 import kotlin.text.isNullOrBlank
 
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @Component
 @Order(-2)
@@ -36,7 +38,7 @@ class WebFluxSimpleExceptionHandler(
 ) : WebExceptionHandler {
 
     override fun handle(exchange: ServerWebExchange, e: Throwable): Mono<Void> {
-        val status = getStatus(e)
+        val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
         val internalCode = environment

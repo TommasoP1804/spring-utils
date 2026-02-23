@@ -18,6 +18,7 @@ import dev.tommasop1804.springutils.getStatus
 import org.springframework.beans.ConversionNotSupportedException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.core.env.Environment
 import org.springframework.http.*
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -34,6 +35,7 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.DatabindException
@@ -45,6 +47,7 @@ import kotlin.apply
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.full.findAnnotation
 
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "RFC", matchIfMissing = true)
 @ControllerAdvice
 class ExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
@@ -126,7 +129,7 @@ class ExceptionHandler(private val environment: Environment) : ResponseEntityExc
 
     @ExceptionHandler(Exception::class)
     fun handleAllException(e: Exception): ResponseEntity<ExtendedProblemDetail> {
-        val status = getStatus(e)
+        val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
         val internalCode = environment

@@ -15,6 +15,7 @@ import dev.tommasop1804.springutils.getStatus
 import org.springframework.beans.ConversionNotSupportedException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -34,6 +35,7 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.DatabindException
@@ -43,6 +45,7 @@ import tools.jackson.databind.annotation.JsonSerialize
 import tools.jackson.databind.exc.MismatchedInputException
 import kotlin.apply
 
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @ControllerAdvice
 class SimpleExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
@@ -78,7 +81,7 @@ class SimpleExceptionHandler(private val environment: Environment) : ResponseEnt
 
     @ExceptionHandler(Exception::class)
     fun handleAllException(e: Exception): ResponseEntity<SimpleErrorResponse> {
-        val status = getStatus(e)
+        val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
 
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
