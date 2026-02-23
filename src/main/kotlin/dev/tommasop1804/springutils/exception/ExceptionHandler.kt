@@ -19,6 +19,8 @@ import org.springframework.beans.ConversionNotSupportedException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.core.env.Environment
 import org.springframework.http.*
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -49,6 +51,7 @@ import kotlin.reflect.full.findAnnotation
 
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "RFC", matchIfMissing = true)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 class ExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
     @JsonSerialize(using = ExtendedProblemDetail.Companion.Serializer::class)

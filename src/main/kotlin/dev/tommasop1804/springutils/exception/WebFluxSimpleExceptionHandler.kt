@@ -10,6 +10,7 @@ import dev.tommasop1804.springutils.exception.SimpleExceptionHandler.SimpleError
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
+import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.core.codec.DecodingException
 import org.springframework.core.env.Environment
@@ -30,7 +31,7 @@ import kotlin.text.isNullOrBlank
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @Component
-@Order(-2)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @Suppress("unused")
 class WebFluxSimpleExceptionHandler(
     private val environment: Environment,

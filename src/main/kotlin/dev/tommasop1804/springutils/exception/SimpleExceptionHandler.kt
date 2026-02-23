@@ -16,6 +16,8 @@ import org.springframework.beans.ConversionNotSupportedException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -48,6 +50,7 @@ import kotlin.apply
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 class SimpleExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
     @JsonSerialize(using = SimpleErrorResponse.Companion.Serializer::class)
     @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = SimpleErrorResponse.Companion.OldSerializer::class)
