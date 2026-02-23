@@ -19,12 +19,14 @@ import dev.tommasop1804.kutils.classes.identifiers.ShortUUID
 import dev.tommasop1804.kutils.classes.identifiers.ShortUUID.Companion.toShortUUID
 import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.kutils.classes.identifiers.ULID.Companion.toULID
+import dev.tommasop1804.kutils.classes.security.JWT.Companion.toJWT
 import dev.tommasop1804.kutils.exceptions.RequiredHeaderException
 import dev.tommasop1804.kutils.exceptions.RequiredParameterException
 import dev.tommasop1804.kutils.firstOrThrow
 import dev.tommasop1804.kutils.getOrThrow
 import dev.tommasop1804.kutils.ifNullOrEmpty
 import dev.tommasop1804.kutils.invoke
+import dev.tommasop1804.kutils.onlyElement
 import dev.tommasop1804.kutils.parseToLocalDate
 import dev.tommasop1804.kutils.parseToOffsetDateTime
 import dev.tommasop1804.kutils.splitAndTrim
@@ -33,6 +35,7 @@ import dev.tommasop1804.kutils.toUUID
 import dev.tommasop1804.kutils.tryOr
 import dev.tommasop1804.kutils.tryOrNull
 import dev.tommasop1804.kutils.tryOrThrow
+import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.queryParamOrNull
 import java.time.LocalDate
@@ -192,6 +195,22 @@ fun ServerRequest.headerOrDefault(
  * @since 2.0.0
  */
 fun ServerRequest.header(name: String): StringList = tryOrNull { headers().header(name) }.orEmpty()
+
+fun ServerRequest.accept() = header(HttpHeaders.ACCEPT)
+fun ServerRequest.acceptLanguage() = header(HttpHeaders.ACCEPT_LANGUAGE)
+fun ServerRequest.contentType() = header(HttpHeaders.CONTENT_TYPE)
+fun ServerRequest.expect() = header(HttpHeaders.EXPECT)
+fun ServerRequest.fromService() = header("From-Service")
+fun ServerRequest.ifMatch() = header(HttpHeaders.IF_MATCH)
+fun ServerRequest.ifModifiedSince() = header(HttpHeaders.IF_MODIFIED_SINCE)
+fun ServerRequest.ifNoneMatch() = header(HttpHeaders.IF_NONE_MATCH)
+fun ServerRequest.ifUnmodifiedSince() = header(HttpHeaders.IF_UNMODIFIED_SINCE)
+fun ServerRequest.jwtToken(headerName: String = HttpHeaders.AUTHORIZATION) = header(headerName).first().toJWT()()
+fun ServerRequest.origin() = header(HttpHeaders.ORIGIN)
+fun ServerRequest.prefer() = header("Prefer")
+fun ServerRequest.priority() = header("Priority")
+fun ServerRequest.range() = header(HttpHeaders.RANGE)
+fun ServerRequest.referer() = header(HttpHeaders.REFERER)
 
 fun ServerRequest.queryParamOrThrowAsStringList(name: String) = queryParamOrThrow(name, StringList::class).splitAndTrim(Char.COMMA)
 fun ServerRequest.queryParamOrThrowAsIntOrThrow(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Int::class).toInt() }

@@ -7,8 +7,8 @@ package dev.tommasop1804.springutils.servlet.response
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.time.Duration
-import dev.tommasop1804.springutils.EmptyResponse
-import dev.tommasop1804.springutils.Response
+import dev.tommasop1804.springutils.servlet.EmptyResponse
+import dev.tommasop1804.springutils.servlet.Response
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.eTag
 import dev.tommasop1804.springutils.exception.PreconditionFailedException

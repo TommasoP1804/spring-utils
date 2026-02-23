@@ -7,12 +7,13 @@ package dev.tommasop1804.springutils.reactive.response
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.time.Duration
-import dev.tommasop1804.springutils.EmptyResponse
+import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.eTag
 import dev.tommasop1804.springutils.exception.PreconditionFailedException
 import dev.tommasop1804.springutils.exception.PreconditionRequiredException
 import dev.tommasop1804.springutils.findCallerMethod
+import dev.tommasop1804.springutils.reactive.Response
 import dev.tommasop1804.springutils.servlet.response.MultiStatusResponseType
 import dev.tommasop1804.springutils.servlet.response.ResourceResult
 import dev.tommasop1804.springutils.toHeaderDate
@@ -50,7 +51,7 @@ import java.time.temporal.TemporalAccessor
  * @param lazyExceptionIfNotPresent A supplier for the exception to throw if validation preconditions are not present (if required).
  * @param body A supplier for the body of the response. The resource body is only included in the response when the
  *             resource is considered modified.
- * @return A [ServerResponse] entity containing the appropriate HTTP status, headers, and optional response body.
+ * @return A [Response] entity containing the appropriate HTTP status, headers, and optional response body.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> conditionalGet(
@@ -68,7 +69,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     headers: HttpHeaders? = null,
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagNoneMatch.isNull() && ifModifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -84,7 +85,7 @@ suspend inline fun <reified T : Any> conditionalGet(
         status = HttpStatus.NOT_MODIFIED
 
 
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     if (includeFeatureCode) response.featureCode()
     if (expires.isNotNull()) response.expires(expires)
@@ -121,7 +122,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param lazyExceptionIfNotPresent A lazy supplier for an exception to throw when validators are required
  * but not provided. By default, a PreconditionRequiredException is thrown.
  * @param body A supplier function to provide the body of the response when validation succeeds.
- * @return A [ServerResponse] object with an appropriate HTTP status and body, depending on the result
+ * @return A [Response] object with an appropriate HTTP status and body, depending on the result
  * of the validation.
  * @since 2.0.0
  */
@@ -141,7 +142,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     headers: HttpHeaders? = null,
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
-): ServerResponse {
+): Response {
     var status = status
     var body: T? = null
     val eTag = if (resourceETag.isNotNullOrBlank()) resourceETag - Char.QUOTATION_MARK else {
@@ -154,7 +155,7 @@ suspend inline fun <reified T : Any> conditionalGet(
         status = HttpStatus.NOT_MODIFIED
 
 
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     response.featureCode(featureCode)
     if (expires.isNotNull()) response.expires(expires)
@@ -188,7 +189,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue A supplier callback used to retrieve the previous state of the resource, if available.
  * @param body A supplier callback used to compute or generate the new value for the resource.
- * @return A [ServerResponse] containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
+ * @return A [Response] containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
  * @throws PreconditionFailedException Thrown if the ETag or If-Unmodified-Since validation fails.
  * @throws PreconditionRequiredException Thrown if conditional update headers (e.g., If-Match, If-Unmodified-Since) are required but missing.
  * @since 2.0.0
@@ -211,7 +212,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -227,7 +228,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -261,7 +262,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param body A supplier callback used to compute or generate the new value for the resource.
- * @return A [ServerResponse] containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
+ * @return A [Response] containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
  * @throws PreconditionFailedException Thrown if the ETag or If-Unmodified-Since validation fails.
  * @throws PreconditionRequiredException Thrown if conditional update headers (e.g., If-Match, If-Unmodified-Since) are required but missing.
  * @since 2.0.0
@@ -284,7 +285,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     previousETag: String?,
     noinline body: Supplier<R>
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -296,7 +297,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -331,7 +332,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param previousValue Supplier for the previous value of the resource to validate against the
  *        `eTagIfMatch` parameter.
  * @param body Supplier for the new body of the resource, to be used in the response if conditions are met.
- * @return A [ServerResponse] object containing the updated body or an appropriate status, headers, and metadata.
+ * @return A [Response] object containing the updated body or an appropriate status, headers, and metadata.
  *         If the update is successful, the response will include relevant headers like `Last-Modified`
  *         or `ETag` as applicable.
  * @since 2.0.0
@@ -354,7 +355,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -370,7 +371,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -404,7 +405,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param body Supplier for the new body of the resource, to be used in the response if conditions are met.
- * @return A [ServerResponse] object containing the updated body or an appropriate status, headers, and metadata.
+ * @return A [Response] object containing the updated body or an appropriate status, headers, and metadata.
  *         If the update is successful, the response will include relevant headers like `Last-Modified`
  *         or `ETag` as applicable.
  * @since 2.0.0
@@ -427,7 +428,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     previousETag: String?,
     noinline body: Supplier<R>
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -439,7 +440,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -469,7 +470,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param headers Optional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue Supplier of the previous value of the resource, utilized for ETag validation.
  * @param action Action to execute as the conditional operation if validators pass.
- * @return An empty [ServerResponse] object representing a successful operation.
+ * @return An empty [Response] object representing a successful operation.
  * @since 2.0.0
  */
 @JvmName("conditionalUpdateAction")
@@ -489,7 +490,7 @@ suspend fun <T : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     previousValue: Supplier<T?>?,
     action: Action? = null
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -505,7 +506,7 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -533,7 +534,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param headers Optional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param action Action to execute as the conditional operation if validators pass.
- * @return An empty [ServerResponse] object representing a successful operation.
+ * @return An empty [Response] object representing a successful operation.
  * @since 2.0.0
  */
 @JvmName("conditionalUpdateAction")
@@ -553,7 +554,7 @@ suspend fun <T : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     previousETag: String?,
     action: Action? = null
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -565,7 +566,7 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -592,7 +593,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param headers Additional headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue Supplier to fetch the previous state of the resource for checks (e.g., ETag comparison).
  * @param action Optional action to execute if the update conditions are satisfied.
- * @return [ServerResponse] object representing the outcome of the conditional update.
+ * @return [Response] object representing the outcome of the conditional update.
  * @throws PreconditionFailedException if the conditions for update are not satisfied.
  * @throws PreconditionRequiredException if required validators are missing but necessary.
  * @since 2.0.0
@@ -614,7 +615,7 @@ suspend fun <T : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     previousValue: Supplier<T?>?,
     action: Action? = null
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -630,7 +631,7 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -657,7 +658,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param headers Additional headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param action Optional action to execute if the update conditions are satisfied.
- * @return [ServerResponse] object representing the outcome of the conditional update.
+ * @return [Response] object representing the outcome of the conditional update.
  * @throws PreconditionFailedException if the conditions for update are not satisfied.
  * @throws PreconditionRequiredException if required validators are missing but necessary.
  * @since 2.0.0
@@ -679,7 +680,7 @@ suspend fun <T : Any> conditionalUpdate(
     headers: HttpHeaders? = null,
     previousETag: String?,
     action: Action? = null
-): ServerResponse {
+): Response {
     if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
@@ -691,7 +692,7 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = ServerResponse.status(status)
+    val response = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
@@ -702,7 +703,7 @@ suspend fun <T : Any> conditionalUpdate(
 }
 
 /**
- * Constructs an `ServerResponse` object with the specified HTTP status, optional headers, action,
+ * Constructs an `Response` object with the specified HTTP status, optional headers, action,
  * and feature code header inclusion settings.
  *
  * If an `action` is provided, it is invoked before building the response. By default,
@@ -717,7 +718,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional HTTP headers to include in the response (overrides any other header parameters of this method). Defaults to `null`.
  * @param action An optional action to execute before building the response. Defaults to `null`.
- * @return A constructed `ServerResponse` object with the specified settings.
+ * @return A constructed `Response` object with the specified settings.
  * @since 2.0.0
  */
 suspend fun EmptyResponse(
@@ -730,11 +731,11 @@ suspend fun EmptyResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
+): Response {
     if (action.isNotNull())
         action()
 
-    val re = ServerResponse.status(status)
+    val re = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
@@ -745,7 +746,7 @@ suspend fun EmptyResponse(
     return re.buildAndAwait()
 }
 /**
- * Constructs an `ServerResponse` with the given HTTP status, feature code, optional headers, and action.
+ * Constructs an `Response` with the given HTTP status, feature code, optional headers, and action.
  *
  * @param status the HTTP status to set for the response; defaults to `HttpStatus.NO_CONTENT`
  * @param featureCode the feature code to be added as a "Feature-Code" header in the response
@@ -756,7 +757,7 @@ suspend fun EmptyResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers optional HTTP headers to include in the response (overrides any other header parameters of this method); can be null
  * @param action an optional action to execute; can be null
- * @return an `ServerResponse` constructed with the specified parameters
+ * @return an `Response` constructed with the specified parameters
  * @since 2.0.0
  */
 suspend fun EmptyResponse(
@@ -769,11 +770,11 @@ suspend fun EmptyResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
+): Response {
     if (action.isNotNull())
         action()
 
-    val re = ServerResponse.status(status)
+    val re = Response.status(status)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     if (eTag.isNotNull()) re.eTag(eTag)
@@ -798,7 +799,7 @@ suspend fun EmptyResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. Defaults to null if no extra headers are needed.
  * @param body A supplier function that provides the response body content. Defaults to null.
- * @return An HTTP response of type `ServerResponse` with the specified status, headers, and body content.
+ * @return An HTTP response of type `Response` with the specified status, headers, and body content.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> OKResponse(
@@ -811,8 +812,8 @@ suspend inline fun <reified T : Any> OKResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.OK)
+): Response {
+    val re = Response.status(HttpStatus.OK)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -837,7 +838,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers additional headers to include in the response, defaults to null
  * @param body a supplier for the response body content, which can be null
- * @return a ServerResponse instance of type T encapsulating the provided configurations
+ * @return a Response instance of type T encapsulating the provided configurations
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> OKResponse(
@@ -850,8 +851,8 @@ suspend inline fun <reified T : Any> OKResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.OK)
+): Response {
+    val re = Response.status(HttpStatus.OK)
     val result = body?.invoke()
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
@@ -881,7 +882,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * @param headers Additional headers to include in the response, if specified. Defaults to null.
  * @param includeBody Whether to include the response body. Defaults to `true` if `location` is null.
  * @param body A supplier for the response body. Defaults to null if no body is required.
- * @return A `ServerResponse` object containing the constructed HTTP status, headers, and optional body.
+ * @return A `Response` object containing the constructed HTTP status, headers, and optional body.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> CreatedResponse(
@@ -896,8 +897,8 @@ suspend inline fun <reified T : Any> CreatedResponse(
     headers: HttpHeaders? = null,
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.CREATED)
+): Response {
+    val re = Response.status(HttpStatus.CREATED)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
@@ -925,7 +926,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param headers additional headers to be included in the response
  * @param includeBody a boolean indicating whether to include the body in the response, defaults to true if `location` is null
  * @param body a supplier providing the body of the response, invoked if a body is to be included
- * @return a ServerResponse object of type T representing the constructed 201 Created response
+ * @return a Response object of type T representing the constructed 201 Created response
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> CreatedResponse(
@@ -940,8 +941,8 @@ suspend inline fun <reified T : Any> CreatedResponse(
     headers: HttpHeaders? = null,
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.CREATED)
+): Response {
+    val re = Response.status(HttpStatus.CREATED)
     val result = body?.invoke()
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
@@ -972,7 +973,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. Can be null if no additional headers are needed.
  * @param body A supplier function that provides the response body content. Can be null if no body content is needed.
- * @return The constructed ServerResponse object containing the specified HTTP status, headers, and body.
+ * @return The constructed Response object containing the specified HTTP status, headers, and body.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> AcceptedResponse(
@@ -985,8 +986,8 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.ACCEPTED)
+): Response {
+    val re = Response.status(HttpStatus.ACCEPTED)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
@@ -1011,7 +1012,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers optional additional headers to include in the response
  * @param body optional supplier for the response body content
- * @return a ServerResponse object containing the HTTP status, headers, and optionally body content
+ * @return a Response object containing the HTTP status, headers, and optionally body content
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> AcceptedResponse(
@@ -1024,8 +1025,8 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.ACCEPTED)
+): Response {
+    val re = Response.status(HttpStatus.ACCEPTED)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     val result = body?.invoke()
@@ -1051,7 +1052,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional additional headers to include in the response.
  * @param action An optional action to execute before building the response. Defaults to `null`.
- * @return A `ServerResponse` object with the specified settings and content.
+ * @return A `Response` object with the specified settings and content.
  * @since 2.0.0
  */
 suspend fun ResetContentResponse(
@@ -1064,9 +1065,9 @@ suspend fun ResetContentResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
+): Response {
     action?.invoke()
-    val re = ServerResponse.status(HttpStatus.RESET_CONTENT)
+    val re = Response.status(HttpStatus.RESET_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
@@ -1089,7 +1090,7 @@ suspend fun ResetContentResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional additional headers to include in the response.
  * @param action an optional action to execute; can be null
- * @return A `ServerResponse` object with the specified settings and content.
+ * @return A `Response` object with the specified settings and content.
  * @since 2.0.0
  */
 suspend fun ResetContentResponse(
@@ -1102,9 +1103,9 @@ suspend fun ResetContentResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
+): Response {
     action?.invoke()
-    val re = ServerResponse.status(HttpStatus.RESET_CONTENT)
+    val re = Response.status(HttpStatus.RESET_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
@@ -1117,7 +1118,7 @@ suspend fun ResetContentResponse(
 }
 
 /**
- * Constructs a `ServerResponse` object with HTTP status 206 (Partial Content) and allows customizing various aspects
+ * Constructs a `Response` object with HTTP status 206 (Partial Content) and allows customizing various aspects
  * of the response, including headers, body, and metadata.
  *
  * @param includeFeatureCode Determines whether to include the "Feature-Code" header in the response.
@@ -1132,7 +1133,7 @@ suspend fun ResetContentResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Custom headers to include in the response. Can be null or empty. Defaults to null.
  * @param body A supplier that provides the body content of the response. Can be null. Defaults to null.
- * @return A `ServerResponse` object of type `T` with the specified properties and HTTP status 206.
+ * @return A `Response` object of type `T` with the specified properties and HTTP status 206.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> PartialContentResponse(
@@ -1145,8 +1146,8 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.PARTIAL_CONTENT)
+): Response {
+    val re = Response.status(HttpStatus.PARTIAL_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
@@ -1185,8 +1186,8 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.PARTIAL_CONTENT)
+): Response {
+    val re = Response.status(HttpStatus.PARTIAL_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
@@ -1211,7 +1212,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * @param resources A list of resource results containing metadata about the operation's outcomes.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
- * @return A `ServerResponse` instance with a status of HTTP 207 Multi-Status and a body formatted according to the specified `responseType`.
+ * @return A `Response` instance with a status of HTTP 207 Multi-Status and a body formatted according to the specified `responseType`.
  * @since 2.0.0
  */
 suspend fun MultiStatusResponse(
@@ -1224,9 +1225,9 @@ suspend fun MultiStatusResponse(
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: String = "HTTP/1.1",
     action: Action? = null
-): ServerResponse {
+): Response {
     action?.invoke()
-    val re = ServerResponse.status(HttpStatus.MULTI_STATUS)
+    val re = Response.status(HttpStatus.MULTI_STATUS)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -1250,7 +1251,7 @@ suspend fun MultiStatusResponse(
  * @param resources A list of `ResourceResult` objects representing the resource operation results.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
- * @return A `ServerResponse` object containing the multi-status HTTP response.
+ * @return A `Response` object containing the multi-status HTTP response.
  * @since 2.0.0
  */
 suspend fun MultiStatusResponse(
@@ -1262,8 +1263,8 @@ suspend fun MultiStatusResponse(
     headers: HttpHeaders? = null,
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: String = "HTTP/1.1",
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.MULTI_STATUS)
+): Response {
+    val re = Response.status(HttpStatus.MULTI_STATUS)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -1363,7 +1364,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional headers to include in the response, if provided. Defaults to null.
  * @param body A supplier for generating the response body, if needed. Defaults to null.
- * @return A `ServerResponse` instance with the configured attributes.
+ * @return A `Response` instance with the configured attributes.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> IMUsedResponse(
@@ -1376,8 +1377,8 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.IM_USED)
+): Response {
+    val re = Response.status(HttpStatus.IM_USED)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     if (expires.isNotNull()) re.expires(expires)
@@ -1403,7 +1404,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional additional HTTP headers to be included in the response.
  * @param body An optional supplier for generating the body of the response.
- * @return A `ServerResponse` instance representing the constructed HTTP response.
+ * @return A `Response` instance representing the constructed HTTP response.
  * @since 2.0.0
  */
 suspend inline fun <reified T : Any> IMUsedResponse(
@@ -1416,8 +1417,8 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     noinline body: Supplier<T>? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.IM_USED)
+): Response {
+    val re = Response.status(HttpStatus.IM_USED)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
@@ -1432,7 +1433,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
 }
 
 /**
- * Creates a `ServerResponse` object with an HTTP `303 See Other` status and a specified location.
+ * Creates a `Response` object with an HTTP `303 See Other` status and a specified location.
  *
  * Optionally, this method can include a "Feature-Code" header if `includeFeatureCode` is set to `true`.
  * Additional headers can be added using the `headers` parameter, and an optional custom action can
@@ -1445,7 +1446,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param action An optional action to be executed during the response building process.
- * @return A `ServerResponse` instance with the specified HTTP status, headers, and location.
+ * @return A `Response` instance with the specified HTTP status, headers, and location.
  * @since 2.0.0
  */
 suspend fun SeeOtherResponse(
@@ -1456,8 +1457,8 @@ suspend fun SeeOtherResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.SEE_OTHER)
+): Response {
+    val re = Response.status(HttpStatus.SEE_OTHER)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
@@ -1488,8 +1489,8 @@ suspend fun SeeOtherResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.SEE_OTHER)
+): Response {
+    val re = Response.status(HttpStatus.SEE_OTHER)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -1500,7 +1501,7 @@ suspend fun SeeOtherResponse(
 }
 
 /**
- * Creates a `ServerResponse` object with an HTTP `303 See Other` status and a specified location.
+ * Creates a `Response` object with an HTTP `303 See Other` status and a specified location.
  *
  * Optionally, this method can include a "Feature-Code" header if `includeFeatureCode` is set to `true`.
  * Additional headers can be added using the `headers` parameter, and an optional custom action can
@@ -1513,7 +1514,7 @@ suspend fun SeeOtherResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param action An optional action to be executed during the response building process.
- * @return A `ServerResponse` instance with the specified HTTP status, headers, and location.
+ * @return A `Response` instance with the specified HTTP status, headers, and location.
  * @since 2.0.0
  */
 suspend fun SeeOtherResponse(
@@ -1524,8 +1525,8 @@ suspend fun SeeOtherResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.SEE_OTHER)
+): Response {
+    val re = Response.status(HttpStatus.SEE_OTHER)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
@@ -1556,8 +1557,8 @@ suspend fun SeeOtherResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.SEE_OTHER)
+): Response {
+    val re = Response.status(HttpStatus.SEE_OTHER)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -1578,7 +1579,7 @@ suspend fun SeeOtherResponse(
  * @param location The target URI to which the client is redirected.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param action An optional lambda function to perform additional customization on the response.
- * @return A `ServerResponse` instance with the specified properties and configurations.
+ * @return A `Response` instance with the specified properties and configurations.
  * @since 2.0.0
  */
 suspend fun FoundResponse(
@@ -1589,8 +1590,8 @@ suspend fun FoundResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.FOUND)
+): Response {
+    val re = Response.status(HttpStatus.FOUND)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
@@ -1610,7 +1611,7 @@ suspend fun FoundResponse(
  * @param headers optional HTTP headers to include in the response (overrides any other header parameters of this method), can be null
  * @param location the URI to be set in the "Location" header for the response
  * @param action an optional action to execute before building the response, can be null
- * @return a `ServerResponse` object with HTTP status 302 (Found) and the provided details
+ * @return a `Response` object with HTTP status 302 (Found) and the provided details
  * @since 2.0.0
  */
 suspend fun FoundResponse(
@@ -1621,8 +1622,8 @@ suspend fun FoundResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.FOUND)
+): Response {
+    val re = Response.status(HttpStatus.FOUND)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -1643,7 +1644,7 @@ suspend fun FoundResponse(
  * @param location The target URI to which the client is redirected.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param action An optional lambda function to perform additional customization on the response.
- * @return A `ServerResponse` instance with the specified properties and configurations.
+ * @return A `Response` instance with the specified properties and configurations.
  * @since 2.0.0
  */
 suspend fun FoundResponse(
@@ -1654,8 +1655,8 @@ suspend fun FoundResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.FOUND)
+): Response {
+    val re = Response.status(HttpStatus.FOUND)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
@@ -1675,7 +1676,7 @@ suspend fun FoundResponse(
  * @param headers optional HTTP headers to include in the response (overrides any other header parameters of this method), can be null
  * @param location the URI to be set in the "Location" header for the response
  * @param action an optional action to execute before building the response, can be null
- * @return a `ServerResponse` object with HTTP status 302 (Found) and the provided details
+ * @return a `Response` object with HTTP status 302 (Found) and the provided details
  * @since 2.0.0
  */
 suspend fun FoundResponse(
@@ -1686,8 +1687,8 @@ suspend fun FoundResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.FOUND)
+): Response {
+    val re = Response.status(HttpStatus.FOUND)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -1720,8 +1721,8 @@ suspend fun MovedPermanentlyResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.MOVED_PERMANENTLY)
+): Response {
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
@@ -1745,8 +1746,8 @@ suspend fun MovedPermanentlyResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.MOVED_PERMANENTLY)
+): Response {
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (action.isNotNull()) action()
@@ -1775,8 +1776,8 @@ suspend fun MovedPermanentlyResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.MOVED_PERMANENTLY)
+): Response {
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
@@ -1804,8 +1805,8 @@ suspend fun MovedPermanentlyResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.MOVED_PERMANENTLY)
+): Response {
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1829,9 +1830,9 @@ suspend fun MovedPermanentlyResponse(
  * @param headers Optional custom headers to include in the response (overrides any other header parameters of this method). If `null` or empty,
  * no additional headers are added.
  * @param location The URI to set as the `Location` header of the response. Must not be `null`.
- * @param action An optional action to invoke for configuring the `ServerResponse` further.
+ * @param action An optional action to invoke for configuring the `Response` further.
  * If `null`, no action is performed.
- * @return The fully configured `ServerResponse` object with a `308 Permanent Redirect` status code.
+ * @return The fully configured `Response` object with a `308 Permanent Redirect` status code.
  * @since 2.0.0
  */
 suspend fun PermanentRedirectResponse(
@@ -1841,8 +1842,8 @@ suspend fun PermanentRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.PERMANENT_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
@@ -1860,7 +1861,7 @@ suspend fun PermanentRedirectResponse(
  * @param headers optional headers to be included in the response (overrides any other header parameters of this method)
  * @param location the URI to which the client is redirected
  * @param action an optional action to execute additional response configuration
- * @return a `ServerResponse` object with status 308 Permanent Redirect and the specified configurations
+ * @return a `Response` object with status 308 Permanent Redirect and the specified configurations
  * @since 2.0.0
  */
 suspend fun PermanentRedirectResponse(
@@ -1870,8 +1871,8 @@ suspend fun PermanentRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.PERMANENT_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1894,9 +1895,9 @@ suspend fun PermanentRedirectResponse(
  * @param headers Optional custom headers to include in the response (overrides any other header parameters of this method). If `null` or empty,
  * no additional headers are added.
  * @param location The URI to set as the `Location` header of the response. Must not be `null`.
- * @param action An optional action to invoke for configuring the `ServerResponse` further.
+ * @param action An optional action to invoke for configuring the `Response` further.
  * If `null`, no action is performed.
- * @return The fully configured `ServerResponse` object with a `308 Permanent Redirect` status code.
+ * @return The fully configured `Response` object with a `308 Permanent Redirect` status code.
  * @since 2.0.0
  */
 suspend fun PermanentRedirectResponse(
@@ -1906,8 +1907,8 @@ suspend fun PermanentRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.PERMANENT_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
@@ -1925,7 +1926,7 @@ suspend fun PermanentRedirectResponse(
  * @param headers optional headers to be included in the response (overrides any other header parameters of this method)
  * @param location the URI to which the client is redirected
  * @param action an optional action to execute additional response configuration
- * @return a `ServerResponse` object with status 308 Permanent Redirect and the specified configurations
+ * @return a `Response` object with status 308 Permanent Redirect and the specified configurations
  * @since 2.0.0
  */
 suspend fun PermanentRedirectResponse(
@@ -1935,8 +1936,8 @@ suspend fun PermanentRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.PERMANENT_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1956,7 +1957,7 @@ suspend fun PermanentRedirectResponse(
  * @param headers Optional headers to include in the response (overrides any other header parameters of this method). Default is `null`.
  * @param location The URI to which the client is redirected.
  * @param action An optional lambda for additional customization of the response before it is built. Default is `null`.
- * @return A `ServerResponse` object with the status set to `302 Temporary Redirect` and the specified attributes.
+ * @return A `Response` object with the status set to `302 Temporary Redirect` and the specified attributes.
  * @since 2.0.0
  */
 suspend fun TemporaryRedirectResponse(
@@ -1967,8 +1968,8 @@ suspend fun TemporaryRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.TEMPORARY_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
@@ -1999,8 +2000,8 @@ suspend fun TemporaryRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.TEMPORARY_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -2020,7 +2021,7 @@ suspend fun TemporaryRedirectResponse(
  * @param headers Optional headers to include in the response (overrides any other header parameters of this method). Default is `null`.
  * @param location The URI to which the client is redirected.
  * @param action An optional lambda for additional customization of the response before it is built. Default is `null`.
- * @return A `ServerResponse` object with the status set to `302 Temporary Redirect` and the specified attributes.
+ * @return A `Response` object with the status set to `302 Temporary Redirect` and the specified attributes.
  * @since 2.0.0
  */
 suspend fun TemporaryRedirectResponse(
@@ -2031,8 +2032,8 @@ suspend fun TemporaryRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.TEMPORARY_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
@@ -2063,8 +2064,8 @@ suspend fun TemporaryRedirectResponse(
     headers: HttpHeaders? = null,
     location: URI,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.TEMPORARY_REDIRECT)
+): Response {
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -2087,7 +2088,7 @@ suspend fun TemporaryRedirectResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional additional HTTP headers to include in the response (overrides any other header parameters of this method). Defaults to `null`.
  * @param action An optional action to perform before finalizing the response. Defaults to `null`.
- * @return A `ServerResponse` instance representing the 304 Not Modified HTTP response.
+ * @return A `Response` instance representing the 304 Not Modified HTTP response.
  * @since 2.0.0
  */
 suspend fun NotModifiedResponse(
@@ -2098,8 +2099,8 @@ suspend fun NotModifiedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.NOT_MODIFIED)
+): Response {
+    val re = Response.status(HttpStatus.NOT_MODIFIED)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (eTag.isNotNull()) re.eTag(eTag)
     if (expires.isNotNull()) re.expires(expires)
@@ -2111,7 +2112,7 @@ suspend fun NotModifiedResponse(
 }
 
 /**
- * Constructs a `ServerResponse` object with an HTTP 204 (No Content) status code.
+ * Constructs a `Response` object with an HTTP 204 (No Content) status code.
  *
  * This function optionally includes additional metadata such as an `ETag` header, custom headers,
  * and a feature code header derived from the `Feature` annotation of the calling method if applicable.
@@ -2126,7 +2127,7 @@ suspend fun NotModifiedResponse(
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional custom HTTP headers to add to the response (overrides any other header parameters of this method). Can be `null` or empty.
  * @param action An optional action to further customize the response object. Can be `null`.
- * @return A `ServerResponse` object with an HTTP 204 (No Content) status code and any specified metadata.
+ * @return A `Response` object with an HTTP 204 (No Content) status code and any specified metadata.
  * @since 2.0.0
  */
 @Deprecated("Use EmptyResponse instead")
@@ -2137,8 +2138,8 @@ suspend fun NoContentResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.NO_CONTENT)
+): Response {
+    val re = Response.status(HttpStatus.NO_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
@@ -2169,8 +2170,8 @@ suspend fun NoContentResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders? = null,
     action: Action? = null
-): ServerResponse {
-    val re = ServerResponse.status(HttpStatus.NO_CONTENT)
+): Response {
+    val re = Response.status(HttpStatus.NO_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -2197,8 +2198,8 @@ fun ServerResponse.BodyBuilder.featureCode(code: String): ServerResponse.BodyBui
  * This method introspects the call stack to identify the method that invoked the annotated
  * functionality and extracts metadata from the `Feature` annotation.
  *
- * @receiver The `ServerResponse.BodyBuilder` instance on which this method is invoked.
- * @return The same instance of `ServerResponse.BodyBuilder` with the "Feature-Code" header added.
+ * @receiver The `Response.BodyBuilder` instance on which this method is invoked.
+ * @return The same instance of `Response.BodyBuilder` with the "Feature-Code" header added.
  * @since 2.0.0
  */
 fun ServerResponse.BodyBuilder.featureCode(): ServerResponse.BodyBuilder = header("Feature-Code",
@@ -2209,7 +2210,7 @@ fun ServerResponse.BodyBuilder.featureCode(): ServerResponse.BodyBuilder = heade
  * Adds an `Expires` header to the HTTP response with the specified expiration time.
  *
  * @param time The expiration time to be set in the `Expires` header. It must be a valid `TemporalAccessor` instance.
- * @return The updated `ServerResponse.BodyBuilder` with the `Expires` header added.
+ * @return The updated `Response.BodyBuilder` with the `Expires` header added.
  * @since 2.0.0
  */
 fun ServerResponse.BodyBuilder.expires(time: TemporalAccessor): ServerResponse.BodyBuilder =
@@ -2230,7 +2231,7 @@ fun ServerResponse.BodyBuilder.preferenceApplied(vararg preferences: String): Se
  *
  * @param time The duration after which the client should refresh or perform the redirect.
  * @param url The optional URL to redirect the client to after the refresh.
- * @return The updated ServerResponse.BodyBuilder with the "Refresh" header set.
+ * @return The updated Response.BodyBuilder with the "Refresh" header set.
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
@@ -2240,7 +2241,7 @@ fun ServerResponse.BodyBuilder.refresh(time: Duration, url: URL? = null): Server
  * Adds a "Refresh" header to the response, indicating a periodic refresh or redirect to a specified URL.
  *
  * @param timeAndURL A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
- * @return The updated ServerResponse.BodyBuilder with the "Refresh" header set.
+ * @return The updated Response.BodyBuilder with the "Refresh" header set.
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
@@ -2263,7 +2264,7 @@ fun ServerResponse.BodyBuilder.refresh(seconds: Int, url: URL? = null): ServerRe
  * Adds a `Retry-After` header to the response with the specified duration in seconds.
  *
  * @param duration The duration to be included in the `Retry-After` header.
- * @return The modified {@link ServerResponse.BodyBuilder} with the `Retry-After` header set.
+ * @return The modified {@link Response.BodyBuilder} with the `Retry-After` header set.
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
@@ -2273,7 +2274,7 @@ fun ServerResponse.BodyBuilder.retryAfter(duration: Duration): ServerResponse.Bo
  * Adds a "Retry-After" header to the HTTP response with the specified delay in seconds.
  *
  * @param seconds The number of seconds to indicate in the "Retry-After" header.
- * @return The updated ServerResponse.BodyBuilder with the "Retry-After" header applied.
+ * @return The updated Response.BodyBuilder with the "Retry-After" header applied.
  * @since 2.0.0
  */
 fun ServerResponse.BodyBuilder.retryAfter(seconds: Int): ServerResponse.BodyBuilder =
@@ -2298,7 +2299,7 @@ fun ServerResponse.BodyBuilder.retryAfter(temporal: TemporalAccessor): ServerRes
  *
  * @param timingMetric Vararg of pairs where each pair consists of a metric name (String) and its duration (Duration).
  *                     The name identifies the metric, and the duration represents the time taken by the metric in milliseconds.
- * @return The modified [ServerResponse.BodyBuilder] instance with the `Server-Timing` header added.
+ * @return The modified [Response.BodyBuilder] instance with the `Server-Timing` header added.
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
@@ -2312,7 +2313,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Du
  * @param timingMetric Vararg of pairs, where each pair contains:
  * - `first`: The metric name (e.g., "db", "cpu").
  * - `second`: The duration of the metric as a number (interpreted as milliseconds).
- * @return The updated `ServerResponse.BodyBuilder` instance with the added `Server-Timing` header.
+ * @return The updated `Response.BodyBuilder` instance with the added `Server-Timing` header.
  * @since 2.0.0
  */
 @JvmName("serverTimingNumberDuration")
@@ -2326,7 +2327,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Nu
  *   - The first element represents the metric name (e.g., "db-query").
  *   - The second element is a `Duration` object indicating the elapsed time for the metric.
  *   - The third element provides an optional description of the metric.
- * @return The updated `ServerResponse.BodyBuilder` with the "Server-Timing" header included.
+ * @return The updated `Response.BodyBuilder` with the "Server-Timing" header included.
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)

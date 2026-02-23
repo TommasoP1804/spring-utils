@@ -23,25 +23,25 @@ import java.net.URL
  * Returns `null` if the header is not present.
  *
  * The parameter type of the annotated method parameter must be [URL].
- * @since 1.0.0
+ * @since 2.0.0
  * @author Tommaso Pastorelli
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Refer
+annotation class Referer
 
 @Component
 class ReferArgumentResolver : HandlerMethodArgumentResolver {
 
     override fun supportsParameter(parameter: MethodParameter) =
-        parameter.hasParameterAnnotation(Refer::class.java)
+        parameter.hasParameterAnnotation(Referer::class.java)
 
     override fun resolveArgument(
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): URL? = webRequest.getHeader("Refer")?.toURL()() { BadRequestException("Invalid Refer header") }
+    ): URL? = webRequest.getHeader("Referer")?.toURL()() { BadRequestException("Invalid Referer header") }
 }
 
 @AutoConfiguration

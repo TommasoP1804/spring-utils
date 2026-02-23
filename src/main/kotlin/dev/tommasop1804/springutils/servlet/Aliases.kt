@@ -2,7 +2,7 @@
 @file:Since("1.0.0")
 @file:Suppress("unused")
 
-package dev.tommasop1804.springutils
+package dev.tommasop1804.springutils.servlet
 
 import dev.tommasop1804.kutils.annotations.Since
 import org.springframework.http.ResponseEntity

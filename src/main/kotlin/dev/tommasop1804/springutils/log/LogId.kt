@@ -1,22 +1,19 @@
+@file:Suppress("unused")
+
 package dev.tommasop1804.springutils.log
 
 import dev.tommasop1804.kutils.classes.identifiers.ULID
+import kotlinx.coroutines.reactive.awaitSingle
+import reactor.core.publisher.Mono
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-/**
- * A [CoroutineContext.Element] that carries the current log ULID through the coroutine context.
- *
- * In suspend functions intercepted by [ReactiveLoggingAspect], this element is added to the
- * coroutine context, allowing code inside the coroutine to access the log identifier via:
- * ```
- * val logId = coroutineContext[LogId]?.id
- * ```
- *
- * @since 2.0.0
- * @author Tommaso Pastorelli
- */
-@Suppress("unused")
-class LogId(val id: ULID) : AbstractCoroutineContextElement(LogId) {
-    companion object Key : CoroutineContext.Key<LogId>
+class LogIdContext(val ulid: ULID) : AbstractCoroutineContextElement(LogIdContext) {
+    companion object Key : CoroutineContext.Key<LogIdContext>
+}
+
+suspend fun currentLogId(): ULID = currentLogIdMono().awaitSingle()
+
+fun currentLogIdMono(): Mono<ULID> = Mono.deferContextual { ctx ->
+    Mono.justOrEmpty(ctx.getOrEmpty(ULID::class.java))
 }
