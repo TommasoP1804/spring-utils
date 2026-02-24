@@ -5,6 +5,7 @@ import dev.tommasop1804.kutils.isNotNull
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpInputMessage
 import org.springframework.http.HttpOutputMessage
@@ -26,7 +27,8 @@ import java.time.OffsetDateTime
 
 @AutoConfiguration
 @ConditionalOnClass(ObjectMapper::class, YAMLFactory::class)
-class YAMLAutoConfiguration {
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+class YAMLServletAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
