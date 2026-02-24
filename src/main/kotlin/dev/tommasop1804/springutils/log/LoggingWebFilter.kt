@@ -50,7 +50,7 @@ data class LoggingProperties(
 @EnableConfigurationProperties(LoggingProperties::class)
 class LoggingWebFilter(
     private val handlerMappingProvider: ObjectProvider<RequestMappingHandlerMapping>,
-    @param:Qualifier private val routerFunctionMappingProvider: ObjectProvider<RouterFunctionMapping>,
+    @param:Qualifier("routerFunctionMapping") private val routerFunctionMappingProvider: ObjectProvider<RouterFunctionMapping>,
     private val properties: LoggingProperties,
 ) : CoWebFilter() {
 
