@@ -1,14 +1,16 @@
 package dev.tommasop1804.springutils.config
 
-import dev.tommasop1804.kutils.DataMapNN
-
 import com.fasterxml.jackson.annotation.JsonFormat
+import dev.tommasop1804.kutils.DataMapNN
+import dev.tommasop1804.kutils.LogLevel
 import dev.tommasop1804.kutils.isNotNull
+import dev.tommasop1804.kutils.log
 import org.reactivestreams.Publisher
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
+import org.springframework.boot.http.codec.CodecCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.core.ResolvableType
 import org.springframework.core.io.buffer.DataBuffer
@@ -17,8 +19,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.ReactiveHttpOutputMessage
 import org.springframework.http.codec.HttpMessageReader
 import org.springframework.http.codec.HttpMessageWriter
-import org.springframework.web.reactive.config.WebFluxConfigurer
 import org.springframework.web.reactive.accept.RequestedContentTypeResolverBuilder
+import org.springframework.web.reactive.config.WebFluxConfigurer
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import tools.jackson.databind.ObjectMapper
@@ -61,10 +63,17 @@ class YAMLReactiveAutoConfiguration {
             }
 
             override fun configureContentTypeResolver(builder: RequestedContentTypeResolverBuilder) {
+                builder.headerResolver()
                 builder.parameterResolver().mediaType("yaml", MediaType("application", "yaml"))
                 builder.parameterResolver().mediaType("yml", MediaType("application", "yaml"))
             }
         }
+    }
+
+    @Bean
+    fun yamlCodecCustomizer(yamlMapper: YAMLMapper) = CodecCustomizer { configurer ->
+        configurer.customCodecs().register(YAMLHttpMessageReader(yamlMapper))
+        configurer.customCodecs().register(YAMLHttpMessageWriter(yamlMapper))
     }
 }
 
@@ -106,8 +115,11 @@ class YAMLHttpMessageWriter(private val yamlMapper: YAMLMapper) : HttpMessageWri
 
     override fun getWritableMediaTypes(): List<MediaType> = YAML_MEDIA_TYPES
 
-    override fun canWrite(elementType: ResolvableType, mediaType: MediaType?): Boolean =
-        mediaType.isNotNull() && YAML_MEDIA_TYPES.any { it.includes(mediaType) }
+    override fun canWrite(elementType: ResolvableType, mediaType: MediaType?): Boolean {
+        val result = mediaType.isNotNull() && YAML_MEDIA_TYPES.any { it.includes(mediaType) }
+        log(LogLevel.DEBUG, "`canWrite` mediaType=`$mediaType` result=`$result`")
+        return result
+    }
 
     override fun write(
         inputStream: Publisher<out Any>,
