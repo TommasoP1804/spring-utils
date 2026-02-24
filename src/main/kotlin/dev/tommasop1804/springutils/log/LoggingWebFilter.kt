@@ -62,41 +62,48 @@ class LoggingWebFilter(
     }
 
     override suspend fun filter(exchange: ServerWebExchange, chain: CoWebFilterChain) {
-        val handlerMapping = handlerMappingProvider.ifAvailable
-        if (handlerMapping.isNull()) {
-            log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, trying RouterFunctionMapping")
-        } else {
+        val initialAttributes = exchange.attributes.keys.toSet()
+
+        try {
+            val handlerMapping = handlerMappingProvider.ifAvailable
+            if (handlerMapping.isNull()) {
+                log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, trying RouterFunctionMapping")
+            } else {
+                val handler = try {
+                    handlerMapping.getHandler(exchange).awaitSingleOrNull()
+                } catch (e: Exception) {
+                    log.debug("LoggingWebFilter: failed to resolve handler via RequestMappingHandlerMapping: {}", e.message)
+                    null
+                }
+                when (handler) {
+                    is HandlerMethod -> return filterWithHandlerMethod(exchange, chain, handler)
+                    null -> {}
+                    else -> log.debug("LoggingWebFilter: unexpected handler type {}", handler::class.simpleName)
+                }
+            }
+
+            val routerFunctionMapping = routerFunctionMappingProvider.ifAvailable
+            if (routerFunctionMapping.isNull()) {
+                log.debug("LoggingWebFilter: RouterFunctionMapping not available, skipping")
+                return chain.filter(exchange)
+            }
+
             val handler = try {
-                handlerMapping.getHandler(exchange).awaitSingleOrNull()
+                routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
             } catch (e: Exception) {
-                log.debug("LoggingWebFilter: failed to resolve handler via RequestMappingHandlerMapping: {}", e.message)
+                log.debug("LoggingWebFilter: failed to resolve handler via RouterFunctionMapping: {}", e.message)
                 null
             }
-            when (handler) {
-                is HandlerMethod -> return filterWithHandlerMethod(exchange, chain, handler)
-                null -> {}
-                else -> log.debug("LoggingWebFilter: unexpected handler type {}", handler::class.simpleName)
+            return when (handler) {
+                is HandlerFunction<*> -> filterWithHandlerFunction(exchange, chain)
+                else -> {
+                    log.debug("LoggingWebFilter: no handler found for {}", exchange.request.uri.path)
+                    chain.filter(exchange)
+                }
             }
-        }
-
-        val routerFunctionMapping = routerFunctionMappingProvider.ifAvailable
-        if (routerFunctionMapping.isNull()) {
-            log.debug("LoggingWebFilter: RouterFunctionMapping not available, skipping")
-            return chain.filter(exchange)
-        }
-
-        val handler = try {
-            routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
-        } catch (e: Exception) {
-            log.debug("LoggingWebFilter: failed to resolve handler via RouterFunctionMapping: {}", e.message)
-            null
-        }
-        return when (handler) {
-            is HandlerFunction<*> -> filterWithHandlerFunction(exchange, chain)
-            else -> {
-                log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
-                chain.filter(exchange)
-            }
+        } finally {
+            val keysToRemove = exchange.attributes.keys - initialAttributes
+            keysToRemove.forEach { exchange.attributes.remove(it) }
         }
     }
 
