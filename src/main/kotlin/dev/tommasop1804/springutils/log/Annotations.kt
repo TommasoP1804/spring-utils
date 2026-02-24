@@ -16,6 +16,7 @@ annotation class LogExecution(
 ) {
     enum class Component {
         FUNCTION_NAME,
+        PATH,
         CLASS_NAME,
         USER,
         SERVICE,

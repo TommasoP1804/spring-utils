@@ -1,10 +1,7 @@
 package dev.tommasop1804.springutils.log
 
-import dev.tommasop1804.kutils.DOT
+import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
-import dev.tommasop1804.kutils.isNull
-import dev.tommasop1804.kutils.splitAndTrim
-import dev.tommasop1804.kutils.then
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
@@ -32,7 +29,7 @@ import org.springframework.web.server.ServerWebExchange
 
 @ConfigurationProperties(prefix = "spring-utils.reactive.logging")
 data class LoggingProperties(
-    @DefaultValue("FUNCTION_NAME,CLASS_NAME,USER,SERVICE,ID,FEATURE_CODE,ELAPSED_TIME,STATUS,EXCEPTION,STACKTRACE")
+    @DefaultValue("FUNCTION_NAME,CLASS_NAME,PATH,USER,SERVICE,ID,FEATURE_CODE,ELAPSED_TIME,STATUS,EXCEPTION,STACKTRACE")
     val include: Set<LogExecution.Component> = LogExecution.Component.entries.toSet(),
     @DefaultValue
     val exclude: Set<LogExecution.Component> = emptySet(),
@@ -152,6 +149,7 @@ class LoggingWebFilter(
         }
     }
 
+    @OptIn(ConditionNotPreventingExceptions::class)
     private suspend fun filterWithHandlerFunction(
         exchange: ServerWebExchange,
         chain: CoWebFilterChain
@@ -164,26 +162,26 @@ class LoggingWebFilter(
 
         withContext(contextToPropagate) {
             val currentUser = username()
-            val methodName = exchange.request.path.value()
+            val path = exchange.request.uri.path
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
             val featureCode = findCallerMethod()?.getAnnotation(Feature::class.java)?.code
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, null, methodName, currentUser, serviceValue, featureCode, ulid)
+                Logs.logStart(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, ulid)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, null, methodName, currentUser, serviceValue, featureCode, ulid)
+                    Logs.logEnd(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, ulid)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
                     val status = getStatus(e)
 
                     Logs.logException(
-                        finalComponents, null, methodName, currentUser,
+                        finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser,
                         "${status.value()} ${status.reasonPhrase}",
                         serviceValue, null, ulid, e, properties.basePackage
                     )
