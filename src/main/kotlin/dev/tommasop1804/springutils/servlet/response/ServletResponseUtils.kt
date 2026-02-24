@@ -1,4 +1,4 @@
-@file:JvmName("ResponseUtilsKt")
+@file:JvmName("ServletResponseUtilsKt")
 @file:Since("1.0.0")
 @file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST")
 
@@ -7,13 +7,13 @@ package dev.tommasop1804.springutils.servlet.response
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.time.Duration
-import dev.tommasop1804.springutils.servlet.EmptyResponse
-import dev.tommasop1804.springutils.servlet.Response
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.eTag
 import dev.tommasop1804.springutils.exception.PreconditionFailedException
 import dev.tommasop1804.springutils.exception.PreconditionRequiredException
 import dev.tommasop1804.springutils.findCallerMethod
+import dev.tommasop1804.springutils.servlet.EmptyResponse
+import dev.tommasop1804.springutils.servlet.Response
 import dev.tommasop1804.springutils.toHeaderDate
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -66,7 +66,7 @@ fun <T : Any> conditionalGet(
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     body: Supplier<T>
 ): Response<T> {
-    if (requireAtLeastOneValidator && eTagNoneMatch.isNull() && ifModifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagNoneMatch.isNullOrEmpty() && ifModifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     var status = status
@@ -139,6 +139,9 @@ fun <T : Any> conditionalGet(
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     body: Supplier<T>
 ): Response<T> {
+    if (requireAtLeastOneValidator && eTagNoneMatch.isNullOrEmpty() && ifModifiedSince.isNull())
+        throw lazyExceptionIfNotPresent()
+
     var status = status
     var body: T? = null
     val eTag = if (resourceETag.isNotNullOrBlank()) resourceETag - Char.QUOTATION_MARK else {
@@ -209,10 +212,10 @@ fun <T : Any, R : Any> conditionalUpdate(
     previousValue: Supplier<T?>?,
     body: Supplier<R>
 ): Response<R> {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
@@ -282,10 +285,10 @@ fun <T : Any, R : Any> conditionalUpdate(
     previousETag: String?,
     body: Supplier<R>
 ): Response<R> {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -352,10 +355,10 @@ fun <T : Any, R : Any> conditionalUpdate(
     previousValue: Supplier<T?>?,
     body: Supplier<R>
 ): Response<R> {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
@@ -425,10 +428,10 @@ fun <T : Any, R : Any> conditionalUpdate(
     previousETag: String?,
     body: Supplier<R>
 ): Response<R> {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -487,10 +490,10 @@ fun <T : Any> conditionalUpdate(
     previousValue: Supplier<T?>?,
     action: Action? = null
 ): EmptyResponse {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
@@ -551,10 +554,10 @@ fun <T : Any> conditionalUpdate(
     previousETag: String?,
     action: Action? = null
 ): EmptyResponse {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
@@ -612,10 +615,10 @@ fun <T : Any> conditionalUpdate(
     previousValue: Supplier<T?>?,
     action: Action? = null
 ): EmptyResponse {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         val previousValue = previousValue()
         if (previousValue.isNotNull()) {
             val eTag = previousValue.eTag
@@ -677,10 +680,10 @@ fun <T : Any> conditionalUpdate(
     previousETag: String?,
     action: Action? = null
 ): EmptyResponse {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNull() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNull()) {
+    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
     } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
