@@ -45,7 +45,7 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyVal
     body: T
 ): ServerResponse {
     val accepted = request.headers().accept()
-    val yamlType = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { yaml.isCompatibleWith(it) } }
+    val yamlType = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { yaml.equalsTypeAndSubtype(it) } }
     contentType(yamlType ?: MediaType.APPLICATION_JSON)
     return bodyValueWithTypeAndAwait(body)
 }
