@@ -70,14 +70,14 @@ fun ProblemDetail(
     internalErrorCode: String? = null,
     exception: String? = null,
     extensions: DataMapNN = emptyMap()
-): ServletExceptionHandler.ExtendedProblemDetail {
+): ExtendedProblemDetail {
     val result = ProblemDetail.forStatus(status)
     if (title.isNotNull()) result.title = title
     if (type.isNotNull()) result.type = type
     if (detail.isNotNull()) result.detail = detail
     if (instance.isNotNull()) result.instance = instance
     for ((key, value) in extensions) result.setProperty(key, value)
-    return ServletExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
+    return ExtendedProblemDetail(result, internalErrorCode, exception)
 }
 fun ProblemDetail(
     title: String? = null,
@@ -88,14 +88,14 @@ fun ProblemDetail(
     internalErrorCode: String? = null,
     exception: String? = null,
     extensions: DataMapNN = emptyMap()
-): ServletExceptionHandler.ExtendedProblemDetail {
+): ExtendedProblemDetail {
     val result = ProblemDetail.forStatus(status)
     if (title.isNotNull()) result.title = title
     if (type.isNotNull()) result.type = type
     if (detail.isNotNull()) result.detail = detail
     if (instance.isNotNull()) result.instance = instance
     for ((key, value) in extensions) result.setProperty(key, value)
-    return ServletExceptionHandler.ExtendedProblemDetail(result, internalErrorCode, exception)
+    return ExtendedProblemDetail(result, internalErrorCode, exception)
 }
 
 /**

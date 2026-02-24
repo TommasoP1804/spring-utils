@@ -1,5 +1,6 @@
 package dev.tommasop1804.springutils.exception
 
+import dev.tommasop1804.kutils.QUOTATION_MARK
 import dev.tommasop1804.kutils.asSingleList
 import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.isNotNull
@@ -16,9 +17,9 @@ import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.bodyValueAndAwait
+import org.springframework.web.accept.InvalidApiVersionException
+import org.springframework.web.accept.MissingApiVersionException
+import org.springframework.web.accept.NotAcceptableApiVersionException
 import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.*
 import reactor.core.publisher.Mono
@@ -45,41 +46,34 @@ class ReactiveSimpleExceptionHandler(
             .getProperty("spring-utils.exceptions.internal-error-code.${e::class.simpleName}")
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
 
+        val body = when (e) {
+            is DecodingException -> handleMessageNotReadable(e)
+            is ServerWebInputException -> handleServerWebInputException(e)
+            is MethodNotAllowedException -> handleMethodNotAllowed(e)
+            is UnsupportedMediaTypeStatusException -> handleMediaTypeNotSupported(e)
+            is NotAcceptableStatusException -> handleMediaTypeNotAcceptable(e)
+            is NoResourceFoundException -> handleNoResourceFound(e)
+            is NotAcceptableApiVersionException -> handleNotAcceptableApiVersion(e)
+            is InvalidApiVersionException -> handleInvalidApiVersion(e)
+            is MissingApiVersionException -> handleMissingApiVersion(e)
+            is ResponseStatusException -> handleResponseStatusException(e)
+            else -> {
+                SimpleErrorResponse(
+                    status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
+                    message,
+                    e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
+                )
+            }
+        }
+
         val response = exchange.response
         response.statusCode = status
         response.headers.put("Feature-Code", findFeatureAnnotation().asSingleList())
         response.headers.contentType = MediaType.APPLICATION_JSON
-        val body = SimpleErrorResponse(
-            status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
-            message,
-            e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
-        )
         return response.writeWith(Mono.just(response.bufferFactory().wrap(objectMapper.writeValueAsString(body).toByteArray(Charsets.UTF_8))))
     }
 
-    suspend fun filter(
-        request: ServerRequest,
-        next: suspend (ServerRequest) -> ServerResponse
-    ): ServerResponse {
-        return try {
-            next(request)
-        } catch (ex: Throwable) {
-            handleException(ex)
-        }
-    }
-
-    suspend fun handleException(ex: Throwable): ServerResponse = when (ex) {
-        is DecodingException -> handleMessageNotReadable(ex)
-        is ServerWebInputException -> handleServerWebInputException(ex)
-        is MethodNotAllowedException -> handleMethodNotAllowed(ex)
-        is UnsupportedMediaTypeStatusException -> handleMediaTypeNotSupported(ex)
-        is NotAcceptableStatusException -> handleMediaTypeNotAcceptable(ex)
-        is NoResourceFoundException -> handleNoResourceFound(ex)
-        is ResponseStatusException -> handleResponseStatusException(ex)
-        else -> handleGenericException(ex)
-    }
-
-    private suspend fun handleMessageNotReadable(ex: DecodingException): ServerResponse {
+    private fun handleMessageNotReadable(ex: DecodingException): SimpleErrorResponse {
         val httpStatus = HttpStatus.BAD_REQUEST
         val cause = ex.mostSpecificCause
 
@@ -122,7 +116,7 @@ class ReactiveSimpleExceptionHandler(
         )
     }
 
-    private suspend fun handleServerWebInputException(ex: ServerWebInputException): ServerResponse {
+    private fun handleServerWebInputException(ex: ServerWebInputException): SimpleErrorResponse {
         val httpStatus = HttpStatus.valueOf(ex.statusCode.value())
 
         val detail = buildString {
@@ -151,7 +145,7 @@ class ReactiveSimpleExceptionHandler(
         )
     }
 
-    private suspend fun handleMethodNotAllowed(ex: MethodNotAllowedException): ServerResponse {
+    private fun handleMethodNotAllowed(ex: MethodNotAllowedException): SimpleErrorResponse {
         val httpStatus = HttpStatus.METHOD_NOT_ALLOWED
 
         val supported = ex.supportedMethods
@@ -172,7 +166,7 @@ class ReactiveSimpleExceptionHandler(
         )
     }
 
-    private suspend fun handleMediaTypeNotSupported(ex: UnsupportedMediaTypeStatusException): ServerResponse {
+    private fun handleMediaTypeNotSupported(ex: UnsupportedMediaTypeStatusException): SimpleErrorResponse {
         val httpStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE
 
         val detail = buildString {
@@ -193,7 +187,7 @@ class ReactiveSimpleExceptionHandler(
         )
     }
 
-    private suspend fun handleMediaTypeNotAcceptable(ex: NotAcceptableStatusException): ServerResponse {
+    private fun handleMediaTypeNotAcceptable(ex: NotAcceptableStatusException): SimpleErrorResponse {
         val httpStatus = HttpStatus.NOT_ACCEPTABLE
 
         val detail = buildString {
@@ -214,20 +208,20 @@ class ReactiveSimpleExceptionHandler(
         )
     }
 
-    private suspend fun handleNoResourceFound(ex: NoResourceFoundException): ServerResponse {
+    private fun handleNoResourceFound(ex: NoResourceFoundException): SimpleErrorResponse {
         val httpStatus = HttpStatus.NOT_FOUND
 
         val errorCode = resolveInternalErrorCode("resource-not-found")
 
         return buildErrorResponse(
             status = httpStatus,
-            detail = "Resource with this path not found",
+            detail = ex.message.substringAfter(Char.QUOTATION_MARK).substringBeforeLast(Char.QUOTATION_MARK),
             internalErrorCode = errorCode,
             exception = ex.cause?.let { it::class.simpleName } ?: ex::class.simpleName,
         )
     }
 
-    private suspend fun handleResponseStatusException(ex: ResponseStatusException): ServerResponse {
+    private fun handleResponseStatusException(ex: ResponseStatusException): SimpleErrorResponse {
         val httpStatus = HttpStatus.valueOf(ex.statusCode.value())
 
         val errorCode = resolveInternalErrorCode(ex::class.simpleName)
@@ -240,36 +234,49 @@ class ReactiveSimpleExceptionHandler(
         )
     }
 
-    private suspend fun handleGenericException(ex: Throwable): ServerResponse {
-        val httpStatus = HttpStatus.INTERNAL_SERVER_ERROR
+    private fun handleInvalidApiVersion(ex: InvalidApiVersionException): SimpleErrorResponse {
+        val httpStatus = HttpStatus.BAD_REQUEST
 
-        val errorCode = resolveInternalErrorCode("default")
+        val errorCode = resolveInternalErrorCode("invalid-api-version")
 
         return buildErrorResponse(
             status = httpStatus,
-            detail = "Internal server error",
+            detail = "Invalid API version `${ex.version}`",
             internalErrorCode = errorCode,
-            exception = ex::class.simpleName,
+            exception = ex.cause?.let { it::class.simpleName } ?: ex::class.simpleName,
         )
     }
 
-    private suspend fun buildErrorResponse(
+    private fun handleMissingApiVersion(ex: MissingApiVersionException): SimpleErrorResponse {
+        val httpStatus = HttpStatus.BAD_REQUEST
+        return buildErrorResponse(
+            status = httpStatus,
+            detail = "Missing API version",
+            internalErrorCode = resolveInternalErrorCode("missing-api-version"),
+            exception = ex.cause?.let { it::class.simpleName } ?: ex::class.simpleName,
+        )
+    }
+
+    private fun handleNotAcceptableApiVersion(ex: NotAcceptableApiVersionException): SimpleErrorResponse {
+        val httpStatus = HttpStatus.NOT_ACCEPTABLE
+        return buildErrorResponse(
+            status = httpStatus,
+            detail = "API version `${ex.version}` not acceptable",
+            internalErrorCode = resolveInternalErrorCode("not-acceptable-api-version"),
+            exception = ex.cause?.let { it::class.simpleName } ?: ex::class.simpleName,
+        )
+    }
+
+    private fun buildErrorResponse(
         status: HttpStatus,
         detail: String,
         internalErrorCode: String?,
         exception: String?,
-    ): ServerResponse {
-        val problemDetail = SimpleErrorResponse(
-            title = status.reasonPhrase + ": " + exception,
-            description = detail,
-            internalErrorCode = internalErrorCode,
-        )
-
-        val builder = ServerResponse.status(status)
-            .contentType(MediaType.APPLICATION_JSON)
-
-        return builder.bodyValueAndAwait(problemDetail)
-    }
+    ): SimpleErrorResponse = SimpleErrorResponse(
+        title = status.reasonPhrase + ": " + exception,
+        description = detail,
+        internalErrorCode = internalErrorCode,
+    )
 
     private fun resolveInternalErrorCode(key: String?): String? {
         if (key.isNull()) return resolveInternalErrorCode("default")

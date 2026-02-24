@@ -2,6 +2,7 @@ package dev.tommasop1804.springutils.log
 
 import dev.tommasop1804.kutils.DOT
 import dev.tommasop1804.kutils.classes.identifiers.ULID
+import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.kutils.splitAndTrim
 import dev.tommasop1804.kutils.then
 import dev.tommasop1804.springutils.annotations.Feature
@@ -11,6 +12,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.withContext
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
@@ -20,7 +22,6 @@ import org.springframework.boot.context.properties.bind.DefaultValue
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping
-import org.slf4j.LoggerFactory
 import org.springframework.web.server.CoWebFilter
 import org.springframework.web.server.CoWebFilterChain
 import org.springframework.web.server.ServerWebExchange
@@ -60,13 +61,13 @@ class LoggingWebFilter(
 
     override suspend fun filter(exchange: ServerWebExchange, chain: CoWebFilterChain) {
         val handlerMapping = handlerMappingProvider.ifAvailable
-        if (handlerMapping == null) {
+        if (handlerMapping.isNull()) {
             log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, skipping")
             return chain.filter(exchange)
         }
 
         val handler = handlerMapping.getHandler(exchange).awaitSingleOrNull()
-        if (handler == null) {
+        if (handler.isNull()) {
             log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
             return chain.filter(exchange)
         }
