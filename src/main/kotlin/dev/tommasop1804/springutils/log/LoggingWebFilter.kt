@@ -1,10 +1,7 @@
 package dev.tommasop1804.springutils.log
 
-import dev.tommasop1804.kutils.DOT
+import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
-import dev.tommasop1804.kutils.isNull
-import dev.tommasop1804.kutils.splitAndTrim
-import dev.tommasop1804.kutils.then
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.reactive.security.username
@@ -21,6 +18,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.bind.DefaultValue
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
+import org.springframework.web.reactive.function.server.HandlerFunction
+import org.springframework.web.reactive.function.server.support.RouterFunctionMapping
 import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping
 import org.springframework.web.server.CoWebFilter
 import org.springframework.web.server.CoWebFilterChain
@@ -49,6 +48,7 @@ data class LoggingProperties(
 @EnableConfigurationProperties(LoggingProperties::class)
 class LoggingWebFilter(
     private val handlerMappingProvider: ObjectProvider<RequestMappingHandlerMapping>,
+    private val routerFunctionMappingProvider: ObjectProvider<RouterFunctionMapping>,
     private val properties: LoggingProperties,
 ) : CoWebFilter() {
 
@@ -62,21 +62,41 @@ class LoggingWebFilter(
     override suspend fun filter(exchange: ServerWebExchange, chain: CoWebFilterChain) {
         val handlerMapping = handlerMappingProvider.ifAvailable
         if (handlerMapping.isNull()) {
-            log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, skipping")
+            log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, trying RouterFunctionMapping")
+        } else {
+            val handler = handlerMapping.getHandler(exchange).awaitSingleOrNull()
+            if (handler is HandlerMethod) {
+                return filterWithHandlerMethod(exchange, chain, handler)
+            }
+            if (handler.isNotNull()) {
+                log.debug("LoggingWebFilter: handler is {} instead of HandlerMethod", handler::class.simpleName)
+            }
+        }
+
+        val routerFunctionMapping = routerFunctionMappingProvider.ifAvailable
+        if (routerFunctionMapping.isNull()) {
+            log.debug("LoggingWebFilter: RouterFunctionMapping not available, skipping")
             return chain.filter(exchange)
         }
 
-        val handler = handlerMapping.getHandler(exchange).awaitSingleOrNull()
-        if (handler.isNull()) {
-            log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
-            return chain.filter(exchange)
+        val handler = routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
+        if (handler is HandlerFunction<*>) {
+            return filterWithHandlerFunction(exchange, chain)
         }
 
-        if (handler !is HandlerMethod) {
-            log.debug("LoggingWebFilter: handler is {} instead of HandlerMethod", handler::class.simpleName)
-            return chain.filter(exchange)
+        if (handler.isNotNull()) {
+            log.debug("LoggingWebFilter: handler is {} instead of HandlerFunction", handler::class.simpleName)
         }
 
+        log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
+        return chain.filter(exchange)
+    }
+
+    private suspend fun filterWithHandlerMethod(
+        exchange: ServerWebExchange,
+        chain: CoWebFilterChain,
+        handler: HandlerMethod
+    ) {
         val ulid = ULID(monotonic = true)
 
         val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: reactor.util.context.Context.empty()
@@ -114,6 +134,47 @@ class LoggingWebFilter(
                         finalComponents, className, methodName, currentUser,
                         "${status.value()} ${status.reasonPhrase}",
                         serviceValue, featureCode, ulid, e, resolvedBasePackage
+                    )
+                }
+                throw e
+            }
+        }
+    }
+
+    private suspend fun filterWithHandlerFunction(
+        exchange: ServerWebExchange,
+        chain: CoWebFilterChain
+    ) {
+        val ulid = ULID(monotonic = true)
+
+        val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: reactor.util.context.Context.empty()
+        val newReactorCtx = currentReactorCtx.put(ULID::class.java, ulid)
+        val contextToPropagate = LogIdContext(ulid) + ReactorContext(newReactorCtx)
+
+        withContext(contextToPropagate) {
+            val currentUser = username()
+            val methodName = exchange.request.method.name()
+            val className = exchange.request.path.value()
+            val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
+
+            if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
+                Logs.logStart(finalComponents, className, methodName, currentUser, serviceValue, null, ulid)
+            }
+
+            try {
+                chain.filter(exchange)
+
+                if (LogExecution.Behaviour.AFTER in properties.behaviour) {
+                    Logs.logEnd(finalComponents, className, methodName, currentUser, serviceValue, null, ulid)
+                }
+            } catch (e: Throwable) {
+                if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
+                    val status = getStatus(e)
+
+                    Logs.logException(
+                        finalComponents, className, methodName, currentUser,
+                        "${status.value()} ${status.reasonPhrase}",
+                        serviceValue, null, ulid, e, properties.basePackage
                     )
                 }
                 throw e
