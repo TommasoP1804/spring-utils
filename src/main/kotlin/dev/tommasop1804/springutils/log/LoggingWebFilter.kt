@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping
+import org.slf4j.LoggerFactory
 import org.springframework.web.server.CoWebFilter
 import org.springframework.web.server.CoWebFilterChain
 import org.springframework.web.server.ServerWebExchange
@@ -50,6 +51,8 @@ class LoggingWebFilter(
     private val properties: LoggingProperties,
 ) : CoWebFilter() {
 
+    private val log = LoggerFactory.getLogger(LoggingWebFilter::class.java)
+
     private val finalComponents: Array<LogExecution.Component> by lazy {
         val included = properties.include.ifEmpty { LogExecution.Component.entries.toSet() }
         included.filterNot { it in properties.exclude }.toTypedArray()
@@ -57,9 +60,19 @@ class LoggingWebFilter(
 
     override suspend fun filter(exchange: ServerWebExchange, chain: CoWebFilterChain) {
         val handlerMapping = handlerMappingProvider.ifAvailable
-        val handler = handlerMapping?.getHandler(exchange)?.awaitSingleOrNull()
+        if (handlerMapping == null) {
+            log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, skipping")
+            return chain.filter(exchange)
+        }
+
+        val handler = handlerMapping.getHandler(exchange).awaitSingleOrNull()
+        if (handler == null) {
+            log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
+            return chain.filter(exchange)
+        }
 
         if (handler !is HandlerMethod) {
+            log.debug("LoggingWebFilter: handler is {} instead of HandlerMethod", handler::class.simpleName)
             return chain.filter(exchange)
         }
 
