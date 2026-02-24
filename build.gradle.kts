@@ -103,7 +103,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "2.0.0-RC2")
+    coordinates("dev.tommasop1804", "spring-utils", "2.0.0-RC3")
 
     pom {
         name.set("Spring Utils")
