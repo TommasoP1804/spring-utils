@@ -48,7 +48,7 @@ data class LoggingProperties(
 @EnableConfigurationProperties(LoggingProperties::class)
 class LoggingWebFilter(
     private val handlerMappingProvider: ObjectProvider<RequestMappingHandlerMapping>,
-    private val routerFunctionMappingProvider: ObjectProvider<RouterFunctionMapping>,
+    private val routerFunctionMappingProvider: ObjectProvider<List<RouterFunctionMapping>>,
     private val properties: LoggingProperties,
 ) : CoWebFilter() {
 
@@ -73,19 +73,20 @@ class LoggingWebFilter(
             }
         }
 
-        val routerFunctionMapping = routerFunctionMappingProvider.ifAvailable
-        if (routerFunctionMapping.isNull()) {
+        val mappings = routerFunctionMappingProvider.ifAvailable
+        if (mappings.isNullOrEmpty()) {
             log.debug("LoggingWebFilter: RouterFunctionMapping not available, skipping")
             return chain.filter(exchange)
         }
 
-        val handler = routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
-        if (handler is HandlerFunction<*>) {
-            return filterWithHandlerFunction(exchange, chain)
-        }
-
-        if (handler.isNotNull()) {
-            log.debug("LoggingWebFilter: handler is {} instead of HandlerFunction", handler::class.simpleName)
+        for (routerFunctionMapping in mappings) {
+            val handler = routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
+            if (handler is HandlerFunction<*>) {
+                return filterWithHandlerFunction(exchange, chain)
+            }
+            if (handler.isNotNull()) {
+                log.debug("LoggingWebFilter: handler is {} instead of HandlerFunction", handler::class.simpleName)
+            }
         }
 
         log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
