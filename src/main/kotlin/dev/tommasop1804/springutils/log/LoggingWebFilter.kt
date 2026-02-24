@@ -3,6 +3,7 @@ package dev.tommasop1804.springutils.log
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.reactive.security.username
 import kotlinx.coroutines.currentCoroutineContext
@@ -11,6 +12,7 @@ import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -48,7 +50,7 @@ data class LoggingProperties(
 @EnableConfigurationProperties(LoggingProperties::class)
 class LoggingWebFilter(
     private val handlerMappingProvider: ObjectProvider<RequestMappingHandlerMapping>,
-    private val routerFunctionMappingProvider: ObjectProvider<List<RouterFunctionMapping>>,
+    @param:Qualifier private val routerFunctionMappingProvider: ObjectProvider<RouterFunctionMapping>,
     private val properties: LoggingProperties,
 ) : CoWebFilter() {
 
@@ -73,20 +75,19 @@ class LoggingWebFilter(
             }
         }
 
-        val mappings = routerFunctionMappingProvider.ifAvailable
-        if (mappings.isNullOrEmpty()) {
+        val routerFunctionMapping = routerFunctionMappingProvider.ifAvailable
+        if (routerFunctionMapping.isNull()) {
             log.debug("LoggingWebFilter: RouterFunctionMapping not available, skipping")
             return chain.filter(exchange)
         }
 
-        for (routerFunctionMapping in mappings) {
-            val handler = routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
-            if (handler is HandlerFunction<*>) {
-                return filterWithHandlerFunction(exchange, chain)
-            }
-            if (handler.isNotNull()) {
-                log.debug("LoggingWebFilter: handler is {} instead of HandlerFunction", handler::class.simpleName)
-            }
+        val handler = routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
+        if (handler is HandlerFunction<*>) {
+            return filterWithHandlerFunction(exchange, chain)
+        }
+
+        if (handler.isNotNull()) {
+            log.debug("LoggingWebFilter: handler is {} instead of HandlerFunction", handler::class.simpleName)
         }
 
         log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
@@ -154,26 +155,26 @@ class LoggingWebFilter(
 
         withContext(contextToPropagate) {
             val currentUser = username()
-            val methodName = exchange.request.method.name()
-            val className = exchange.request.path.value()
+            val methodName = exchange.request.path.value()
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
+            val featureCode = findCallerMethod()?.getAnnotation(Feature::class.java)?.code
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, className, methodName, currentUser, serviceValue, null, ulid)
+                Logs.logStart(finalComponents, null, methodName, currentUser, serviceValue, featureCode, ulid)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, className, methodName, currentUser, serviceValue, null, ulid)
+                    Logs.logEnd(finalComponents, null, methodName, currentUser, serviceValue, featureCode, ulid)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
                     val status = getStatus(e)
 
                     Logs.logException(
-                        finalComponents, className, methodName, currentUser,
+                        finalComponents, null, methodName, currentUser,
                         "${status.value()} ${status.reasonPhrase}",
                         serviceValue, null, ulid, e, properties.basePackage
                     )
