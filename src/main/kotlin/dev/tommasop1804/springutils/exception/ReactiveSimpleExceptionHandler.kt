@@ -6,7 +6,6 @@ import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.exception.ServletExceptionHandler.Companion.findFeatureAnnotation
-import dev.tommasop1804.springutils.exception.ServletSimpleExceptionHandler.SimpleErrorResponse
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication

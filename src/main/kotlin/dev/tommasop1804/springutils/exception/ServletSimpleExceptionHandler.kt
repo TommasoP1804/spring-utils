@@ -1,7 +1,5 @@
 package dev.tommasop1804.springutils.exception
 
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
 import dev.tommasop1804.kutils.EMPTY
 import dev.tommasop1804.kutils.asSingleList
 import dev.tommasop1804.kutils.before
@@ -28,6 +26,9 @@ import org.springframework.http.converter.HttpMessageNotWritableException
 import org.springframework.web.HttpMediaTypeNotAcceptableException
 import org.springframework.web.HttpMediaTypeNotSupportedException
 import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.accept.InvalidApiVersionException
+import org.springframework.web.accept.MissingApiVersionException
+import org.springframework.web.accept.NotAcceptableApiVersionException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingPathVariableException
 import org.springframework.web.bind.MissingServletRequestParameterException
@@ -39,11 +40,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.servlet.resource.NoResourceFoundException
-import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.DatabindException
-import tools.jackson.databind.SerializationContext
-import tools.jackson.databind.ValueSerializer
-import tools.jackson.databind.annotation.JsonSerialize
 import tools.jackson.databind.exc.MismatchedInputException
 import kotlin.apply
 
@@ -52,38 +49,12 @@ import kotlin.apply
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class ServletSimpleExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
-    @JsonSerialize(using = SimpleErrorResponse.Companion.Serializer::class)
-    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = SimpleErrorResponse.Companion.OldSerializer::class)
-    data class SimpleErrorResponse(
-        val title: String,
-        val description: String,
-        val internalErrorCode: String? = null
-    ) {
-        companion object {
-            class Serializer : ValueSerializer<SimpleErrorResponse>() {
-                override fun serialize(value: SimpleErrorResponse, gen: JsonGenerator, ctxt: SerializationContext) {
-                    gen.writeStartObject()
-                    gen.writeStringProperty("title", value.title)
-                    gen.writeStringProperty("description", value.description)
-                    if (value.internalErrorCode.isNotNullOrBlank()) gen.writeStringProperty("internalErrorCode", value.internalErrorCode)
-                    gen.writeEndObject()
-                }
-            }
-
-            class OldSerializer : JsonSerializer<SimpleErrorResponse>() {
-                override fun serialize(value: SimpleErrorResponse, gen: com.fasterxml.jackson.core.JsonGenerator, serializers: SerializerProvider) {
-                    gen.writeStartObject()
-                    gen.writeStringField("title", value.title)
-                    gen.writeStringField("description", value.description)
-                    if (value.internalErrorCode.isNotNullOrBlank()) gen.writeStringField("internalErrorCode", value.internalErrorCode)
-                    gen.writeEndObject()
-                }
-            }
-        }
-    }
-
     @ExceptionHandler(Exception::class)
     fun handleAllException(e: Exception): ResponseEntity<SimpleErrorResponse> {
+        if (e is InvalidApiVersionException) return handleInvalidApiVersion(e)
+        if (e is MissingApiVersionException) return handleMissingApiVersion(e)
+        if (e is NotAcceptableApiVersionException) return handleNotAcceptableApiVersion(e)
+
         val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
 
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
@@ -458,6 +429,75 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Failed to write HTTP message. ${ex.message}",
                 internalErrorCode = internalCode
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    private fun handleMissingApiVersion(
+        ex: MissingApiVersionException,
+    ): ResponseEntity<SimpleErrorResponse> {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.missing-api-version")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            SimpleErrorResponse(
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                description = "Missing API version",
+                internalErrorCode = internalErrorCode,
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    private fun handleInvalidApiVersion(
+        ex: InvalidApiVersionException
+    ): ResponseEntity<SimpleErrorResponse> {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.invalid-api-version")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            SimpleErrorResponse(
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
+                description = "Invalid API version `${ex.version}`",
+                internalErrorCode = internalErrorCode,
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    private fun handleNotAcceptableApiVersion(
+        ex: NotAcceptableApiVersionException
+    ): ResponseEntity<SimpleErrorResponse> {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.not-acceptable-api-version")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            SimpleErrorResponse(
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
+                description = "API version `${ex.version}` is not acceptable",
+                internalErrorCode = internalErrorCode,
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())

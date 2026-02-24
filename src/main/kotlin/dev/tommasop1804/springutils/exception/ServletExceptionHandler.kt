@@ -28,6 +28,9 @@ import org.springframework.http.converter.HttpMessageNotWritableException
 import org.springframework.web.HttpMediaTypeNotAcceptableException
 import org.springframework.web.HttpMediaTypeNotSupportedException
 import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.accept.InvalidApiVersionException
+import org.springframework.web.accept.MissingApiVersionException
+import org.springframework.web.accept.NotAcceptableApiVersionException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingPathVariableException
 import org.springframework.web.bind.MissingServletRequestParameterException
@@ -77,6 +80,10 @@ class ServletExceptionHandler(private val environment: Environment) : ResponseEn
 
     @ExceptionHandler(Exception::class)
     fun handleAllException(e: Exception): ResponseEntity<ExtendedProblemDetail> {
+        if (e is InvalidApiVersionException) return handleInvalidApiVersion(e)
+        if (e is MissingApiVersionException) return handleMissingApiVersion(e)
+        if (e is NotAcceptableApiVersionException) return handleNotAcceptableApiVersion(e)
+
         val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
         val message = (e.message?.substringAfter(" @@@ ")) ?: e::class.simpleName ?: e::class.qualifiedName ?: "Unknow error"
 
@@ -479,6 +486,81 @@ class ServletExceptionHandler(private val environment: Environment) : ResponseEn
                 detail = "Failed to write HTTP message. ${ex.message}",
                 internalErrorCode = internalCode,
                 exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    private fun handleMissingApiVersion(
+        ex: MissingApiVersionException,
+    ): ResponseEntity<ExtendedProblemDetail> {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.missing-api-version")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Missing API version",
+                internalErrorCode = internalErrorCode,
+                exception = ex::class.simpleName ?: ex::class.qualifiedName
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    private fun handleInvalidApiVersion(
+        ex: InvalidApiVersionException
+    ): ResponseEntity<ExtendedProblemDetail> {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.invalid-api-version")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "Invalid API version `${ex.version}`",
+                internalErrorCode = internalErrorCode,
+                exception = ex::class.simpleName ?: ex::class.qualifiedName
+            ),
+            HttpHeaders().apply {
+                if (featureCode.isNotNullOrBlank())
+                    put("Feature-Code", featureCode.asSingleList())
+            },
+            status
+        )
+    }
+
+    private fun handleNotAcceptableApiVersion(
+        ex: NotAcceptableApiVersionException
+    ): ResponseEntity<ExtendedProblemDetail> {
+        val internalErrorCode = environment
+            .getProperty("spring-utils.exceptions.internal-error-code.not-acceptable-api-version")
+            ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
+        val featureCode = findFeatureAnnotation()
+        val status = HttpStatus.valueOf(ex.statusCode.value())
+
+        return ResponseEntity(
+            ProblemDetail(
+                title = status.reasonPhrase,
+                status = status,
+                detail = "API version `${ex.version}` is not acceptable",
+                internalErrorCode = internalErrorCode,
+                exception = ex::class.simpleName ?: ex::class.qualifiedName
             ),
             HttpHeaders().apply {
                 if (featureCode.isNotNullOrBlank())
