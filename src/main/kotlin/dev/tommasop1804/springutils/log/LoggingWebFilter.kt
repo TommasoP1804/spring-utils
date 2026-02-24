@@ -1,7 +1,10 @@
 package dev.tommasop1804.springutils.log
 
-import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.DOT
 import dev.tommasop1804.kutils.classes.identifiers.ULID
+import dev.tommasop1804.kutils.isNull
+import dev.tommasop1804.kutils.splitAndTrim
+import dev.tommasop1804.kutils.then
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
@@ -66,12 +69,16 @@ class LoggingWebFilter(
         if (handlerMapping.isNull()) {
             log.debug("LoggingWebFilter: RequestMappingHandlerMapping not available, trying RouterFunctionMapping")
         } else {
-            val handler = handlerMapping.getHandler(exchange).awaitSingleOrNull()
-            if (handler is HandlerMethod) {
-                return filterWithHandlerMethod(exchange, chain, handler)
+            val handler = try {
+                handlerMapping.getHandler(exchange).awaitSingleOrNull()
+            } catch (e: Exception) {
+                log.debug("LoggingWebFilter: failed to resolve handler via RequestMappingHandlerMapping: {}", e.message)
+                null
             }
-            if (handler.isNotNull()) {
-                log.debug("LoggingWebFilter: handler is {} instead of HandlerMethod", handler::class.simpleName)
+            when (handler) {
+                is HandlerMethod -> return filterWithHandlerMethod(exchange, chain, handler)
+                null -> {}
+                else -> log.debug("LoggingWebFilter: unexpected handler type {}", handler::class.simpleName)
             }
         }
 
@@ -81,17 +88,19 @@ class LoggingWebFilter(
             return chain.filter(exchange)
         }
 
-        val handler = routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
-        if (handler is HandlerFunction<*>) {
-            return filterWithHandlerFunction(exchange, chain)
+        val handler = try {
+            routerFunctionMapping.getHandler(exchange).awaitSingleOrNull()
+        } catch (e: Exception) {
+            log.debug("LoggingWebFilter: failed to resolve handler via RouterFunctionMapping: {}", e.message)
+            null
         }
-
-        if (handler.isNotNull()) {
-            log.debug("LoggingWebFilter: handler is {} instead of HandlerFunction", handler::class.simpleName)
+        return when (handler) {
+            is HandlerFunction<*> -> filterWithHandlerFunction(exchange, chain)
+            else -> {
+                log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
+                chain.filter(exchange)
+            }
         }
-
-        log.debug("LoggingWebFilter: no handler found for {}", exchange.request.path)
-        return chain.filter(exchange)
     }
 
     private suspend fun filterWithHandlerMethod(
