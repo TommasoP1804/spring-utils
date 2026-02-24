@@ -7,18 +7,21 @@ package dev.tommasop1804.springutils.reactive.response
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.time.Duration
-import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.config.YAML_MEDIA_TYPES
 import dev.tommasop1804.springutils.eTag
 import dev.tommasop1804.springutils.exception.PreconditionFailedException
 import dev.tommasop1804.springutils.exception.PreconditionRequiredException
 import dev.tommasop1804.springutils.findCallerMethod
+import dev.tommasop1804.springutils.reactive.Request
 import dev.tommasop1804.springutils.reactive.Response
+import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.servlet.response.MultiStatusResponseType
 import dev.tommasop1804.springutils.servlet.response.ResourceResult
 import dev.tommasop1804.springutils.toHeaderDate
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
@@ -26,6 +29,26 @@ import java.net.URI
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
+
+/**
+ * Negotiates the response content type based on the `Accept` header from the client request and sets it accordingly.
+ * If a compatible YAML media type is found, the response content type is set to that media type.
+ * Finally, the response body is set using the provided body object.
+ *
+ * @param request The server request containing headers including the `Accept` header to negotiate content type.
+ * @param body The body object to be set in the response.
+ * @return The `ServerResponse` with the negotiated content type and provided body.
+ * @since 2.0.3
+ */
+suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTypeAndAwait(
+    request: Request,
+    body: T
+): ServerResponse {
+    val accepted = request.headers().accept()
+    val yamlType = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { yaml.isCompatibleWith(it) } }
+    contentType(yamlType ?: MediaType.APPLICATION_JSON)
+    return bodyValueWithTypeAndAwait(body)
+}
 
 /**
  * Evaluates conditional GET preconditions based on request headers and returns an appropriate response status
@@ -54,6 +77,7 @@ import java.time.temporal.TemporalAccessor
  * @return A [Response] entity containing the appropriate HTTP status, headers, and optional response body.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> conditionalGet(
     eTagNoneMatch: StringList? = null,
     ifModifiedSince: OffsetDateTime? = null,
@@ -93,7 +117,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.buildAndAwait()
-    return response.eTag(eTag).bodyValueWithTypeAndAwait(body ?: body())
+    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(request, body ?: body())
 }
 /**
  * Processes conditional GET requests based on the provided HTTP headers and configuration,
@@ -126,6 +150,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * of the validation.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> conditionalGet(
     eTagNoneMatch: StringList? = null,
     ifModifiedSince: OffsetDateTime? = null,
@@ -163,7 +188,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.buildAndAwait()
-    return response.eTag(eTag).bodyValueWithTypeAndAwait(body ?: body())
+    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(request, body ?: body())
 }
 
 /**
@@ -195,6 +220,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @since 2.0.0
  */
 @JvmName("conditionalUpdateNewValue")
+context(request: Request)
 suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
@@ -237,7 +263,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.bodyValueWithTypeAndAwait(body)
+    return response.negotiateBodyValueWithTypeAndAwait(request, body)
 }
 /**
  * Attempts to conditionally update a resource based on ETag or If-Unmodified-Since headers.
@@ -268,6 +294,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @since 2.0.0
  */
 @JvmName("conditionalUpdateNewValue")
+context(request: Request)
 suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
@@ -306,7 +333,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.bodyValueWithTypeAndAwait(body)
+    return response.negotiateBodyValueWithTypeAndAwait(request, body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -338,6 +365,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @since 2.0.0
  */
 @JvmName("conditionalUpdateNewValue")
+context(request: Request)
 suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
@@ -380,7 +408,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.bodyValueWithTypeAndAwait(body)
+    return response.negotiateBodyValueWithTypeAndAwait(request, body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -411,6 +439,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @since 2.0.0
  */
 @JvmName("conditionalUpdateNewValue")
+context(request: Request)
 suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
@@ -449,7 +478,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.bodyValueWithTypeAndAwait(body)
+    return response.negotiateBodyValueWithTypeAndAwait(request, body)
 }
 /**
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
@@ -802,6 +831,7 @@ suspend fun EmptyResponse(
  * @return An HTTP response of type `Response` with the specified status, headers, and body content.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> OKResponse(
     includeFeatureCode: Boolean = true,
     includeETag: Boolean = true,
@@ -823,7 +853,7 @@ suspend inline fun <reified T : Any> OKResponse(
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 /**
@@ -841,6 +871,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * @return a Response instance of type T encapsulating the provided configurations
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> OKResponse(
     featureCode: String,
     includeETag: Boolean = true,
@@ -862,7 +893,7 @@ suspend inline fun <reified T : Any> OKResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 
@@ -885,6 +916,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * @return A `Response` object containing the constructed HTTP status, headers, and optional body.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> CreatedResponse(
     includeFeatureCode: Boolean = true,
     includeETag: Boolean = true,
@@ -909,7 +941,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 /**
@@ -929,6 +961,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @return a Response object of type T representing the constructed 201 Created response
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> CreatedResponse(
     featureCode: String,
     includeETag: Boolean = true,
@@ -953,7 +986,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 
@@ -976,6 +1009,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @return The constructed Response object containing the specified HTTP status, headers, and body.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> AcceptedResponse(
     includeFeatureCode: Boolean = true,
     includeETag: Boolean = true,
@@ -997,7 +1031,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 /**
@@ -1015,6 +1049,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @return a Response object containing the HTTP status, headers, and optionally body content
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> AcceptedResponse(
     featureCode: String,
     includeETag: Boolean = true,
@@ -1036,7 +1071,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 
@@ -1136,6 +1171,7 @@ suspend fun ResetContentResponse(
  * @return A `Response` object of type `T` with the specified properties and HTTP status 206.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> PartialContentResponse(
     includeFeatureCode: Boolean = true,
     includeETag: Boolean = true,
@@ -1157,7 +1193,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 /**
@@ -1176,6 +1212,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * @return A built response object containing the given metadata and body content.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> PartialContentResponse(
     featureCode: String,
     includeETag: Boolean = true,
@@ -1197,7 +1234,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 
@@ -1215,6 +1252,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * @return A `Response` instance with a status of HTTP 207 Multi-Status and a body formatted according to the specified `responseType`.
  * @since 2.0.0
  */
+context(request: Request)
 suspend fun MultiStatusResponse(
     resources: List<ResourceResult>,
     includeFeatureCode: Boolean = true,
@@ -1233,7 +1271,7 @@ suspend fun MultiStatusResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.bodyValueWithTypeAndAwait(when(responseType) {
+    return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion)
@@ -1254,6 +1292,7 @@ suspend fun MultiStatusResponse(
  * @return A `Response` object containing the multi-status HTTP response.
  * @since 2.0.0
  */
+context(request: Request)
 suspend fun MultiStatusResponse(
     resources: List<ResourceResult>,
     featureCode: String,
@@ -1270,7 +1309,7 @@ suspend fun MultiStatusResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.bodyValueWithTypeAndAwait(when(responseType) {
+    return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion)
@@ -1367,6 +1406,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @return A `Response` instance with the configured attributes.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> IMUsedResponse(
     includeFeatureCode: Boolean = true,
     newETag: String? = null,
@@ -1388,7 +1428,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 /**
@@ -1407,6 +1447,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * @return A `Response` instance representing the constructed HTTP response.
  * @since 2.0.0
  */
+context(request: Request)
 suspend inline fun <reified T : Any> IMUsedResponse(
     featureCode: String,
     newETag: String? = null,
@@ -1428,7 +1469,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.bodyValueWithTypeAndAwait(result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
     return re.buildAndAwait()
 }
 
