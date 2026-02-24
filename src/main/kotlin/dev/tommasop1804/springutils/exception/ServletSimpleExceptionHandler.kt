@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.DatabindException
@@ -168,7 +168,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
-                description = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}$$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
+                description = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}.$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
@@ -196,7 +196,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
-                description = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) "(`${methodParameter!!.containingClass.simpleName}$${methodParameter.method}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
+                description = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) " (`${methodParameter!!.containingClass.simpleName}.${methodParameter.method?.name}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
@@ -326,7 +326,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
-                description = "Invalid parameter: ${ex.parameter} ${"(`${ex.parameter.containingClass.simpleName}$${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
+                description = "Invalid parameter: ${ex.parameter} ${" (`${ex.parameter.containingClass.simpleName}.${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
                 internalErrorCode = internalErrorCode
             ),
             HttpHeaders().apply {

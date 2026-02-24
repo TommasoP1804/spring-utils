@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.multipart.MaxUploadSizeExceededException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.DatabindException
@@ -251,7 +251,7 @@ class ServletExceptionHandler(private val environment: Environment) : ResponseEn
             ProblemDetail(
                 title = status.reasonPhrase,
                 status = status,
-                detail = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) "(`${methodParameter!!.containingClass.simpleName}$${methodParameter.method}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
+                detail = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) " (`${methodParameter!!.containingClass.simpleName}.${methodParameter.method?.name}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
                 internalErrorCode = internalCode,
                 exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
@@ -391,7 +391,7 @@ class ServletExceptionHandler(private val environment: Environment) : ResponseEn
             ProblemDetail(
                 title = status.reasonPhrase,
                 status = status,
-                detail = "Invalid parameter: ${ex.parameter} ${"(`${ex.parameter.containingClass.simpleName}$${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
+                detail = "Invalid parameter: ${ex.parameter} ${"(`${ex.parameter.containingClass.simpleName}.${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
                 internalErrorCode = internalErrorCode,
                 exception = ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName })
             ),
