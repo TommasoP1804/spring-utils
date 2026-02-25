@@ -116,7 +116,7 @@ open class RequiredQueryParamException : ValidationFailedException {
      * If provided, it will be included as a prefix in the exception message.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY} ${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required")
+    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required")
 }
 
 /**

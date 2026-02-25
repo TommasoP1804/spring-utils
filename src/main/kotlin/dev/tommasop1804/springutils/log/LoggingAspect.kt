@@ -4,7 +4,6 @@ import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.getStatus
-import dev.tommasop1804.springutils.reactive.security.username
 import dev.tommasop1804.springutils.servlet.security.username
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.After
@@ -20,26 +19,29 @@ import org.springframework.stereotype.Component
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @Suppress("unused")
 class LoggingAspect(
-    private val id: ThreadLocal<ULID> = ThreadLocal<ULID>(),
     private val isAfterThrowing: ThreadLocal<Boolean> = ThreadLocal.withInitial { false },
 ) {
-    /**
-     * A computed property that retrieves the current unique identifier (ULID) associated
-     * with the ongoing logging context.
-     *
-     * This property checks the value of `id` and returns a ULID instance if the value
-     * is not null. If `id` is null, it returns null instead.
-     *
-     * The primary purpose of this property is to provide a unique identifier for
-     * tracking logging events and associating them with specific actions or contexts.
-     *
-     * @return The current ULID if available, or null if no identifier is set.
-     * @since 1.0.0
-     */
-    val currentId: ULID? get() = if (id.get().isNull()) {
-        id.set(ULID(monotonic = true))
-        id.get()
-    } else ULID(id.get().toString())
+    companion object {
+        private val id: ThreadLocal<ULID> = ThreadLocal<ULID>()
+
+        /**
+         * A computed property that retrieves the current unique identifier (ULID) associated
+         * with the ongoing logging context.
+         *
+         * This property checks the value of `id` and returns a ULID instance if the value
+         * is not null. If `id` is null, it returns null instead.
+         *
+         * The primary purpose of this property is to provide a unique identifier for
+         * tracking logging events and associating them with specific actions or contexts.
+         *
+         * @return The current ULID if available, or null if no identifier is set.
+         * @since 2.0.9
+         */
+        val currentId: ULID? get() = if (id.get().isNull()) {
+            id.set(ULID(monotonic = true))
+            id.get()
+        } else ULID(id.get().toString())
+    }
 
     @Before("@annotation(LogExecution) || @within(LogExecution)")
     fun logBefore(joinPoint: JoinPoint) {
@@ -117,7 +119,9 @@ class LoggingAspect(
             else {
                 if (basePackage.isNull()) basePackage = tryOrNull {
                     signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
-                } ?: joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+                } ?: tryOr({
+                    joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(0)}" }
+                }) { joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" } }
             }
 
             val compontents = annotation.then { exclude to includeOnly }

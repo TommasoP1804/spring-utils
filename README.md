@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.tommasop1804:spring-utils:2.0.6")
+    implementation("dev.tommasop1804:spring-utils:2.0.9")
 }
 ```
 
@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'dev.tommasop1804:spring-utils:2.0.6'
+    implementation 'dev.tommasop1804:spring-utils:2.0.9'
 }
 ```
 
