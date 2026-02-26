@@ -90,7 +90,7 @@ fun <T : Any> conditionalGet(
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (status == HttpStatus.NOT_MODIFIED) return response.build()
     return response.eTag(eTag).body(body ?: body())
 }
@@ -165,7 +165,7 @@ fun <T : Any> conditionalGet(
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.build()
     return response.eTag(eTag).body(body ?: body())
@@ -240,7 +240,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -312,7 +312,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -389,7 +389,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -461,7 +461,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -530,7 +530,7 @@ fun <T : Any> conditionalUpdate(
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.build()
@@ -593,7 +593,7 @@ fun <T : Any> conditionalUpdate(
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.build()
@@ -661,7 +661,7 @@ fun <T : Any> conditionalUpdate(
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.build()
@@ -724,7 +724,7 @@ fun <T : Any> conditionalUpdate(
     if (headers.isNotNull() && !headers.isEmpty) response.headers(headers)
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { response.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -771,7 +771,7 @@ fun EmptyResponse(
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModified.isNotNull()) re.lastModified(lastModified.toInstant())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -813,7 +813,7 @@ fun EmptyResponse(
     re.featureCode(featureCode)
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -857,7 +857,7 @@ fun <T : Any> OKResponse(
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
@@ -899,7 +899,7 @@ fun <T : Any> OKResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
@@ -949,7 +949,7 @@ fun <T : Any> CreatedResponse(
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (location.isNotNull()) re.location(location)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -996,7 +996,7 @@ fun <T : Any> CreatedResponse(
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (location.isNotNull()) re.location(location)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1043,7 +1043,7 @@ fun <T : Any> AcceptedResponse(
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1085,7 +1085,7 @@ fun <T : Any> AcceptedResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
@@ -1128,7 +1128,7 @@ fun ResetContentResponse(
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1169,7 +1169,7 @@ fun ResetContentResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
@@ -1215,7 +1215,7 @@ fun <T : Any> PartialContentResponse(
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1256,7 +1256,7 @@ fun <T : Any> PartialContentResponse(
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (refresh.isNotNull()) re.refresh(refresh)
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
@@ -1304,7 +1304,7 @@ fun MultiStatusResponse(
     val re = Response.status(HttpStatus.MULTI_STATUS)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1345,7 +1345,7 @@ fun MultiStatusResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.body(when(responseType) {
@@ -1464,7 +1464,7 @@ fun <T : Any> IMUsedResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
@@ -1507,7 +1507,7 @@ fun <T : Any> IMUsedResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
@@ -1549,7 +1549,7 @@ fun SeeOtherResponse(
     re.location(location)
     if (includeFeatureCode) re.featureCode()
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1583,7 +1583,7 @@ fun SeeOtherResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1621,7 +1621,7 @@ fun SeeOtherResponse(
     val re = Response.status(HttpStatus.SEE_OTHER)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (includeFeatureCode) re.featureCode()
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1656,7 +1656,7 @@ fun SeeOtherResponse(
     val re = Response.status(HttpStatus.SEE_OTHER)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -1693,7 +1693,7 @@ fun FoundResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -1728,7 +1728,7 @@ fun FoundResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1764,7 +1764,7 @@ fun FoundResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -1799,7 +1799,7 @@ fun FoundResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1836,7 +1836,7 @@ fun MovedPermanentlyResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1862,7 +1862,7 @@ fun MovedPermanentlyResponse(
 ): EmptyResponse {
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     re.featureCode(featureCode).location(location)
     if (action.isNotNull()) action()
     return re.build()
@@ -1897,7 +1897,7 @@ fun MovedPermanentlyResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1928,7 +1928,7 @@ fun MovedPermanentlyResponse(
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1968,7 +1968,7 @@ fun PermanentRedirectResponse(
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -2000,7 +2000,7 @@ fun PermanentRedirectResponse(
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2039,7 +2039,7 @@ fun PermanentRedirectResponse(
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -2071,7 +2071,7 @@ fun PermanentRedirectResponse(
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2107,7 +2107,7 @@ fun TemporaryRedirectResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -2143,7 +2143,7 @@ fun TemporaryRedirectResponse(
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2178,7 +2178,7 @@ fun TemporaryRedirectResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -2212,7 +2212,7 @@ fun TemporaryRedirectResponse(
     val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -2251,7 +2251,7 @@ fun NotModifiedResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (eTag.isNotNull()) re.eTag(eTag)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (includeFeatureCode) re.featureCode()
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -2293,7 +2293,7 @@ fun NoContentResponse(
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
@@ -2327,7 +2327,7 @@ fun NoContentResponse(
     val re = Response.status(HttpStatus.NO_CONTENT)
     if (headers.isNotNull() && !headers.isEmpty) re.headers(headers)
     re.featureCode(featureCode)
-    if (includeRequestId) RequestIdProvider.requestId.get().ifNotNull { re.header("Request-ID", toString()) }
+    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header("Request-ID", toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -2346,8 +2346,8 @@ fun NoContentResponse(
  * @return The modified response body builder with the optional "Request-ID" header.
  * @since 2.0.9
  */
-fun ResponseEntity.BodyBuilder.requestId() = if (RequestIdProvider.requestId.get().isNull()) this
-else header("Request-ID", RequestIdProvider.requestId.get().toString())
+fun ResponseEntity.BodyBuilder.requestId() = if (RequestIdProvider.requestIdThreadLocal.get().isNull()) this
+else header("Request-ID", RequestIdProvider.requestIdThreadLocal.get().toString())
 /**
  * Adds a "Request-ID" header to the response with the provided identifier value.
  *

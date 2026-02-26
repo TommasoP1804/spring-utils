@@ -78,4 +78,6 @@ value class RequestId internal constructor(val value: String): CharSequence {
      * @since 2.1.0
      */
     override fun subSequence(startIndex: Int, endIndex: Int) = value.subSequence(startIndex, endIndex)
+
+    override fun toString() = value
 }

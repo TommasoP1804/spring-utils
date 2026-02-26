@@ -23,9 +23,9 @@ internal class LoggingAspect(
 ) {
     @Before("@annotation(LogExecution) || @within(LogExecution)")
     fun logBefore(joinPoint: JoinPoint) {
-        if (RequestIdProvider.requestId.get().isNull()) {
+        if (RequestIdProvider.requestIdThreadLocal.get().isNull()) {
             val requestId = RequestIdProvider.generate()
-            RequestIdProvider.requestId.set(requestId)
+            RequestIdProvider.requestIdThreadLocal.set(requestId)
         }
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
@@ -47,7 +47,7 @@ internal class LoggingAspect(
 
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            Logs.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestId.get()!!)
+            Logs.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!)
         }
     }
 
@@ -71,10 +71,10 @@ internal class LoggingAspect(
             if (!isAfterThrowing.get()!!) {
                 val methodName = joinPoint.signature.name
                 val className = joinPoint.target.javaClass.getSimpleName()
-                Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestId.get())
+                Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get())
             }
         }
-        RequestIdProvider.requestId.remove()
+        RequestIdProvider.requestIdThreadLocal.remove()
         isAfterThrowing.remove()
     }
 
@@ -121,12 +121,12 @@ internal class LoggingAspect(
                 "${status.value()} ${status.reasonPhrase}",
                 serviceValue,
                 featureCode,
-                RequestIdProvider.requestId.get(),
+                RequestIdProvider.requestIdThreadLocal.get(),
                 e,
                 basePackage
             )
         }
-        RequestIdProvider.requestId.remove()
+        RequestIdProvider.requestIdThreadLocal.remove()
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogExecution.Component>, includeOnly: Array<LogExecution.Component>): Array<LogExecution.Component> {
