@@ -36,7 +36,7 @@ value class RequestId internal constructor(val value: String): CharSequence {
      * @throws IndexOutOfBoundsException If the `value` does not contain enough segments to extract the application name.
      * @since 2.1.0
      */
-    val applicationName: String get() = (value / Char.COLON)[1]
+    val applicationAcronym: String get() = (value / Char.COLON)[1]
 
     /**
      * Retrieves the ULID component of the `RequestId` value.

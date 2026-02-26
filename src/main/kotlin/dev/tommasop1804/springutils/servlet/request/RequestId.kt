@@ -9,15 +9,19 @@ import org.springframework.context.annotation.Bean
 
 @Suppress("unused")
 object RequestIdProvider : ApplicationContextAware {
-    private lateinit var applicationName: String
+    private lateinit var ctx: ApplicationContext
 
-    override fun setApplicationContext(ctx: ApplicationContext) {
-        applicationName = ctx.environment.getProperty("springutils.application-name") ?: "unknown"
+    private val applicationAcronym: String by lazy {
+        ctx.environment.getProperty("spring-utils.application-acronym") ?: "unknown"
+    }
+
+    override fun setApplicationContext(context: ApplicationContext) {
+        ctx = context
     }
 
     val requestId = ThreadLocal<RequestId>()
 
-    fun generate() = "REQ:$applicationName:${ULID(monotonic = true)}".then(::RequestId)
+    fun generate() = "REQ:${applicationAcronym}:${ULID(monotonic = true)}".then(::RequestId)
 }
 
 @Bean
