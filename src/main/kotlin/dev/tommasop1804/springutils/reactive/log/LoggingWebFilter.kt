@@ -1,11 +1,15 @@
-package dev.tommasop1804.springutils.log
+package dev.tommasop1804.springutils.reactive.log
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
+import dev.tommasop1804.springutils.reactive.request.RequestIdContext
 import dev.tommasop1804.springutils.reactive.security.username
+import dev.tommasop1804.springutils.request.RequestId
+import dev.tommasop1804.springutils.servlet.log.LogExecution
+import dev.tommasop1804.springutils.servlet.log.Logs
+import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -27,6 +31,7 @@ import org.springframework.web.server.CoWebFilter
 import org.springframework.web.server.CoWebFilterChain
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.ServerWebExchangeDecorator
+import reactor.util.context.Context
 import java.util.concurrent.ConcurrentHashMap
 
 @ConfigurationProperties(prefix = "spring-utils.reactive.logging")
@@ -113,11 +118,11 @@ class LoggingWebFilter(
         chain: CoWebFilterChain,
         handler: HandlerMethod
     ) {
-        val ulid = ULID(monotonic = true)
+        val requestId = RequestIdProvider.generate()
 
-        val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: reactor.util.context.Context.empty()
-        val newReactorCtx = currentReactorCtx.put(ULID::class.java, ulid)
-        val contextToPropagate = LogIdContext(ulid) + ReactorContext(newReactorCtx)
+        val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: Context.empty()
+        val newReactorCtx = currentReactorCtx.put(RequestId::class.java, requestId)
+        val contextToPropagate = RequestIdContext(requestId) + ReactorContext(newReactorCtx)
 
         withContext(contextToPropagate) {
             val currentUser = username()
@@ -127,14 +132,14 @@ class LoggingWebFilter(
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, className, methodName, currentUser, serviceValue, featureCode, ulid)
+                Logs.logStart(finalComponents, className, methodName, currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, className, methodName, currentUser, serviceValue, featureCode, ulid)
+                    Logs.logEnd(finalComponents, className, methodName, currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
@@ -149,7 +154,7 @@ class LoggingWebFilter(
                     Logs.logException(
                         finalComponents, className, methodName, currentUser,
                         "${status.value()} ${status.reasonPhrase}",
-                        serviceValue, featureCode, ulid, e, resolvedBasePackage
+                        serviceValue, featureCode, requestId, e, resolvedBasePackage
                     )
                 }
                 throw e
@@ -162,27 +167,27 @@ class LoggingWebFilter(
         exchange: ServerWebExchange,
         chain: CoWebFilterChain
     ) {
-        val ulid = ULID(monotonic = true)
+        val requestId = RequestIdProvider.generate()
 
-        val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: reactor.util.context.Context.empty()
-        val newReactorCtx = currentReactorCtx.put(ULID::class.java, ulid)
-        val contextToPropagate = LogIdContext(ulid) + ReactorContext(newReactorCtx)
+        val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: Context.empty()
+        val newReactorCtx = currentReactorCtx.put(RequestId::class.java, requestId)
+        val contextToPropagate = RequestIdContext(requestId) + ReactorContext(newReactorCtx)
 
         withContext(contextToPropagate) {
             val currentUser = username()
-            val path = exchange.request.uri.path
+            val path = "${exchange.request.method} ${exchange.request.uri.path}"
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
             val featureCode = findCallerMethod()?.getAnnotation(Feature::class.java)?.code
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, ulid)
+                Logs.logStart(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, ulid)
+                    Logs.logEnd(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
@@ -191,7 +196,7 @@ class LoggingWebFilter(
                     Logs.logException(
                         finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser,
                         "${status.value()} ${status.reasonPhrase}",
-                        serviceValue, null, ulid, e, properties.basePackage
+                        serviceValue, null, requestId, e, properties.basePackage
                     )
                 }
                 throw e

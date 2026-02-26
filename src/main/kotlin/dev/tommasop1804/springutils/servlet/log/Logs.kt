@@ -1,15 +1,15 @@
-package dev.tommasop1804.springutils.log
+package dev.tommasop1804.springutils.servlet.log
 
 import dev.tommasop1804.kutils.ConditionNotPreventingExceptions
 import dev.tommasop1804.kutils.EMPTY
 import dev.tommasop1804.kutils.Instant
-import dev.tommasop1804.kutils.classes.identifiers.ULID
 import dev.tommasop1804.kutils.get
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.whenTrue
-import dev.tommasop1804.springutils.log.LogExecution.Component
+import dev.tommasop1804.springutils.request.RequestId
+import dev.tommasop1804.springutils.servlet.log.LogExecution.Component
 import org.slf4j.LoggerFactory
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -20,10 +20,10 @@ import org.springframework.stereotype.Component as SpringComponent
 @SpringComponent
 @Suppress("LoggingSimilarMessage")
 @OptIn(ConditionNotPreventingExceptions::class)
-object Logs {
+internal object Logs {
     private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
-    fun logStart(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
+    fun logStart(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)
         val username = username whenTrue (Component.USER in components)
@@ -42,7 +42,7 @@ object Logs {
         )
     }
 
-    fun logEnd(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: ULID) {
+    fun logEnd(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)
         val username = username whenTrue (Component.USER in components)
@@ -63,7 +63,7 @@ object Logs {
         )
     }
 
-    fun logException(components: Array<Component>, clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: ULID, e: Throwable?, basePackage: String?) {
+    fun logException(components: Array<Component>, clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: RequestId, e: Throwable?, basePackage: String?) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)
         val username = username whenTrue (Component.USER in components)

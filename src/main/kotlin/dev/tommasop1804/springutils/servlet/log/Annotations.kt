@@ -1,4 +1,4 @@
-package dev.tommasop1804.springutils.log
+package dev.tommasop1804.springutils.servlet.log
 
 @Target(
     AnnotationTarget.FUNCTION,
