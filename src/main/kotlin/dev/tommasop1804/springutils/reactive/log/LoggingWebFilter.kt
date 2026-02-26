@@ -60,6 +60,7 @@ class LoggingWebFilter(
     private val handlerMappingProvider: ObjectProvider<RequestMappingHandlerMapping>,
     @param:Qualifier("routerFunctionMapping") private val routerFunctionMappingProvider: ObjectProvider<RouterFunctionMapping>,
     private val properties: LoggingProperties,
+    private val requestIdProvider: RequestIdProvider
 ) : CoWebFilter() {
 
     private val log = LoggerFactory.getLogger(LoggingWebFilter::class.java)
@@ -118,7 +119,7 @@ class LoggingWebFilter(
         chain: CoWebFilterChain,
         handler: HandlerMethod
     ) {
-        val requestId = RequestIdProvider.generate()
+        val requestId = requestIdProvider.generate()
 
         val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: Context.empty()
         val newReactorCtx = currentReactorCtx.put(RequestId::class.java, requestId)
@@ -167,7 +168,7 @@ class LoggingWebFilter(
         exchange: ServerWebExchange,
         chain: CoWebFilterChain
     ) {
-        val requestId = RequestIdProvider.generate()
+        val requestId = requestIdProvider.generate()
 
         val currentReactorCtx = currentCoroutineContext()[ReactorContext]?.context ?: Context.empty()
         val newReactorCtx = currentReactorCtx.put(RequestId::class.java, requestId)

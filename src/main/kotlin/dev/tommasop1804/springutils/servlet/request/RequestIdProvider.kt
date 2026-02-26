@@ -40,6 +40,7 @@ class RequestIdProvider(
          * or identifiers with individual requests for tracking, logging, or debugging purposes.
          * @since 2.1.0
          */
+        @JvmStatic
         internal val requestIdThreadLocal = ThreadLocal<RequestId>()
         /**
          * Retrieves the current `RequestId` value stored in the thread-local context.
@@ -53,10 +54,11 @@ class RequestIdProvider(
          * @return The `RequestId` associated with the current thread, or `null` if no `RequestId` has been set.
          * @since 2.1.0
          */
+        @JvmStatic
         val requestId: RequestId? get() = requestIdThreadLocal.get()
     }
 
-    private val applicationAcronym get() = environment.getProperty("spring-utils.application-acronym") ?: ""
+    private val applicationAcronym by lazy { environment.getProperty("spring-utils.application-acronym") ?: "" }
 
     fun generate() = "REQ:${applicationAcronym}:${ULID(monotonic = true)}".then(::RequestId)
 }

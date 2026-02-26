@@ -20,11 +20,12 @@ import org.springframework.stereotype.Component
 @Suppress("unused")
 internal class LoggingAspect(
     private val isAfterThrowing: ThreadLocal<Boolean> = ThreadLocal.withInitial { false },
+    private val requestIdProvider: RequestIdProvider
 ) {
     @Before("@annotation(LogExecution) || @within(LogExecution)")
     fun logBefore(joinPoint: JoinPoint) {
         if (RequestIdProvider.requestIdThreadLocal.get().isNull()) {
-            val requestId = RequestIdProvider.generate()
+            val requestId = requestIdProvider.generate()
             RequestIdProvider.requestIdThreadLocal.set(requestId)
         }
         val signature = joinPoint.signature as MethodSignature
