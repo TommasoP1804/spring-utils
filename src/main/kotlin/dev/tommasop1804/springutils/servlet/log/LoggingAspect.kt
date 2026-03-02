@@ -75,8 +75,6 @@ internal class LoggingAspect(
                 Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get())
             }
         }
-        RequestIdProvider.requestIdThreadLocal.remove()
-        isAfterThrowing.remove()
     }
 
     @AfterThrowing(
