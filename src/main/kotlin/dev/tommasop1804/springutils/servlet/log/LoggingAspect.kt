@@ -127,7 +127,6 @@ internal class LoggingAspect(
                 basePackage
             )
         }
-        RequestIdProvider.requestIdThreadLocal.remove()
     }
 
     private fun checkExcludeOrInclude(exclude: Array<LogExecution.Component>, includeOnly: Array<LogExecution.Component>): Array<LogExecution.Component> {

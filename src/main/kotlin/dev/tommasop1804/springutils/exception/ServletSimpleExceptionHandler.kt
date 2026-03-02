@@ -65,6 +65,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             .getProperty("spring-utils.exceptions.internal-error-code.${e::class.simpleName}")
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(SimpleErrorResponse(
             status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
             message,
@@ -73,7 +75,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             val featureCode = findFeatureAnnotation()
             if (featureCode.isNotNullOrBlank())
                 put("Feature-Code", featureCode.asSingleList())
-            RequestIdProvider.requestId.ifNotNull {
+            requestId.ifNotNull {
                 put("Request-ID", toString().asSingleList())
             }
         }, status)
@@ -118,6 +120,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
             ?: (if (isMissing) environment.getProperty("spring-utils.exceptions.internal-error-code.missing-property") else null)
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = httpStatus.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -128,7 +132,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -147,6 +151,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -157,7 +163,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -178,6 +184,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
 
         val methodParameter = ex.methodParameter
         val methodParameterPresent = ex.methodParameter.isNotNull()
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -188,7 +196,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -207,6 +215,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -217,7 +227,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -236,6 +246,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -246,7 +258,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -265,6 +277,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -275,7 +289,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -294,6 +308,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -304,7 +320,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -323,6 +339,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -333,7 +351,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -352,6 +370,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -362,7 +382,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -381,6 +401,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.INTERNAL_SERVER_ERROR
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -391,7 +413,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -410,6 +432,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.INTERNAL_SERVER_ERROR
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -420,7 +444,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -439,6 +463,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -449,7 +475,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -468,6 +494,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.INTERNAL_SERVER_ERROR
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -478,7 +506,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -494,6 +522,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
@@ -504,7 +534,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -520,6 +550,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
@@ -530,7 +562,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
@@ -546,6 +578,8 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
+        val requestId = RequestIdProvider.requestId
+        RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
                 title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
@@ -556,7 +590,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 val featureCode = findFeatureAnnotation()
                 if (featureCode.isNotNullOrBlank())
                     put("Feature-Code", featureCode.asSingleList())
-                RequestIdProvider.requestId.ifNotNull {
+                requestId.ifNotNull {
                     put("Request-ID", toString().asSingleList())
                 }
             },
