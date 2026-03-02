@@ -3,10 +3,12 @@ package dev.tommasop1804.springutils.exception
 import dev.tommasop1804.kutils.asSingleList
 import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.isNotNull
+import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.exception.ServletExceptionHandler.Companion.findFeatureAnnotation
 import dev.tommasop1804.springutils.getStatus
+import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.core.Ordered
