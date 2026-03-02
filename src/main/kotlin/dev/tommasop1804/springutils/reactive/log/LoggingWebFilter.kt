@@ -147,7 +147,7 @@ class LoggingWebFilter(
                     val status = getStatus(e)
 
                     val resolvedBasePackage = if (properties.includeHighlight) {
-                        properties.basePackage ?: handler.beanType.packageName.splitAndTrim(Char.DOT).then {
+                        properties.basePackage ?: handler.beanType.packageName.splitAndTrim(Char.DOT).run {
                             if (size >= 2) "${first()}.${get(1)}" else null
                         }
                     } else null

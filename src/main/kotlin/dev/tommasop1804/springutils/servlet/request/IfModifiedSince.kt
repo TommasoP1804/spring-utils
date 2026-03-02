@@ -42,11 +42,11 @@ class IfModifiedSinceArgumentResolver : HandlerMethodArgumentResolver {
         binderFactory: WebDataBinderFactory?
     ): Instant? {
         val string = webRequest.getHeader("If-Modified-Since")
-        return string?.then {
+        return string?.let {
             tryOrThrow({ -> BadRequestException("Malformed header If-Modified-Since") }) {
-                if (ISO_DATE_TIME_STANDARD_VALIDATOR_ONLY_SEPARATOR(string))
-                    Instant(string)()
-                else string.headerDateToInstant()
+                if (ISO_DATE_TIME_STANDARD_VALIDATOR_ONLY_SEPARATOR(it))
+                    Instant(it)()
+                else it.headerDateToInstant()
             }
         }
     }

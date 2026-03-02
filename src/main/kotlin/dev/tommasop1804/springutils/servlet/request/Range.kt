@@ -38,7 +38,7 @@ class RangeArgumentResolver : HandlerMethodArgumentResolver {
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
     ): StringList? = webRequest.getHeader("Range")
-        ?.then { this / Char.COMMA }
+        ?.let { it / Char.COMMA }
 }
 
 @AutoConfiguration

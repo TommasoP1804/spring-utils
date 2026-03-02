@@ -3,9 +3,9 @@ package dev.tommasop1804.springutils.exception
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
-@ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+@ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
 @Suppress("unused")
-class PayloadTooLargeException : ResponseException {
+class ContentTooLargeException : ResponseException {
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

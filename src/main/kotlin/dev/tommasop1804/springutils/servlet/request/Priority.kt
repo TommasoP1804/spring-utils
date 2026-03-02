@@ -40,11 +40,11 @@ class PriorityArgumentResolver : HandlerMethodArgumentResolver {
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
     ): Int2? = webRequest.getHeader("Priority")
-        ?.then {
+        ?.let { priority ->
             try {
-                val newValue = if ("u=" in this) this / Char.COMMA else asSingleList()
+                val newValue = if ("u=" in priority) priority / Char.COMMA else priority.asSingleList()
                 if (newValue.isSingleElement) newValue[0].toInt() to 3
-                else newValue[{ notStartsWith("u=") }]!!.toInt() to (newValue[{ startsWith("u=") }]!! after "u=").toInt().validate { this in 0..7 }
+                else newValue[{ it notStartsWith("u=") }]!!.toInt() to (newValue[{ it.startsWith("u=") }]!! after "u=").toInt().validate { it in 0..7 }
             } catch (_: Exception) {
                 throw BadRequestException("Malformed header Priority")
             }

@@ -42,7 +42,7 @@ internal class LoggingAspect(
 
             isAfterThrowing.set(false)
 
-            val compontents = annotation.then { exclude to includeOnly }
+            val compontents = annotation.run { exclude to includeOnly }
             val finalComponents =
                 checkExcludeOrInclude(compontents.first, compontents.second)
 
@@ -66,7 +66,7 @@ internal class LoggingAspect(
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
-            val compontents = annotation.then { exclude to includeOnly }
+            val compontents = annotation.run { exclude to includeOnly }
             val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
 
             if (!isAfterThrowing.get()!!) {
@@ -96,17 +96,17 @@ internal class LoggingAspect(
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
 
-            var (basePackage, includeHighlight) = annotation.then { basePackage.ifEmpty { null } to includeHighlight }
+            var (basePackage, includeHighlight) = annotation.run { basePackage.ifEmpty { null } to includeHighlight }
             if (!includeHighlight) basePackage = null
             else {
                 if (basePackage.isNull()) basePackage = tryOrNull {
-                    signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" }
+                    signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).run { "${first()}.${get(1)}" }
                 } ?: tryOr({
-                    joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(0)}" }
-                }) { joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).then { "${first()}.${get(1)}" } }
+                    joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).run { "${first()}.${get(0)}" }
+                }) { joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).run { "${first()}.${get(1)}" } }
             }
 
-            val compontents = annotation.then { exclude to includeOnly }
+            val compontents = annotation.run { exclude to includeOnly }
             val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
 
             isAfterThrowing.set(true)

@@ -13,8 +13,10 @@ import dev.tommasop1804.springutils.reactive.request.RequiredPathVariableExcepti
 import dev.tommasop1804.springutils.reactive.request.RequiredQueryParamException
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
 import org.springframework.security.authentication.LockedException
+import org.springframework.util.MimeType
 import java.lang.reflect.Method
 import java.net.URI
 import java.time.Instant
@@ -167,9 +169,46 @@ internal fun findCallerMethod(): Method? = tryOrNull {
     null
 }
 
+/**
+ * Converts a MediaType object to a new instance with the same type, subtype, and parameters.
+ *
+ * @receiver The original MediaType object to be converted.
+ * @return A new MediaType instance with the same type, subtype, and parameters as the receiver.
+ * @since 2.2.0
+ */
+fun MediaType.toKutilsMediaType() = MediaType(type, subtype, parameters)
+/**
+ * Converts the current MimeType instance to a new MimeType object with the same type and subtype.
+ *
+ * @receiver The MimeType instance to be converted.
+ * @return A new MimeType instance containing the type and subtype of the original MimeType.
+ * @since 2.2.0
+ */
+fun MimeType.toKutilsMimeType() = MimeType(type, subtype)
+/**
+ * Converts a custom `MediaType` object from the `dev.tommasop1804.kutils.classes.web` package
+ * to a Spring Framework `MediaType` object.
+ *
+ * @receiver A `MediaType` instance from the custom package.
+ * @return A corresponding `MediaType` instance from the Spring Framework,
+ * constructed using the type, subtype, and parameters of the receiver.
+ * @since 2.2.0
+ */
+fun dev.tommasop1804.kutils.classes.web.MediaType.toSpringMediaType() = MediaType(type, subtype, parameters)
+/**
+ * Converts the current instance of `dev.tommasop1804.kutils.classes.web.MimeType`
+ * to an instance of Spring's `MimeType` class.
+ *
+ * @return a new `MimeType` object representing the same type and subtype
+ *         as the current `MimeType` instance.
+ * @since 2.2.0
+ */
+fun dev.tommasop1804.kutils.classes.web.MimeType.toSpringMimeType() = MimeType(type, subtype)
+
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
     is BadRequestException,
+    is ContentTooLargeException -> HttpStatus.CONTENT_TOO_LARGE
     is RequiredFieldException,
     is RequiredParameterException,
     is RequiredPathVariableException,
@@ -192,7 +231,6 @@ internal fun getStatus(e: Throwable) = when (e) {
     is NotExtendedException -> HttpStatus.NOT_EXTENDED
     is NotFoundException, is ResourceNotFoundException -> HttpStatus.NOT_FOUND
     is NotImplementedException -> HttpStatus.NOT_IMPLEMENTED
-    is PayloadTooLargeException -> HttpStatus.PAYLOAD_TOO_LARGE
     is PaymentRequiredException -> HttpStatus.PAYMENT_REQUIRED
     is PreconditionFailedException -> HttpStatus.PRECONDITION_FAILED
     is PreconditionRequiredException -> HttpStatus.PRECONDITION_REQUIRED
@@ -203,7 +241,7 @@ internal fun getStatus(e: Throwable) = when (e) {
     is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
     is UnauthorizedException -> HttpStatus.UNAUTHORIZED
     is UnavailableForLegalReasonsException -> HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS
-    is UnprocessableEntityException, is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_ENTITY
+    is UnprocessableContentException, is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_CONTENT
     is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
     else -> HttpStatus.INTERNAL_SERVER_ERROR
 }

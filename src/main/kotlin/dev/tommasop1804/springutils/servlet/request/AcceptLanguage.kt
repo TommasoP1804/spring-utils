@@ -38,7 +38,7 @@ class AcceptLanguageArgumentResolver : HandlerMethodArgumentResolver {
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
     ): StringList? = webRequest.getHeader("Accept-Language")
-        ?.then { this / Char.COMMA }
+        ?.let { it / Char.COMMA }
 }
 
 @AutoConfiguration

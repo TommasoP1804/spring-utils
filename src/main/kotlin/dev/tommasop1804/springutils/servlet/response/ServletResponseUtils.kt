@@ -1368,7 +1368,7 @@ internal fun generateMultiStatusMap(results: List<ResourceResult>, httpVersion: 
     return list
 }
 internal fun generateMultiStatusGroupedMap(results: List<ResourceResult>, httpVersion: String): MultiMap<HttpStatus, DataMap> {
-    val grouped = results groupedBy ResourceResult::statusCode
+    val grouped = results.groupBy(ResourceResult::statusCode)
     return grouped.mapValues {
         it.value.map { result ->
             val map: DataMMap = emptyMMap()

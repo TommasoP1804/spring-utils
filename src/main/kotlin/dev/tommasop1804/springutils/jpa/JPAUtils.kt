@@ -260,7 +260,7 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(ids: I
 inline operator fun <reified T : Any> JpaRepository<T, *>.get(
     vararg search: Pair<KProperty1<T, *>, *>,
     noinline lazyException: ThrowableSupplier = { ResourceNotFoundException(T::class) }
-): T = invoke(*search) then {
+): T = invoke(*search).run {
     if (isEmpty()) throw lazyException()
     onlyElementOrThrow { TooManyResultsException(size) }
 }
@@ -282,7 +282,7 @@ inline operator fun <reified T : Any> JpaRepository<T, *>.get(
     vararg search: Pair<KProperty1<T, *>, *>,
     internalErrorCode: String? = null,
     crossinline lazyMesage: Supplier<Any>
-): T = invoke(*search) then {
+): T = invoke(*search).run {
     requireOrThrow({ ResourceNotFoundException(lazyMesage().toString(), internalErrorCode = internalErrorCode) }) { isEmpty() }
     onlyElementOrThrow { TooManyResultsException(size) }
 }
@@ -440,7 +440,7 @@ inline fun <reified T : Any, R> JpaRepository<T, *>.count(vararg search: Pair<KP
  * @since 1.0.0
  */
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, T::class) }) =
-    existsByIdOrThrow(id, lazyException) then { deleteById(id) }
+    existsByIdOrThrow(id, lazyException).run { deleteById(id) }
 /**
  * Deletes an entity by its ID if it exists, or throws a `ResourceNotFoundException` with the specified internal error code if it does not.
  *
@@ -450,7 +450,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(i
  * @since 1.1.0
  */
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, internalErrorCode: String) =
-    existsByIdOrThrow(id, internalErrorCode) then { deleteById(id) }
+    existsByIdOrThrow(id, internalErrorCode).run { deleteById(id) }
 /**
  * Deletes an entity by its ID if it exists, or throws a `ResourceNotFoundException` with the specified message if it does not.
  *
@@ -461,7 +461,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(i
  */
 @JvmName("deleteByIdOrThrowLazyMessage")
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, lazyMessage: Supplier<Any>) =
-    existsByIdOrThrow(id, lazyMessage) then { deleteById(id) }
+    existsByIdOrThrow(id, lazyMessage).run { deleteById(id) }
 /**
  * Deletes an entity by its ID if it exists, or throws a `ResourceNotFoundException` with the specified message and internal error code if it does not.
  *
@@ -472,7 +472,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(i
  * @since 1.1.0
  */
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) =
-    existsByIdOrThrow(id, internalErrorCode, lazyMessage) then { deleteById(id) }
+    existsByIdOrThrow(id, internalErrorCode, lazyMessage).run { deleteById(id) }
 
 /**
  * Checks if an entity with the given ID exists in the repository.

@@ -38,7 +38,7 @@ class PreferArgumentResolver : HandlerMethodArgumentResolver {
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
     ): StringList? = webRequest.getHeader("Prefer")
-        ?.then { this / Char.COMMA }
+        ?.let { it / Char.COMMA }
 }
 
 @AutoConfiguration

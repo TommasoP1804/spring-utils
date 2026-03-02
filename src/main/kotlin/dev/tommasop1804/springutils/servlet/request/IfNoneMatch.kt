@@ -38,7 +38,7 @@ class IfNoneMatchArgumentResolver : HandlerMethodArgumentResolver {
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
     ): StringList? = webRequest.getHeader("If-None-Match")
-        ?.then { this / Char.COMMA }
+        ?.let { it / Char.COMMA }
         ?.map { it.after(Char.QUOTATION_MARK).before(Char.QUOTATION_MARK) }
 }
 

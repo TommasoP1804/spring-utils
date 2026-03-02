@@ -1,7 +1,6 @@
 package dev.tommasop1804.springutils.servlet.request
 
 import dev.tommasop1804.kutils.classes.identifiers.ULID
-import dev.tommasop1804.kutils.then
 import dev.tommasop1804.springutils.request.RequestId
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
@@ -60,5 +59,5 @@ class RequestIdProvider(
 
     private val applicationAcronym by lazy { environment.getProperty("spring-utils.application-acronym") ?: "" }
 
-    fun generate() = "REQ:${applicationAcronym}:${ULID(monotonic = true)}".then(::RequestId)
+    fun generate() = "REQ:${applicationAcronym}:${ULID(monotonic = true)}".let(::RequestId)
 }
