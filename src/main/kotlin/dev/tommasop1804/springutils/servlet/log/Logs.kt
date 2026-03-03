@@ -35,10 +35,10 @@ internal object Logs {
             (if (id.isNotNull()) "$id | " else String.EMPTY)
                     + "\u001B[34m▶︎\u001B[0m STARTED "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
-                    + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
+                    + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
+                    + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
-                    + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
         )
     }
 
@@ -55,11 +55,11 @@ internal object Logs {
             (if (Component.ID in components) "$id | " else String.EMPTY)
                     + "\u001B[32m✓\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
-                    + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
+                    + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
+                    + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
-                    + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
-                    + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
+                    + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
         )
     }
 
@@ -85,13 +85,13 @@ internal object Logs {
             (if (Component.ID in components) "$id | " else String.EMPTY)
                     + "\u001B[31m✖\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) " in class \u001b[3m$clazz\u001b[0m" else String.EMPTY)
-                    + (if (username.isNotNullOrBlank()) ", called by: $username" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
+                    + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
+                    + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
-                    + (if (featureCode.isNotNullOrBlank()) ", for the feature: $featureCode" else String.EMPTY)
-                    + (if (elapsed.isNotNull()) ", elapsed time: $elapsed" else String.EMPTY)
+                    + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
-                    + (if (Component.EXCEPTION in components) ", with exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
+                    + (if (Component.EXCEPTION in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
                     + (if (Component.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
         )
     }
