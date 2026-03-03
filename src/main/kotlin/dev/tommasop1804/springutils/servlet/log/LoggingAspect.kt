@@ -13,6 +13,8 @@ import org.aspectj.lang.annotation.Before
 import org.aspectj.lang.reflect.MethodSignature
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.stereotype.Component
+import org.springframework.web.context.request.RequestContextHolder
+import org.springframework.web.context.request.ServletRequestAttributes
 
 @Aspect
 @Component
@@ -24,19 +26,17 @@ internal class LoggingAspect(
 ) {
     @Before("@annotation(LogExecution) || @within(LogExecution)")
     fun logBefore(joinPoint: JoinPoint) {
-        if (RequestIdProvider.requestIdThreadLocal.get().isNull()) {
-            val requestId = requestIdProvider.generate()
-            RequestIdProvider.requestIdThreadLocal.set(requestId)
-        }
+        val requestId = requestIdProvider.generate()
+        RequestIdProvider.requestIdThreadLocal.set(requestId)
+
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.BEFORE) == true) {
-            val parameterNames = signature.parameterNames
-            val args = joinPoint.args
-            val serviceIndex = parameterNames.indexOf("fromService")
-            val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
+            val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+                .request
+                .getHeader("From-Service")
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -60,10 +60,9 @@ internal class LoggingAspect(
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER) == true) {
-            val parameterNames = signature.parameterNames
-            val args = joinPoint.args
-            val serviceIndex = parameterNames.indexOf("fromService")
-            val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
+            val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+                .request
+                .getHeader("From-Service")
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -89,10 +88,9 @@ internal class LoggingAspect(
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER_THROWING) == true) {
-            val parameterNames = signature.parameterNames
-            val args = joinPoint.args
-            val serviceIndex = parameterNames.indexOf("fromService")
-            val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
+            val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+                .request
+                .getHeader("From-Service")
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
