@@ -1,11 +1,12 @@
 @file:JvmName("UtilsKt")
-@file:Suppress("unused", "FunctionName")
+@file:Suppress("unused", "FunctionName", "UnusedReceiverParameter")
 
 package dev.tommasop1804.springutils
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.coding.JSON.Companion.toJSON
 import dev.tommasop1804.kutils.classes.time.TimeZone
+import dev.tommasop1804.kutils.classes.web.HttpHeader
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.*
@@ -204,6 +205,24 @@ fun dev.tommasop1804.kutils.classes.web.MediaType.toSpringMediaType() = MediaTyp
  * @since 2.2.0
  */
 fun dev.tommasop1804.kutils.classes.web.MimeType.toSpringMimeType() = MimeType(type, subtype)
+
+/**
+ * Represents a custom HTTP header key "From-Service".
+ * This header is typically used to identify the originating service
+ * in inter-service communication within distributed systems.
+ *
+ * @since 2.2.6
+ */
+val HttpHeader.FROM_SERVICE get() = "From-Service"
+/**
+ * Represents the HTTP header name "Request-ID", which is typically used to trace and correlate
+ * individual requests across distributed systems or microservices.
+ *
+ * Usage of this header allows for easier debugging and analysis of request flows by tagging
+ * each request with a unique identifier.
+ * @since 2.2.6
+ */
+val HttpHeader.REQUEST_ID get() = "Request-ID"
 
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY

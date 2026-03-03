@@ -1,11 +1,9 @@
 package dev.tommasop1804.springutils.exception
 
 import dev.tommasop1804.kutils.QUOTATION_MARK
-import dev.tommasop1804.kutils.asSingleList
 import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNull
-import dev.tommasop1804.springutils.exception.ServletExceptionHandler.Companion.findFeatureAnnotation
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
@@ -25,7 +23,6 @@ import reactor.core.publisher.Mono
 import tools.jackson.databind.DatabindException
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.exc.MismatchedInputException
-import kotlin.text.isNullOrBlank
 
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @ConditionalOnProperty(name = ["spring-utils.exceptions.body"], havingValue = "simple")
@@ -67,7 +64,6 @@ class ReactiveSimpleExceptionHandler(
 
         val response = exchange.response
         response.statusCode = status
-        response.headers.put("Feature-Code", findFeatureAnnotation().asSingleList())
         response.headers.contentType = MediaType.APPLICATION_JSON
         return response.writeWith(Mono.just(response.bufferFactory().wrap(objectMapper.writeValueAsString(body).toByteArray(Charsets.UTF_8))))
     }

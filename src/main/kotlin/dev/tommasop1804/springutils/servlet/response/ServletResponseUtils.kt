@@ -7,6 +7,8 @@ package dev.tommasop1804.springutils.servlet.response
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.time.Duration
+import dev.tommasop1804.kutils.classes.web.HttpStatus.Companion.toHttpStatus
+import dev.tommasop1804.kutils.exceptions.EntryNotFoundException
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.eTag
 import dev.tommasop1804.springutils.exception.PreconditionFailedException
@@ -2524,3 +2526,16 @@ fun ResponseEntity.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, 
 @JvmName("serverTimingNumberDuration")
 fun ResponseEntity.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, Number, String?>): ResponseEntity.BodyBuilder =
     header("Server-Timing", timingMetric.joinToString(", ") { "${it.first};dur=${it.second}" + if (it.third.isNotNull()) ";desc=${it.third}" else "" })
+
+/**
+ * Retrieves the HTTP status associated with the response.
+ *
+ * Converts the internal status code of the response to an HTTP status representation.
+ * If the status code cannot be resolved, it throws an `EntryNotFoundException`.
+ *
+ * @return The HTTP status corresponding to the response's status code.
+ * @throws EntryNotFoundException if the status code does not correspond to a valid HTTP status.
+ * @since 2.2.6
+ */
+val Response<*>.status
+    get() = statusCode.value().toHttpStatus() ?: EntryNotFoundException("Not a valid HTTP status code")
