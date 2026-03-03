@@ -55,6 +55,8 @@ class RequestIdProvider(
          */
         @JvmStatic
         val requestId: RequestId? get() = requestIdThreadLocal.get()
+
+        internal val featureCode = ThreadLocal<String>()
     }
 
     private val applicationAcronym by lazy { environment.getProperty("spring-utils.application-acronym") ?: "" }

@@ -1,18 +1,9 @@
 package dev.tommasop1804.springutils.exception
 
-import dev.tommasop1804.kutils.EMPTY
-import dev.tommasop1804.kutils.asSingleList
-import dev.tommasop1804.kutils.before
-import dev.tommasop1804.kutils.ifNotNull
-import dev.tommasop1804.kutils.invoke
-import dev.tommasop1804.kutils.isNotNull
-import dev.tommasop1804.kutils.isNotNullOrBlank
-import dev.tommasop1804.kutils.isNotNullOrEmpty
-import dev.tommasop1804.kutils.isNull
+import dev.tommasop1804.kutils.*
 import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.annotations.InternalErrorCode
-import dev.tommasop1804.springutils.exception.ServletExceptionHandler.Companion.findFeatureAnnotation
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
@@ -48,7 +39,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import tools.jackson.databind.DatabindException
 import tools.jackson.databind.exc.MismatchedInputException
-import kotlin.apply
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.full.findAnnotation
 
@@ -59,7 +49,7 @@ import kotlin.reflect.full.findAnnotation
 class ServletExceptionHandler(private val environment: Environment) : ResponseEntityExceptionHandler() {
     companion object {
         internal fun findFeatureAnnotation() =
-            findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
+            RequestIdProvider.featureCode.get() ?: findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
 
         internal fun extractErrorCode(ex: HttpMessageNotReadableException, backup: DatabindException?): InternalErrorCode? {
             val cause = ex.cause as? DatabindException ?: backup ?: return null

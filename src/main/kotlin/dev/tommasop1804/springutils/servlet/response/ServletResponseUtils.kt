@@ -2378,7 +2378,7 @@ fun ResponseEntity.BodyBuilder.featureCode(code: String): ResponseEntity.BodyBui
  * @since 1.0.0
  */
 fun ResponseEntity.BodyBuilder.featureCode(): ResponseEntity.BodyBuilder = header("Feature-Code",
-    findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
+    RequestIdProvider.featureCode.get() ?: findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
 )
 
 /**

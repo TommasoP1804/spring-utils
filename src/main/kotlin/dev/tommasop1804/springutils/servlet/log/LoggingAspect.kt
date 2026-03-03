@@ -39,6 +39,7 @@ internal class LoggingAspect(
             val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+            featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
 
             isAfterThrowing.set(false)
 
@@ -65,6 +66,7 @@ internal class LoggingAspect(
             val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+            featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
 
             val compontents = annotation.run { exclude to includeOnly }
             val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
@@ -93,6 +95,7 @@ internal class LoggingAspect(
             val serviceValue = if (serviceIndex != -1) args[serviceIndex]?.toString() else null
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
+            featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
 
             var (basePackage, includeHighlight) = annotation.run { basePackage.ifEmpty { null } to includeHighlight }
             if (!includeHighlight) basePackage = null
