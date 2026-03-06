@@ -5,6 +5,7 @@ import dev.tommasop1804.springutils.ProblemDetail
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.annotations.InternalErrorCode
 import dev.tommasop1804.springutils.findCallerMethod
+import dev.tommasop1804.springutils.findCorrectException
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
 import org.springframework.beans.ConversionNotSupportedException
@@ -90,7 +91,7 @@ class ServletExceptionHandler(private val environment: Environment) : ResponseEn
                 status = status,
                 detail = message,
                 internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode,
-                exception = e::class.simpleName ?: e::class.qualifiedName
+                exception = findCorrectException(e).let { it::class.simpleName ?: it::class.qualifiedName }
             ), HttpHeaders().apply {
                 val featureCode = findFeatureCode()
                 if (featureCode.isNotNullOrBlank())

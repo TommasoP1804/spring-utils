@@ -4,6 +4,7 @@ import dev.tommasop1804.kutils.*
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.ServletExceptionHandler.Companion.extractErrorCode
 import dev.tommasop1804.springutils.findCallerMethod
+import dev.tommasop1804.springutils.findCorrectException
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
 import org.springframework.beans.ConversionNotSupportedException
@@ -61,7 +62,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         val requestId = RequestIdProvider.requestId
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(SimpleErrorResponse(
-            status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
+            status.reasonPhrase + ": " + findCorrectException(e).let { it::class.simpleName ?: it::class.qualifiedName },
             message,
             e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
         ), HttpHeaders().apply {

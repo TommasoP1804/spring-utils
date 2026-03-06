@@ -4,6 +4,7 @@ import dev.tommasop1804.kutils.QUOTATION_MARK
 import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNull
+import dev.tommasop1804.springutils.findCorrectException
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
@@ -55,7 +56,7 @@ class ReactiveSimpleExceptionHandler(
             is ResponseStatusException -> handleResponseStatusException(e)
             else -> {
                 SimpleErrorResponse(
-                    status.reasonPhrase + ": " + (e::class.simpleName ?: e::class.qualifiedName),
+                    status.reasonPhrase + ": " + findCorrectException(e).let { it::class.simpleName ?: it::class.qualifiedName },
                     message,
                     e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
                 )

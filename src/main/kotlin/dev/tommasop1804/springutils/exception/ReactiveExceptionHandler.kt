@@ -4,6 +4,7 @@ import dev.tommasop1804.kutils.before
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNull
 import dev.tommasop1804.springutils.ProblemDetail
+import dev.tommasop1804.springutils.findCorrectException
 import dev.tommasop1804.springutils.getStatus
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
@@ -63,7 +64,7 @@ class ReactiveExceptionHandler(
                     status = status,
                     detail = message,
                     internalErrorCode = e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode,
-                    exception = e::class.simpleName
+                    exception = findCorrectException(e).let { it::class.simpleName ?: it::class.qualifiedName }
                 )
             }
         }

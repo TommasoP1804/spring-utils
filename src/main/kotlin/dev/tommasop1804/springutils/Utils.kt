@@ -264,3 +264,23 @@ internal fun getStatus(e: Throwable) = when (e) {
     is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
     else -> HttpStatus.INTERNAL_SERVER_ERROR
 }
+
+internal val STATUS_CODE_EXCEPTIONS = arrayOf(
+    ExternalServiceHttpException::class,
+    RequiredFieldException::class,
+    RequiredParameterException::class,
+    RequiredPathVariableException::class,
+    RequiredQueryParamException::class,
+    RequiredHeaderException::class,
+    MalformedInputException::class,
+    ResourceAlreadyExistsException::class,
+    ResourceConflictException::class,
+    InsufficientPermissionsException::class,
+    ResourceDeletedException::class,
+    ResourceLockedException::class,
+    ResourceNotFoundException::class,
+    ResourceNotAcceptableException::class
+)
+
+internal fun findCorrectException(e: Throwable) =
+    if (e::class in STATUS_CODE_EXCEPTIONS) e else e.cause ?: e
