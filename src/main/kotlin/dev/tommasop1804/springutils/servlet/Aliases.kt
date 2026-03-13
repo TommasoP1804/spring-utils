@@ -5,6 +5,7 @@
 package dev.tommasop1804.springutils.servlet
 
 import dev.tommasop1804.kutils.annotations.Since
+import dev.tommasop1804.kutils.classes.coding.JSON
 import org.springframework.http.ResponseEntity
 
 /**
@@ -28,3 +29,11 @@ typealias EmptyResponse = ResponseEntity<Unit>
  * @since 1.0.0
  */
 typealias Response<T> = ResponseEntity<T>
+
+/**
+ * A typealias for a `ResponseEntity` that contains a `JSON` body.
+ * This provides a more concise way to reference the response type
+ * when working with endpoints that return JSON data.
+ * @since 2.3.1
+ */
+typealias JsonResponse = ResponseEntity<JSON>

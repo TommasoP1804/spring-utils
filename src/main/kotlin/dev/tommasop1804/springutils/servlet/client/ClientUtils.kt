@@ -4,13 +4,36 @@
 
 package dev.tommasop1804.springutils.servlet.client
 
+import dev.tommasop1804.kutils.Predicate
+import dev.tommasop1804.kutils.Transformer
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.web.HttpHeader
 import dev.tommasop1804.kutils.classes.web.MediaType
 import dev.tommasop1804.kutils.classes.web.MimeType
+import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.springutils.FROM_SERVICE
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
+import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
 import java.net.URL
+
+fun webClient(
+    statusHandler: Pair<Predicate<HttpStatusCode>, Transformer<ClientResponse, Mono<out Throwable>>> = HttpStatusCode::isError to { _ -> Mono.empty() },
+    contentType: MediaType = MediaType.APPLICATION_JSON,
+    accept: MediaType = MediaType.APPLICATION_JSON,
+    fromService: String? = null,
+    defaultHeaders: HttpHeaders? = null
+) = WebClient.builder()
+    .defaultStatusHandler(HttpStatusCode::isError) { _ -> Mono.empty() }
+    .contentType(contentType)
+    .accept(accept)
+    .also {
+        if (fromService.isNotNull()) it.fromService(fromService)
+    }.also { builder ->
+        if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders) }
+    }
 
 /**
  * Sets the base URL for the WebClient during its construction.
