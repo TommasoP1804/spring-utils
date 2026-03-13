@@ -2538,4 +2538,4 @@ fun ResponseEntity.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, 
  * @since 2.2.6
  */
 val Response<*>.status
-    get() = statusCode.value().toHttpStatus() ?: EntryNotFoundException("Not a valid HTTP status code")
+    get() = statusCode.value().toHttpStatus() ?: throw EntryNotFoundException("Not a valid HTTP status code")
