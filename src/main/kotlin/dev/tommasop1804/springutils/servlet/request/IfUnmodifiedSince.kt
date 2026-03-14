@@ -1,8 +1,8 @@
 package dev.tommasop1804.springutils.servlet.request
 
 import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.headerDateToInstant
 import dev.tommasop1804.springutils.exception.BadRequestException
-import dev.tommasop1804.springutils.headerDateToInstant
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass

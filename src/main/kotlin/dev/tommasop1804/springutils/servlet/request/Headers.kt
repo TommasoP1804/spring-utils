@@ -1,8 +1,8 @@
 package dev.tommasop1804.springutils.servlet.request
 
 import dev.tommasop1804.kutils.MList
-import dev.tommasop1804.kutils.classes.web.MediaType
-import dev.tommasop1804.kutils.invoke
+import dev.tommasop1804.kutils.classes.web.HttpHeader
+import dev.tommasop1804.kutils.classes.web.HttpHeaders
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -15,43 +15,38 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
-/**
- * Read the value of the HTTP header `Accept`.
- *
- * Returns `null` if the header is not present.
- *
- * The parameter type of the annotated method parameter must be `List<String>`.
- * @since 1.0.0
- * @author Tommaso Pastorelli
- */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Accept
+annotation class Headers
 
 @Component
-class AcceptArgumentResolver : HandlerMethodArgumentResolver {
+class HeadersArgumentResolver : HandlerMethodArgumentResolver {
 
     override fun supportsParameter(parameter: MethodParameter) =
-        parameter.hasParameterAnnotation(Accept::class.java)
+        parameter.hasParameterAnnotation(Headers::class.java)
 
     override fun resolveArgument(
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): List<MediaType>? = webRequest.getHeaderValues("Accept")?.map { MediaType.parse(it)() }
+    ): HttpHeaders {
+        val result = HttpHeaders()
+        webRequest.headerNames.forEach { result += HttpHeader(it, webRequest.getHeaderValues(it).orEmpty().toList()) }
+        return result
+    }
 }
 
 @AutoConfiguration
-@ConditionalOnClass(AcceptArgumentResolver::class)
-class AcceptArgumentResolverAutoConfiguration {
+@ConditionalOnClass(HeadersArgumentResolver::class)
+class HeadersArgumentResolverAutoConfiguration {
     @Configuration
-    @ConditionalOnBean(AcceptArgumentResolver::class)
-    class AcceptResolverRegistration(
-        private val resolvers: List<AcceptArgumentResolver>
+    @ConditionalOnBean(HeadersArgumentResolver::class)
+    class HeadersResolverRegistration(
+        private val resolvers: List<HeadersArgumentResolver>
     ) : WebMvcConfigurer {
         override fun addArgumentResolvers(resolvers: MList<HandlerMethodArgumentResolver>) {
-            resolvers.addAll(this@AcceptResolverRegistration.resolvers)
+            resolvers.addAll(this@HeadersResolverRegistration.resolvers)
         }
     }
 }

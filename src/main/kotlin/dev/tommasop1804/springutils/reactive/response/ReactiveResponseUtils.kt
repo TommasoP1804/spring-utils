@@ -7,22 +7,27 @@ package dev.tommasop1804.springutils.reactive.response
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.time.Duration
+import dev.tommasop1804.kutils.classes.web.HttpHeader
+import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.eTag
+import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.toHeaderDate
+import dev.tommasop1804.kutils.classes.web.HttpHeaders
+import dev.tommasop1804.kutils.classes.web.HttpStatus
+import dev.tommasop1804.kutils.classes.web.HttpStatus.Companion.toHttpStatus
+import dev.tommasop1804.kutils.exceptions.NoSuchEntryException
+import dev.tommasop1804.springutils.REQUEST_ID
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.config.YAML_MEDIA_TYPES
-import dev.tommasop1804.springutils.eTag
 import dev.tommasop1804.springutils.exception.PreconditionFailedException
 import dev.tommasop1804.springutils.exception.PreconditionRequiredException
 import dev.tommasop1804.springutils.findCallerMethod
-import dev.tommasop1804.springutils.servlet.log.LoggingAspect
-import dev.tommasop1804.springutils.reactive.request.requestId
 import dev.tommasop1804.springutils.reactive.Request
 import dev.tommasop1804.springutils.reactive.Response
+import dev.tommasop1804.springutils.reactive.request.requestId
 import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.servlet.response.MultiStatusResponseType
 import dev.tommasop1804.springutils.servlet.response.ResourceResult
-import dev.tommasop1804.springutils.toHeaderDate
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
+import dev.tommasop1804.springutils.toSpringHttpHeaders
+import dev.tommasop1804.springutils.toSpringHttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait
@@ -67,7 +72,7 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyVal
  *                                   is present in the request. Throws an exception if neither is provided.
  * @param status The HTTP status to use when the resource is considered modified. Defaults to 200 (OK).
  * @param includeFeatureCode A flag to determine whether to include the "Feature-Code" header in the response. Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param expires The expiration date for the response. If provided, it sets the "Expires" header.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
@@ -93,7 +98,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
 ): Response {
@@ -112,11 +117,11 @@ suspend inline fun <reified T : Any> conditionalGet(
         status = HttpStatus.NOT_MODIFIED
 
 
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -142,7 +147,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * Defaults to HTTP OK (200).
  * @param featureCode A string representing a feature code, which will be added as a "Feature-Code" header
  * in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param expires The expiration date for the response. If provided, it sets the "Expires" header.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
@@ -170,7 +175,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
 ): Response {
@@ -189,10 +194,10 @@ suspend inline fun <reified T : Any> conditionalGet(
         status = HttpStatus.NOT_MODIFIED
 
 
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
@@ -216,7 +221,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param lazyException A supplier that provides an exception to be thrown when validation fails.
  * @param lazyExceptionIfNotPresent A supplier that provides an exception to be thrown when required validators are missing.
  * @param includeFeatureCode If true, includes a "Feature-Code" header in the response based on the calling method's metadata.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate The updated last-modified timestamp to set in the response after a successful update.
  * @param expires The expiration date for the response. If provided, it sets the "Expires" header.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
@@ -247,7 +252,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
 ): Response {
@@ -266,12 +271,12 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -293,7 +298,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param lazyException A supplier that provides an exception to be thrown when validation fails.
  * @param lazyExceptionIfNotPresent A supplier that provides an exception to be thrown when required validators are missing.
  * @param includeFeatureCode If true, includes a "Feature-Code" header in the response based on the calling method's metadata.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate The updated last-modified timestamp to set in the response after a successful update.
  * @param expires The expiration date for the response. If provided, it sets the "Expires" header.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
@@ -324,7 +329,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     noinline body: Supplier<R>
 ): Response {
@@ -339,10 +344,10 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
@@ -366,7 +371,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param lazyException The exception supplier called when the preconditions are not satisfied.
  * @param lazyExceptionIfNotPresent The exception supplier called when required validators are missing.
  * @param featureCode Feature code added as a header to the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate Optional new last modified date to include in the response headers if specified.
  * @param expires The expiration date for the response. If provided, it sets the "Expires" header.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
@@ -398,7 +403,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
 ): Response {
@@ -417,13 +422,13 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
@@ -444,7 +449,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param lazyException The exception supplier called when the preconditions are not satisfied.
  * @param lazyExceptionIfNotPresent The exception supplier called when required validators are missing.
  * @param featureCode Feature code added as a header to the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate Optional new last modified date to include in the response headers if specified.
  * @param expires The expiration date for the response. If provided, it sets the "Expires" header.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
@@ -475,7 +480,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     noinline body: Supplier<R>
 ): Response {
@@ -490,12 +495,12 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 
     val body = body()
     val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -514,7 +519,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param lazyException Supplier of the exception to be thrown when validators fail.
  * @param lazyExceptionIfNotPresent Supplier of the exception to be thrown when required validators are not present.
  * @param includeFeatureCode If true, includes a "Feature-Code" header in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate Optional timestamp to set the new last modified date in the response.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
@@ -540,7 +545,7 @@ suspend fun <T : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     previousValue: Supplier<T?>?,
     action: Action? = null
 ): Response {
@@ -559,11 +564,11 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -581,7 +586,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param lazyException Supplier of the exception to be thrown when validators fail.
  * @param lazyExceptionIfNotPresent Supplier of the exception to be thrown when required validators are not present.
  * @param includeFeatureCode If true, includes a "Feature-Code" header in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate Optional timestamp to set the new last modified date in the response.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
@@ -607,7 +612,7 @@ suspend fun <T : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     action: Action? = null
 ): Response {
@@ -622,11 +627,11 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
@@ -643,7 +648,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param lazyException Lazy-initialized exception to throw if one or more conditions fail.
  * @param lazyExceptionIfNotPresent Lazy-initialized exception to throw if no validators are present but required.
  * @param featureCode Feature code to be added to the response as a custom header.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate New timestamp to set as the last modified date in the response headers, if provided.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
@@ -671,7 +676,7 @@ suspend fun <T : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     previousValue: Supplier<T?>?,
     action: Action? = null
 ): Response {
@@ -690,10 +695,10 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
@@ -711,7 +716,7 @@ suspend fun <T : Any> conditionalUpdate(
  * @param lazyException Lazy-initialized exception to throw if one or more conditions fail.
  * @param lazyExceptionIfNotPresent Lazy-initialized exception to throw if no validators are present but required.
  * @param featureCode Feature code to be added to the response as a custom header.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newLastModifiedDate New timestamp to set as the last modified date in the response headers, if provided.
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
@@ -739,7 +744,7 @@ suspend fun <T : Any> conditionalUpdate(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     action: Action? = null
 ): Response {
@@ -754,10 +759,10 @@ suspend fun <T : Any> conditionalUpdate(
 
     action?.invoke()
 
-    val response = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) response.headers { it.addAll(headers) }
+    val response = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (includeRequestId) response.header("Request-ID", requestId().toString())
+    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
@@ -775,7 +780,7 @@ suspend fun <T : Any> conditionalUpdate(
  *
  * @param status The HTTP status to set for the response. Defaults to `HttpStatus.NO_CONTENT`.
  * @param includeFeatureCode Whether to include the "Feature-Code" header in the response. Defaults to `true`.*
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag Optional ETag value to include in the response. Defaults to `null`.
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
  * @param refresh Optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to. Defaults to `null`.
@@ -794,15 +799,15 @@ suspend fun EmptyResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
     if (action.isNotNull())
         action()
 
-    val re = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    val re = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModified.isNotNull()) re.lastModified(lastModified.toInstant())
@@ -816,7 +821,7 @@ suspend fun EmptyResponse(
  *
  * @param status the HTTP status to set for the response; defaults to `HttpStatus.NO_CONTENT`
  * @param featureCode the feature code to be added as a "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag Optional ETag value to include in the response. Defaults to `null`.
  * @param lastModifiedDate Optional last modified date to include in the response. Defaults to `null`.
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
@@ -836,17 +841,17 @@ suspend fun EmptyResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
     if (action.isNotNull())
         action()
 
-    val re = Response.status(status)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(status.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (eTag.isNotNull()) re.eTag(eTag)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
@@ -861,7 +866,7 @@ suspend fun EmptyResponse(
  * @param T The type of the response body.
  * @param includeFeatureCode Indicates whether to include the "Feature-Code" header in the response.
  *                           Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag Indicates whether to include an ETag header based on the response body. Defaults to true.
  * @param lastModifiedDate The optional last modified date to include in the response headers.
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
@@ -882,15 +887,15 @@ suspend inline fun <reified T : Any> OKResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.OK)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.OK.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
@@ -903,7 +908,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * Constructs an HTTP OK response with optional headers and body content.
  *
  * @param featureCode a unique code to be included as a "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag whether to include an ETag header based on the body content, defaults to true
  * @param lastModifiedDate an optional timestamp to include as a "Last-Modified" header, defaults to null
  * @param expires an optional timestamp to include as an "Expires" header, defaults to null
@@ -925,17 +930,17 @@ suspend inline fun <reified T : Any> OKResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.OK)
+    val re = Response.status(HttpStatus.OK.toSpringHttpStatus())
     val result = body?.invoke()
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
@@ -949,7 +954,7 @@ suspend inline fun <reified T : Any> OKResponse(
  *
  * @param T The type of the response body.
  * @param includeFeatureCode Whether to include a "Feature-Code" header based on the `Feature` annotation of the calling method. Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag Whether to include the ETag header based on the response body content. Defaults to true.
  * @param lastModifiedDate The last modified date to include in the response header, if provided. Defaults to null.
  * @param location The location URI to include in the response header, if applicable. Defaults to null.
@@ -974,18 +979,18 @@ suspend inline fun <reified T : Any> CreatedResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.CREATED)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.CREATED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (location.isNotNull()) re.location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
@@ -997,7 +1002,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * Constructs an HTTP 201 Created response with optional headers, body content, and metadata.
  *
  * @param featureCode the feature code to be added as the "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag a boolean indicating whether to include an ETag header in the response, defaults to true
  * @param lastModifiedDate the date and time the resource was last modified, included as a Last-Modified header if provided
  * @param location the URI of the created resource, included as a Location header if provided
@@ -1022,19 +1027,19 @@ suspend inline fun <reified T : Any> CreatedResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.CREATED)
+    val re = Response.status(HttpStatus.CREATED.toSpringHttpStatus())
     val result = body?.invoke()
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (location.isNotNull()) re.location(location)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header("Request-Id", requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1049,7 +1054,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param T The type of the response body.
  * @param includeFeatureCode Determines whether a "Feature-Code" header should be included in the response.
  *                           Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag Indicates if the response should include an ETag header determined by the body content.
  *                    Defaults to true.
  * @param lastModifiedDate Specifies the last modified date for the response. Can be null if not applicable.
@@ -1072,16 +1077,16 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.ACCEPTED)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.ACCEPTED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
@@ -1093,7 +1098,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * Builds a response with an HTTP status of 202 Accepted, optionally including headers and body content.
  *
  * @param featureCode a unique code added to the "Feature-Code" header of the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag indicates whether an ETag header should be included in the response; defaults to true
  * @param lastModifiedDate optional timestamp indicating the last modification date of the resource
  * @param expires an optional timestamp to include as an "Expires" header, defaults to null
@@ -1115,15 +1120,15 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.ACCEPTED)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.ACCEPTED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     val result = body?.invoke()
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1137,7 +1142,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * Constructs a `Response` object with a status of `RESET_CONTENT` and optional headers and body content.
  *
  * @param includeFeatureCode Flag indicating whether to include the "Feature-Code" header in the response. Default is `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag Optional ETag header value to include in the response.
  * @param lastModifiedDate Optional timestamp to set the "Last-Modified" header in the response.
  * @param expires an optional timestamp to include as an "Expires" header, defaults to null
@@ -1158,16 +1163,16 @@ suspend fun ResetContentResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
     action?.invoke()
-    val re = Response.status(HttpStatus.RESET_CONTENT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.RESET_CONTENT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
@@ -1178,7 +1183,7 @@ suspend fun ResetContentResponse(
  * Constructs a `Response` object with a status of `RESET_CONTENT` and optional headers and body content.
  *
  * @param featureCode "Feature-Code" header value in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag Optional ETag header value to include in the response.
  * @param lastModifiedDate Optional timestamp to set the "Last-Modified" header in the response.
  * @param expires an optional timestamp to include as an "Expires" header, defaults to null
@@ -1199,15 +1204,15 @@ suspend fun ResetContentResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
     action?.invoke()
-    val re = Response.status(HttpStatus.RESET_CONTENT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.RESET_CONTENT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1222,7 +1227,7 @@ suspend fun ResetContentResponse(
  *
  * @param includeFeatureCode Determines whether to include the "Feature-Code" header in the response.
  *        Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag Determines whether to include the ETag header in the response if the body is not null.
  *        Defaults to true.
  * @param lastModifiedDate Specifies the "Last-Modified" timestamp for the response. Can be null.
@@ -1246,16 +1251,16 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.PARTIAL_CONTENT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.PARTIAL_CONTENT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
@@ -1268,7 +1273,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  *
  * @param T The type of the response body.
  * @param featureCode The feature code to be added as a "Feature-Code" header in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param includeETag A flag indicating whether to include an ETag header based on the response body. Defaults to true.
  * @param lastModifiedDate The date-time to be included in the "Last-Modified" header, if specified.
  * @param expires an optional timestamp to include as an "Expires" header, defaults to null
@@ -1290,14 +1295,14 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.PARTIAL_CONTENT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.PARTIAL_CONTENT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     val result = body?.invoke()
@@ -1312,7 +1317,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * Builds and returns a multi-status HTTP response based on the provided parameters and resources.
  *
  * @param includeFeatureCode Flag indicating whether to include the "Feature-Code" header in the response. Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. Can be null or empty.
  * @param responseType The format or structure of the response body. Defaults to MultiStatusResponseType.WEBDAV_XML.
@@ -1331,16 +1336,16 @@ suspend fun MultiStatusResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: String = "HTTP/1.1",
     action: Action? = null
 ): Response {
     action?.invoke()
-    val re = Response.status(HttpStatus.MULTI_STATUS)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.MULTI_STATUS.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1355,7 +1360,7 @@ suspend fun MultiStatusResponse(
  * Constructs a multi-status HTTP response based on the provided parameters.
  *
  * @param featureCode A string representing the feature code to be included in the HTTP header.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional HTTP headers to be included in the response. Defaults to null.
  * @param responseType The type of the multi-status response content. Defaults to `MultiStatusResponseType.WEBDAV_XML`.
@@ -1374,15 +1379,15 @@ suspend fun MultiStatusResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: String = "HTTP/1.1",
 ): Response {
-    val re = Response.status(HttpStatus.MULTI_STATUS)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.MULTI_STATUS.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
@@ -1398,7 +1403,7 @@ internal fun generateMultiStatusMap(results: List<ResourceResult>, httpVersion: 
     for (result in results) {
         val map: DataMMap = emptyMMap()
         map["reference"] = result.reference
-        map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value() + Char.SPACE + result.statusCode.reasonPhrase
+        map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value + Char.SPACE + result.statusCode.reasonPhrase
         if (result.description.isNotNullOrBlank()) map["description"] = result.description
         list += map
     }
@@ -1410,18 +1415,18 @@ internal fun generateMultiStatusGroupedMap(results: List<ResourceResult>, httpVe
         it.value.map { result ->
             val map: DataMMap = emptyMMap()
             map["reference"] = result.reference
-            map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value() + Char.SPACE + result.statusCode.reasonPhrase
+            map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value + Char.SPACE + result.statusCode.reasonPhrase
             if (result.description.isNotNullOrBlank()) map["description"] = result.description
             map
         }
     }
 }
 internal fun generateMultiStatusGroupedByCategoryMap(results: List<ResourceResult>, httpVersion: String): MultiMap<String, DataMap> {
-    val status1x = results.filter { it.statusCode.is1xxInformational }
-    val status2x = results.filter { it.statusCode.is2xxSuccessful }
-    val status3x = results.filter { it.statusCode.is3xxRedirection }
-    val status4x = results.filter { it.statusCode.is4xxClientError }
-    val status5x = results.filter { it.statusCode.is5xxServerError }
+    val status1x = results.filter { it.statusCode.isInformational }
+    val status2x = results.filter { it.statusCode.isSuccessful }
+    val status3x = results.filter { it.statusCode.isRedirection }
+    val status4x = results.filter { it.statusCode.isClientError }
+    val status5x = results.filter { it.statusCode.isServerError }
 
     val map: MMap<String, List<DataMap>> = emptyMMap()
     if (status1x.isNotEmpty()) map["informational"] = generateMultiStatusMap(status1x, httpVersion)
@@ -1449,7 +1454,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
         append("    <d:propstat>\n")
         append("      <d:prop/>\n")
 
-        append("      <d:status>HTTP/${httpVersion.substringAfter("HTTP/")} ${item.statusCode.value()} ${item.statusCode.reasonPhrase}</d:status>\n")
+        append("      <d:status>HTTP/${httpVersion.substringAfter("HTTP/")} ${item.statusCode.value} ${item.statusCode.reasonPhrase}</d:status>\n")
         append("    </d:propstat>\n")
 
         if (item.description.isNotNull()) {
@@ -1469,7 +1474,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @param T The type of the response body.
  * @param includeFeatureCode Specifies whether to include the "Feature-Code" header in the response.
  *                           Defaults to true.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newETag The ETag value to be included in the response, if provided.
  *                Defaults to null.
  * @param lastModifiedDate The timestamp to set as the "Last-Modified" header in the response,
@@ -1493,14 +1498,14 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.IM_USED)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.IM_USED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -1515,7 +1520,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * and metadata such as ETag and last modified date.
  *
  * @param featureCode The feature code to be included as the "Feature-Code" header in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param newETag An optional ETag value to include in the response.
  * @param lastModifiedDate An optional last modified date to include in the response.
  * @param expires an optional timestamp to include as an "Expires" header, defaults to null
@@ -1537,15 +1542,15 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
-    val re = Response.status(HttpStatus.IM_USED)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.IM_USED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
@@ -1563,7 +1568,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * be executed during the response building process.
  *
  * @param includeFeatureCode When `true`, adds a "Feature-Code" header to the response if applicable. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param headers Optional HTTP headers to be included in the response (overrides any other header parameters of this method).
  * @param location The URI to which the user agent should be redirected.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
@@ -1579,15 +1584,15 @@ suspend fun SeeOtherResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.SEE_OTHER)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -1598,7 +1603,7 @@ suspend fun SeeOtherResponse(
  * Creates a "See Other" HTTP response with a feature code, optional headers, and a specified location URI.
  *
  * @param featureCode the feature code to be added as a custom header to the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional HTTP headers to be included in the response (overrides any other header parameters of this method)
@@ -1614,14 +1619,14 @@ suspend fun SeeOtherResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.SEE_OTHER)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -1637,7 +1642,7 @@ suspend fun SeeOtherResponse(
  * be executed during the response building process.
  *
  * @param includeFeatureCode When `true`, adds a "Feature-Code" header to the response if applicable. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param headers Optional HTTP headers to be included in the response (overrides any other header parameters of this method).
  * @param location The URI to which the user agent should be redirected.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
@@ -1653,15 +1658,15 @@ suspend fun SeeOtherResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.SEE_OTHER)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -1672,7 +1677,7 @@ suspend fun SeeOtherResponse(
  * Creates a "See Other" HTTP response with a feature code, optional headers, and a specified location URI.
  *
  * @param featureCode the feature code to be added as a custom header to the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional HTTP headers to be included in the response (overrides any other header parameters of this method)
@@ -1688,14 +1693,14 @@ suspend fun SeeOtherResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.SEE_OTHER)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -1708,7 +1713,7 @@ suspend fun SeeOtherResponse(
  * Additionally, it can add a "Feature-Code" header based on the calling context, if enabled.
  *
  * @param includeFeatureCode A flag indicating whether to include the "Feature-Code" header in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers Optional headers to include in the response (overrides any other header parameters of this method). Pass `null` or an empty `HttpHeaders` instance for no additional headers.
@@ -1724,15 +1729,15 @@ suspend fun FoundResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.FOUND)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -1743,7 +1748,7 @@ suspend fun FoundResponse(
  * Builds and returns an HTTP 302 Found response with optional headers and an optional action.
  *
  * @param featureCode the value for the "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
@@ -1759,15 +1764,15 @@ suspend fun FoundResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.FOUND)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1779,7 +1784,7 @@ suspend fun FoundResponse(
  * Additionally, it can add a "Feature-Code" header based on the calling context, if enabled.
  *
  * @param includeFeatureCode A flag indicating whether to include the "Feature-Code" header in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers Optional headers to include in the response (overrides any other header parameters of this method). Pass `null` or an empty `HttpHeaders` instance for no additional headers.
@@ -1795,16 +1800,16 @@ suspend fun FoundResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.FOUND)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1814,7 +1819,7 @@ suspend fun FoundResponse(
  * Builds and returns an HTTP 302 Found response with optional headers and an optional action.
  *
  * @param featureCode the value for the "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
@@ -1830,15 +1835,15 @@ suspend fun FoundResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.FOUND)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1853,7 +1858,7 @@ suspend fun FoundResponse(
  * feature code metadata in the response headers and execute an additional action.
  *
  * @param includeFeatureCode A boolean indicating whether to include the feature code header in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers Optional HTTP headers to include in the response (overrides any other header parameters of this method). If `null` or empty, no additional headers are included.
@@ -1867,15 +1872,15 @@ suspend fun MovedPermanentlyResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -1885,7 +1890,7 @@ suspend fun MovedPermanentlyResponse(
  * Creates a response with HTTP status 301 (Moved Permanently).
  *
  * @param featureCode a string representing the feature code to be added as a custom header in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param headers optional HTTP headers to be included in the response (overrides any other header parameters of this method).
  * @param location a URI indicating the new location of the requested resource.
  * @param action an optional action to be executed during the construction of the response.
@@ -1895,13 +1900,13 @@ suspend fun MovedPermanentlyResponse(
 suspend fun MovedPermanentlyResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.featureCode(featureCode).location(location)
     if (action.isNotNull()) action()
     return re.buildAndAwait()
@@ -1914,7 +1919,7 @@ suspend fun MovedPermanentlyResponse(
  * feature code metadata in the response headers and execute an additional action.
  *
  * @param includeFeatureCode A boolean indicating whether to include the feature code header in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers Optional HTTP headers to include in the response (overrides any other header parameters of this method). If `null` or empty, no additional headers are included.
@@ -1928,16 +1933,16 @@ suspend fun MovedPermanentlyResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
     return re.buildAndAwait()
@@ -1946,7 +1951,7 @@ suspend fun MovedPermanentlyResponse(
  * Creates a response with HTTP status 301 (Moved Permanently).
  *
  * @param featureCode a string representing the feature code to be added as a custom header in the response.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional HTTP headers to be included in the response (overrides any other header parameters of this method).
@@ -1960,15 +1965,15 @@ suspend fun MovedPermanentlyResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.MOVED_PERMANENTLY)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
     return re.buildAndAwait()
@@ -1984,7 +1989,7 @@ suspend fun MovedPermanentlyResponse(
  *
  * @param includeFeatureCode Indicates whether to include the `Feature-Code` header
  * in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers Optional custom headers to include in the response (overrides any other header parameters of this method). If `null` or empty,
@@ -2000,15 +2005,15 @@ suspend fun PermanentRedirectResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2018,7 +2023,7 @@ suspend fun PermanentRedirectResponse(
  * Constructs a response with a 308 Permanent Redirect status, allowing for a new location to be provided.
  *
  * @param featureCode a string representing a feature code to add as a custom header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional headers to be included in the response (overrides any other header parameters of this method)
@@ -2032,15 +2037,15 @@ suspend fun PermanentRedirectResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
     return re.buildAndAwait()
@@ -2055,7 +2060,7 @@ suspend fun PermanentRedirectResponse(
  *
  * @param includeFeatureCode Indicates whether to include the `Feature-Code` header
  * in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers Optional custom headers to include in the response (overrides any other header parameters of this method). If `null` or empty,
@@ -2071,16 +2076,16 @@ suspend fun PermanentRedirectResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
     return re.buildAndAwait()
@@ -2089,7 +2094,7 @@ suspend fun PermanentRedirectResponse(
  * Constructs a response with a 308 Permanent Redirect status, allowing for a new location to be provided.
  *
  * @param featureCode a string representing a feature code to add as a custom header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional headers to be included in the response (overrides any other header parameters of this method)
@@ -2103,14 +2108,14 @@ suspend fun PermanentRedirectResponse(
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.PERMANENT_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2122,7 +2127,7 @@ suspend fun PermanentRedirectResponse(
  * feature codes, redirection location, and an additional action to modify the response.
  *
  * @param includeFeatureCode Whether to include a feature code in the response headers. Default is `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
@@ -2138,15 +2143,15 @@ suspend fun TemporaryRedirectResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
@@ -2157,7 +2162,7 @@ suspend fun TemporaryRedirectResponse(
  * Constructs a response with HTTP status code "307 Temporary Redirect."
  *
  * @param featureCode the feature code to be included as a custom header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
@@ -2173,15 +2178,15 @@ suspend fun TemporaryRedirectResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2192,7 +2197,7 @@ suspend fun TemporaryRedirectResponse(
  * feature codes, redirection location, and an additional action to modify the response.
  *
  * @param includeFeatureCode Whether to include a feature code in the response headers. Default is `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
@@ -2208,15 +2213,15 @@ suspend fun TemporaryRedirectResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
@@ -2227,7 +2232,7 @@ suspend fun TemporaryRedirectResponse(
  * Constructs a response with HTTP status code "307 Temporary Redirect."
  *
  * @param featureCode the feature code to be included as a custom header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param retryAfter optional duration after which the client should retry the request
@@ -2243,15 +2248,15 @@ suspend fun TemporaryRedirectResponse(
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     location: URI,
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
@@ -2265,7 +2270,7 @@ suspend fun TemporaryRedirectResponse(
  * It uses the `HttpStatus.NOT_MODIFIED` status to indicate that the resource has not changed since last requested.
  *
  * @param includeFeatureCode Specifies whether to include the "Feature-Code" header in the response. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag An optional ETag value to include in the response for resource versioning. Defaults to `null`.
  * @param expires An optional expiration date for the response. Defaults to `null`.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
@@ -2282,15 +2287,15 @@ suspend fun NotModifiedResponse(
     expires: TemporalAccessor? = null,
     preferenceApplied: StringList = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.NOT_MODIFIED)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.NOT_MODIFIED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (eTag.isNotNull()) re.eTag(eTag)
     if (expires.isNotNull()) re.expires(expires)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
@@ -2308,7 +2313,7 @@ suspend fun NotModifiedResponse(
  *
  * @param includeFeatureCode A boolean flag indicating whether to include the "Feature-Code" header
  *  based on the `Feature` annotation of the calling method. Defaults to `true`.
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair of duration and URL for refresh header, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
@@ -2324,14 +2329,14 @@ suspend fun NoContentResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.NO_CONTENT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.NO_CONTENT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
@@ -2343,7 +2348,7 @@ suspend fun NoContentResponse(
  * Deprecated in favor of the [EmptyResponse] function.
  *
  * @param featureCode the feature code to include as the "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-ID" header in the response. Defaults to true.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair of duration and URL for refresh header, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
@@ -2359,14 +2364,14 @@ suspend fun NoContentResponse(
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders? = null,
+    headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
-    val re = Response.status(HttpStatus.NO_CONTENT)
-    if (headers.isNotNull() && !headers.isEmpty) re.headers { it.addAll(headers) }
+    val re = Response.status(HttpStatus.NO_CONTENT.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header("Request-ID", requestId().toString())
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
@@ -2374,24 +2379,24 @@ suspend fun NoContentResponse(
 }
 
 /**
- * Adds the "Request-ID" header to the response if a request ID is present in the current logging context.
+ * Adds the "Request-Id" header to the response if a request ID is present in the current logging context.
  *
  * This method retrieves the current request ID from the `LoggingAspect` and appends it as a 
- * header to the response if a non-null value is present. The header key is "Request-ID".
+ * header to the response if a non-null value is present. The header key is "Request-Id".
  * If no request ID is available, it returns the builder without modifying the headers.
  *
  * @receiver The response body builder to which the header might be added.
- * @return The modified response body builder with the optional "Request-ID" header.
+ * @return The modified response body builder with the optional "Request-Id" header.
  * @since 2.0.9
  */
-suspend fun ServerResponse.BodyBuilder.requestId() = header("Request-ID", dev.tommasop1804.springutils.reactive.request.requestId().toString())
+suspend fun ServerResponse.BodyBuilder.requestId() = header("Request-Id", dev.tommasop1804.springutils.reactive.request.requestId().toString())
 /**
- * Adds a "Request-ID" header to the response with the provided identifier value.
+ * Adds a "Request-Id" header to the response with the provided identifier value.
  *
- * @param id The identifier to associate with the "Request-ID" header.
+ * @param id The identifier to associate with the "Request-Id" header.
  * @since 2.0.9
  */
-fun ServerResponse.BodyBuilder.requestId(id: Any) = header("Request-ID", id.toString())
+fun ServerResponse.BodyBuilder.requestId(id: Any) = header("Request-Id", id.toString())
 
 /**
  * Adds a "Feature-Code" header with the provided code to the response.
@@ -2561,3 +2566,24 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, 
 @JvmName("serverTimingNumberDuration")
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, Number, String?>): ServerResponse.BodyBuilder =
     header("Server-Timing", timingMetric.joinToString(", ") { "${it.first};dur=${it.second}" + if (it.third.isNotNull()) ";desc=${it.third}" else "" })
+
+/**
+ * Adds a custom HTTP header to the response.
+ *
+ * @param header The custom HTTP header containing the name and values to be added.
+ * @since 2.3.1
+ */
+fun ServerResponse.BodyBuilder.header(header: HttpHeader) = header(header.name, *header.values.toTypedArray())
+
+/**
+ * Retrieves the HTTP status associated with the response.
+ *
+ * Converts the internal status code of the response to an HTTP status representation.
+ * If the status code cannot be resolved, it throws an `NoSuchEntryException`.
+ *
+ * @return The HTTP status corresponding to the response's status code.
+ * @throws NoSuchEntryException if the status code does not correspond to a valid HTTP status.
+ * @since 2.2.6
+ */
+val Response.status
+    get() = statusCode().value().toHttpStatus() ?: throw NoSuchEntryException("Not a valid HTTP status code")

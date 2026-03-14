@@ -71,7 +71,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                 put("Feature-Code", featureCode.asSingleList())
             requestId.ifNotNull {
                 if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                    put("Request-ID", toString().asSingleList())
+                    put("Request-Id", toString().asSingleList())
             }
         }, status)
     }
@@ -129,7 +129,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             httpStatus
@@ -161,7 +161,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -195,7 +195,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -227,7 +227,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -259,7 +259,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -291,7 +291,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -323,7 +323,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -355,7 +355,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -387,7 +387,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -419,7 +419,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -451,7 +451,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -483,7 +483,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -515,7 +515,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -544,7 +544,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -573,7 +573,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status
@@ -602,7 +602,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
-                        put("Request-ID", toString().asSingleList())
+                        put("Request-Id", toString().asSingleList())
                 }
             },
             status

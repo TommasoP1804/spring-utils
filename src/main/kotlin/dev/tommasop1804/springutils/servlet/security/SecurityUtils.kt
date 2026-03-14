@@ -6,7 +6,10 @@ package dev.tommasop1804.springutils.servlet.security
 import dev.tommasop1804.kutils.StringSet
 import dev.tommasop1804.kutils.ThrowableSupplier
 import dev.tommasop1804.kutils.classes.security.JWT
-import dev.tommasop1804.kutils.classes.web.HttpHeader.AUTHORIZATION
+import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.AUTHORIZATION
+import dev.tommasop1804.kutils.requireNotNullOrThrow
+import dev.tommasop1804.kutils.tryOrNull
+import dev.tommasop1804.springutils.exception.UnauthorizedException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -14,7 +17,6 @@ import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.ExperimentalExtendedContracts
-import kotlin.contracts.contract
 
 /**
  * Represents the current authentication object associated with the security context.
@@ -67,19 +69,30 @@ val user: Any?
 /**
  * Extracts a JWT token from the HTTP request header, optionally throws an exception if the token is missing.
  *
- * @param header The name of the HTTP header from which the token should be extracted. Defaults to `AUTHORIZATION`.
- * @param throwException A supplier that provides a throwable to be thrown if the token is missing in the header.
+ * @param headerName The name of the HTTP header from which the token should be extracted. Defaults to `AUTHORIZATION`.
+ * @param lazyException A supplier that provides a throwable to be thrown if the token is missing in the header.
  *                       If null, the method may return null instead of throwing.
  * @return The extracted JWT object, or null if the token is missing and `throwException` is null.
  * @since 2.2.6
  */
-@OptIn(ExperimentalContracts::class, ExperimentalExtendedContracts::class)
-fun token(header: String = AUTHORIZATION, throwException: ThrowableSupplier? = null): JWT? {
-    contract {
-        (throwException != null) implies returnsNotNull()
-    }
-    return (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+fun token(headerName: String = AUTHORIZATION, lazyException: ThrowableSupplier = { UnauthorizedException("Missing JWT token") }) =
+    (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
         .request
-        .getHeader(header)
-        ?.let(::JWT)
-}
+        .getHeader(headerName)
+        .requireNotNullOrThrow(lazyException)
+        .let(::JWT)
+
+/**
+ * Extracts and processes a JWT token from the HTTP request header, if available.
+ * If the token is not valid or missing, the method returns null instead of throwing an exception.
+ *
+ * @param headerName the name of the HTTP header that contains the JWT token. Defaults to the "Authorization" header.
+ * @param lazyException a supplier for a throwable to be used in case of unsuccessful processing. Defaults to an `UnauthorizedException`.
+ * @since 2.3.1
+ */
+@OptIn(ExperimentalContracts::class, ExperimentalExtendedContracts::class)
+fun tokenOrNull(headerName: String = AUTHORIZATION, lazyException: ThrowableSupplier = { UnauthorizedException("Missing JWT token") }) =
+    (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+        .request
+        .getHeader(headerName)
+        ?.let { tryOrNull { JWT(it) } }
