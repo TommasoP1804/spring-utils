@@ -6,20 +6,19 @@ package dev.tommasop1804.springutils.reactive.request
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
-import dev.tommasop1804.kutils.classes.identifiers.CUID
-import dev.tommasop1804.kutils.classes.identifiers.CUID.Companion.toCUID
-import dev.tommasop1804.kutils.classes.identifiers.KSUID
-import dev.tommasop1804.kutils.classes.identifiers.KSUID.Companion.toKSUID
-import dev.tommasop1804.kutils.classes.identifiers.ULID
-import dev.tommasop1804.kutils.classes.identifiers.ULID.Companion.toULID
-import dev.tommasop1804.kutils.classes.security.JWT.Companion.toJWT
+import dev.tommasop1804.kutils.classes.identifiers.Cuid
+import dev.tommasop1804.kutils.classes.identifiers.Cuid.Companion.toCuid
+import dev.tommasop1804.kutils.classes.identifiers.Ksuid
+import dev.tommasop1804.kutils.classes.identifiers.Ksuid.Companion.toKsuid
+import dev.tommasop1804.kutils.classes.identifiers.Ulid
+import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
+import dev.tommasop1804.kutils.classes.security.Jwt.Companion.toJwt
 import dev.tommasop1804.kutils.exceptions.RequiredHeaderException
 import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.queryParamOrNull
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.util.*
 import kotlin.reflect.KClass
 
 /**
@@ -184,7 +183,7 @@ fun ServerRequest.ifMatch() = header(HttpHeaders.IF_MATCH)
 fun ServerRequest.ifModifiedSince() = header(HttpHeaders.IF_MODIFIED_SINCE)
 fun ServerRequest.ifNoneMatch() = header(HttpHeaders.IF_NONE_MATCH)
 fun ServerRequest.ifUnmodifiedSince() = header(HttpHeaders.IF_UNMODIFIED_SINCE)
-fun ServerRequest.jwtToken(headerName: String = HttpHeaders.AUTHORIZATION) = header(headerName).first().toJWT()()
+fun ServerRequest.jwtToken(headerName: String = HttpHeaders.AUTHORIZATION) = header(headerName).first().toJwt()()
 fun ServerRequest.origin() = header(HttpHeaders.ORIGIN)
 fun ServerRequest.prefer() = header("Prefer")
 fun ServerRequest.priority() = header("Priority")
@@ -196,10 +195,10 @@ fun ServerRequest.queryParamOrThrowAsInt(name: String) = tryOrThrow({ -> Malform
 fun ServerRequest.queryParamOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Long::class).toLong() }
 fun ServerRequest.queryParamOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Double::class).toDouble() }
 fun ServerRequest.queryParamOrThrowAsBoolean(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Boolean::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Boolean::class).toBoolean() }
-fun ServerRequest.queryParamOrThrowAsUUID(name: String) = queryParamOrThrow(name, UUID::class).toUUID()() { MalformedQueryParamException(name, UUID::class) }
-fun ServerRequest.queryParamOrThrowAsULID(name: String) = queryParamOrThrow(name, ULID::class).toULID()() { MalformedQueryParamException(name, ULID::class) }
-fun ServerRequest.queryParamOrThrowAsKSUID(name: String) = queryParamOrThrow(name, KSUID::class).toKSUID()() { MalformedQueryParamException(name, KSUID::class) }
-fun ServerRequest.queryParamOrThrowAsCUID(name: String) = queryParamOrThrow(name, CUID::class).toCUID()() { MalformedQueryParamException(name, CUID::class) }
+fun ServerRequest.queryParamOrThrowAsUuid(name: String) = queryParamOrThrow(name, Uuid::class).toUuid()() { MalformedQueryParamException(name, Uuid::class) }
+fun ServerRequest.queryParamOrThrowAsUlid(name: String) = queryParamOrThrow(name, Ulid::class).toUlid()() { MalformedQueryParamException(name, Ulid::class) }
+fun ServerRequest.queryParamOrThrowAsKsuid(name: String) = queryParamOrThrow(name, Ksuid::class).toKsuid()() { MalformedQueryParamException(name, Ksuid::class) }
+fun ServerRequest.queryParamOrThrowAsCuid(name: String) = queryParamOrThrow(name, Cuid::class).toCuid()() { MalformedQueryParamException(name, Cuid::class) }
 fun ServerRequest.queryParamOrThrowAsDate(name: String) = queryParamOrThrow(name, LocalDate::class).parseToLocalDate()() { MalformedQueryParamException(name, LocalDate::class) }
 fun ServerRequest.queryParamOrThrowAsDateTime(name: String) = queryParamOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime()() { MalformedQueryParamException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, T::class).toEnumConst<T>() }
@@ -209,10 +208,10 @@ fun ServerRequest.queryParamOrNullAsInt(name: String) = tryOrThrow({ -> Malforme
 fun ServerRequest.queryParamOrNullAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false) { queryParamOrNull(name)?.toLong() }
 fun ServerRequest.queryParamOrNullAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false) { queryParamOrNull(name)?.toDouble() }
 fun ServerRequest.queryParamOrNullAsBoolean(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Boolean::class) }, includeCause = false) { queryParamOrNull(name)?.toBoolean() }
-fun ServerRequest.queryParamOrNullAsUUID(name: String) = queryParamOrNull(name)?.toUUID()?.getOrThrow { MalformedQueryParamException(name, UUID::class) }
-fun ServerRequest.queryParamOrNullAsULID(name: String) = queryParamOrNull(name)?.toULID()?.getOrThrow { MalformedQueryParamException(name, ULID::class) }
-fun ServerRequest.queryParamOrNullAsKSUID(name: String) = queryParamOrNull(name)?.toKSUID()?.getOrThrow { MalformedQueryParamException(name, KSUID::class) }
-fun ServerRequest.queryParamOrNullAsCUID(name: String) = queryParamOrNull(name)?.toCUID()?.getOrThrow { MalformedQueryParamException(name, CUID::class) }
+fun ServerRequest.queryParamOrNullAsUuid(name: String) = queryParamOrNull(name)?.toUuid()?.getOrThrow { MalformedQueryParamException(name, Uuid::class) }
+fun ServerRequest.queryParamOrNullAsUlid(name: String) = queryParamOrNull(name)?.toUlid()?.getOrThrow { MalformedQueryParamException(name, Ulid::class) }
+fun ServerRequest.queryParamOrNullAsKsuid(name: String) = queryParamOrNull(name)?.toKsuid()?.getOrThrow { MalformedQueryParamException(name, Ksuid::class) }
+fun ServerRequest.queryParamOrNullAsCuid(name: String) = queryParamOrNull(name)?.toCuid()?.getOrThrow { MalformedQueryParamException(name, Cuid::class) }
 fun ServerRequest.queryParamOrNullAsDate(name: String) = queryParamOrNull(name)?.parseToLocalDate()?.getOrThrow { MalformedQueryParamException(name, LocalDate::class) }
 fun ServerRequest.queryParamOrNullAsDateTime(name: String) = queryParamOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }) { queryParamOrNull(name)?.toEnumConst<T>() }
@@ -222,10 +221,10 @@ fun ServerRequest.queryParamOrDefaultAsInt(name: String, defaultValue: Supplier<
 fun ServerRequest.queryParamOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false) { queryParamOrNull(name)?.toLong() ?: defaultValue() }
 fun ServerRequest.queryParamOrDefaultAsDouble(name: String, defaultValue: Supplier<Double>) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false) { queryParamOrNull(name)?.toDouble() ?: defaultValue() }
 fun ServerRequest.queryParamOrDefaultAsBoolean(name: String, defaultValue: Supplier<Boolean>) = tryOrThrow({ -> MalformedQueryParamException(name, Boolean::class) }, includeCause = false) { queryParamOrNull(name)?.toBoolean() ?: defaultValue() }
-fun ServerRequest.queryParamOrDefaultAsUUID(name: String, defaultValue: Supplier<UUID>) = queryParamOrNull(name)?.toUUID()?.getOrThrow { MalformedQueryParamException(name, UUID::class) } ?: defaultValue()
-fun ServerRequest.queryParamOrDefaultAsULID(name: String, defaultValue: Supplier<ULID>) = queryParamOrNull(name)?.toULID()?.getOrThrow { MalformedQueryParamException(name, ULID::class) } ?: defaultValue()
-fun ServerRequest.queryParamOrDefaultAsKSUID(name: String, defaultValue: Supplier<KSUID>) = queryParamOrNull(name)?.toKSUID()?.getOrThrow { MalformedQueryParamException(name, KSUID::class) } ?: defaultValue()
-fun ServerRequest.queryParamOrDefaultAsCUID(name: String, defaultValue: Supplier<CUID>) = queryParamOrNull(name)?.toCUID()?.getOrThrow { MalformedQueryParamException(name, CUID::class) } ?: defaultValue()
+fun ServerRequest.queryParamOrDefaultAsUuid(name: String, defaultValue: Supplier<Uuid>) = queryParamOrNull(name)?.toUuid()?.getOrThrow { MalformedQueryParamException(name, Uuid::class) } ?: defaultValue()
+fun ServerRequest.queryParamOrDefaultAsUlid(name: String, defaultValue: Supplier<Ulid>) = queryParamOrNull(name)?.toUlid()?.getOrThrow { MalformedQueryParamException(name, Ulid::class) } ?: defaultValue()
+fun ServerRequest.queryParamOrDefaultAsKsuid(name: String, defaultValue: Supplier<Ksuid>) = queryParamOrNull(name)?.toKsuid()?.getOrThrow { MalformedQueryParamException(name, Ksuid::class) } ?: defaultValue()
+fun ServerRequest.queryParamOrDefaultAsCuid(name: String, defaultValue: Supplier<Cuid>) = queryParamOrNull(name)?.toCuid()?.getOrThrow { MalformedQueryParamException(name, Cuid::class) } ?: defaultValue()
 fun ServerRequest.queryParamOrDefaultAsDate(name: String, defaultValue: Supplier<LocalDate>) = queryParamOrNull(name)?.parseToLocalDate()?.getOrThrow { MalformedQueryParamException(name, LocalDate::class) } ?: defaultValue()
 fun ServerRequest.queryParamOrDefaultAsDateTime(name: String, defaultValue: Supplier<OffsetDateTime>) = queryParamOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) } ?: defaultValue()
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrDefaultAsEnum(name: String, crossinline defaultValue: () -> T) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false) { queryParamOrNull(name)?.toEnumConst<T>() ?: defaultValue() }
@@ -235,10 +234,10 @@ fun ServerRequest.pathVariableOrThrowAsInt(name: String) = tryOrThrow({ -> Malfo
 fun ServerRequest.pathVariableOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Long::class).toLong() }
 fun ServerRequest.pathVariableOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Double::class).toDouble() }
 fun ServerRequest.pathVariableOrThrowAsBoolean(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Boolean::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Boolean::class).toBoolean() }
-fun ServerRequest.pathVariableOrThrowAsUUID(name: String) = pathVariableOrThrow(name, UUID::class).toUUID()() { MalformedPathVariableException(name, UUID::class) }
-fun ServerRequest.pathVariableOrThrowAsULID(name: String) = pathVariableOrThrow(name, ULID::class).toULID()() { MalformedPathVariableException(name, ULID::class) }
-fun ServerRequest.pathVariableOrThrowAsKSUID(name: String) = pathVariableOrThrow(name, KSUID::class).toKSUID()() { MalformedPathVariableException(name, KSUID::class) }
-fun ServerRequest.pathVariableOrThrowAsCUID(name: String) = pathVariableOrThrow(name, CUID::class).toCUID()() { MalformedPathVariableException(name, CUID::class) }
+fun ServerRequest.pathVariableOrThrowAsUuid(name: String) = pathVariableOrThrow(name, Uuid::class).toUuid()() { MalformedPathVariableException(name, Uuid::class) }
+fun ServerRequest.pathVariableOrThrowAsUlid(name: String) = pathVariableOrThrow(name, Ulid::class).toUlid()() { MalformedPathVariableException(name, Ulid::class) }
+fun ServerRequest.pathVariableOrThrowAsKsuid(name: String) = pathVariableOrThrow(name, Ksuid::class).toKsuid()() { MalformedPathVariableException(name, Ksuid::class) }
+fun ServerRequest.pathVariableOrThrowAsCuid(name: String) = pathVariableOrThrow(name, Cuid::class).toCuid()() { MalformedPathVariableException(name, Cuid::class) }
 fun ServerRequest.pathVariableOrThrowAsDate(name: String) = pathVariableOrThrow(name, LocalDate::class).parseToLocalDate()() { MalformedPathVariableException(name, LocalDate::class) }
 fun ServerRequest.pathVariableOrThrowAsDateTime(name: String) = pathVariableOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime()() { MalformedPathVariableException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, T::class).toEnumConst<T>() }
@@ -248,10 +247,10 @@ fun ServerRequest.pathVariableOrNullAsInt(name: String) = tryOrThrow({ -> Malfor
 fun ServerRequest.pathVariableOrNullAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false) { pathVariableOrNull(name)?.toLong() }
 fun ServerRequest.pathVariableOrNullAsDouble(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false) { pathVariableOrNull(name)?.toDouble() }
 fun ServerRequest.pathVariableOrNullAsBoolean(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Boolean::class) }, includeCause = false) { pathVariableOrNull(name)?.toBoolean() }
-fun ServerRequest.pathVariableOrNullAsUUID(name: String) = pathVariableOrNull(name)?.toUUID()?.getOrThrow { MalformedPathVariableException(name, UUID::class) }
-fun ServerRequest.pathVariableOrNullAsULID(name: String) = pathVariableOrNull(name)?.toULID()?.getOrThrow { MalformedPathVariableException(name, ULID::class) }
-fun ServerRequest.pathVariableOrNullAsKSUID(name: String) = pathVariableOrNull(name)?.toKSUID()?.getOrThrow { MalformedPathVariableException(name, KSUID::class) }
-fun ServerRequest.pathVariableOrNullAsCUID(name: String) = pathVariableOrNull(name)?.toCUID()?.getOrThrow { MalformedPathVariableException(name, CUID::class) }
+fun ServerRequest.pathVariableOrNullAsUuid(name: String) = pathVariableOrNull(name)?.toUuid()?.getOrThrow { MalformedPathVariableException(name, Uuid::class) }
+fun ServerRequest.pathVariableOrNullAsUlid(name: String) = pathVariableOrNull(name)?.toUlid()?.getOrThrow { MalformedPathVariableException(name, Ulid::class) }
+fun ServerRequest.pathVariableOrNullAsKsuid(name: String) = pathVariableOrNull(name)?.toKsuid()?.getOrThrow { MalformedPathVariableException(name, Ksuid::class) }
+fun ServerRequest.pathVariableOrNullAsCuid(name: String) = pathVariableOrNull(name)?.toCuid()?.getOrThrow { MalformedPathVariableException(name, Cuid::class) }
 fun ServerRequest.pathVariableOrNullAsDate(name: String) = pathVariableOrNull(name)?.parseToLocalDate()?.getOrThrow { MalformedPathVariableException(name, LocalDate::class) }
 fun ServerRequest.pathVariableOrNullAsDateTime(name: String) = pathVariableOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedPathVariableException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }) { pathVariableOrNull(name)?.toEnumConst<T>() }
@@ -261,10 +260,10 @@ fun ServerRequest.pathVariableOrDefaultAsInt(name: String, defaultValue: Supplie
 fun ServerRequest.pathVariableOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false) { pathVariableOrNull(name)?.toLong() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsDouble(name: String, defaultValue: Supplier<Double>) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false) { pathVariableOrNull(name)?.toDouble() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsBoolean(name: String, defaultValue: Supplier<Boolean>) = tryOrThrow({ -> MalformedPathVariableException(name, Boolean::class) }, includeCause = false) { pathVariableOrNull(name)?.toBoolean() ?: defaultValue() }
-fun ServerRequest.pathVariableOrDefaultAsUUID(name: String, defaultValue: Supplier<UUID>) = pathVariableOrNull(name)?.toUUID()?.getOrThrow { MalformedPathVariableException(name, UUID::class) } ?: defaultValue()
-fun ServerRequest.pathVariableOrDefaultAsULID(name: String, defaultValue: Supplier<ULID>) = pathVariableOrNull(name)?.toULID()?.getOrThrow { MalformedPathVariableException(name, ULID::class) } ?: defaultValue()
-fun ServerRequest.pathVariableOrDefaultAsKSUID(name: String, defaultValue: Supplier<KSUID>) = pathVariableOrNull(name)?.toKSUID()?.getOrThrow { MalformedPathVariableException(name, KSUID::class) } ?: defaultValue()
-fun ServerRequest.pathVariableOrDefaultAsCUID(name: String, defaultValue: Supplier<CUID>) = pathVariableOrNull(name)?.toCUID()?.getOrThrow { MalformedPathVariableException(name, CUID::class) } ?: defaultValue()
+fun ServerRequest.pathVariableOrDefaultAsUuid(name: String, defaultValue: Supplier<Uuid>) = pathVariableOrNull(name)?.toUuid()?.getOrThrow { MalformedPathVariableException(name, Uuid::class) } ?: defaultValue()
+fun ServerRequest.pathVariableOrDefaultAsUlid(name: String, defaultValue: Supplier<Ulid>) = pathVariableOrNull(name)?.toUlid()?.getOrThrow { MalformedPathVariableException(name, Ulid::class) } ?: defaultValue()
+fun ServerRequest.pathVariableOrDefaultAsKsuid(name: String, defaultValue: Supplier<Ksuid>) = pathVariableOrNull(name)?.toKsuid()?.getOrThrow { MalformedPathVariableException(name, Ksuid::class) } ?: defaultValue()
+fun ServerRequest.pathVariableOrDefaultAsCuid(name: String, defaultValue: Supplier<Cuid>) = pathVariableOrNull(name)?.toCuid()?.getOrThrow { MalformedPathVariableException(name, Cuid::class) } ?: defaultValue()
 fun ServerRequest.pathVariableOrDefaultAsDate(name: String, defaultValue: Supplier<LocalDate>) = pathVariableOrNull(name)?.parseToLocalDate()?.getOrThrow { MalformedPathVariableException(name, LocalDate::class) } ?: defaultValue()
 fun ServerRequest.pathVariableOrDefaultAsDateTime(name: String, defaultValue: Supplier<OffsetDateTime>) = pathVariableOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedPathVariableException(name, OffsetDateTime::class) } ?: defaultValue()
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrDefaultAsEnum(name: String, crossinline defaultValue: () -> T) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false) { pathVariableOrNull(name)?.toEnumConst<T>() ?: defaultValue() }

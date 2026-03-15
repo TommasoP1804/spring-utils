@@ -28,14 +28,14 @@ import java.time.OffsetDateTime
 @AutoConfiguration
 @ConditionalOnClass(ObjectMapper::class, YAMLFactory::class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-class YAMLServletAutoConfiguration {
+class YamlServletAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    fun yamlHttpMessageConverter() = YAMLHttpMessageConverter()
+    fun yamlHttpMessageConverter() = YamlHttpMessageConverter()
 
     @Bean
-    fun yamlWebMvcConfigurer(yamlConverter: YAMLHttpMessageConverter): WebMvcConfigurer {
+    fun yamlWebMvcConfigurer(yamlConverter: YamlHttpMessageConverter): WebMvcConfigurer {
         return object : WebMvcConfigurer {
             override fun configureMessageConverters(builder: HttpMessageConverters.ServerBuilder) {
                 builder.addCustomConverter(yamlConverter)
@@ -52,7 +52,7 @@ class YAMLServletAutoConfiguration {
     }
 }
 
-class YAMLHttpMessageConverter : AbstractHttpMessageConverter<Any>(
+class YamlHttpMessageConverter : AbstractHttpMessageConverter<Any>(
     MediaType("application", "yaml"),
     MediaType("application", "x-yaml"),
     MediaType("text", "yaml")

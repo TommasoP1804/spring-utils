@@ -1,8 +1,8 @@
 package dev.tommasop1804.springutils.request
 
 import dev.tommasop1804.kutils.COLON
-import dev.tommasop1804.kutils.classes.identifiers.ULID
-import dev.tommasop1804.kutils.classes.identifiers.ULID.Companion.toULID
+import dev.tommasop1804.kutils.classes.identifiers.Ulid
+import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
 import dev.tommasop1804.kutils.div
 import dev.tommasop1804.kutils.invoke
 
@@ -47,7 +47,7 @@ value class RequestId internal constructor(val value: String): CharSequence {
      * @return The ULID representation of the third component of the `RequestId` value.
      * @since 2.1.0
      */
-    val ulid: ULID get() = (value / Char.COLON)[2].toULID()()
+    val ulid: Ulid get() = (value / Char.COLON)[2].toUlid()()
 
     /**
      * Retrieves the `Instant` representation of the timestamp from the underlying ULID.

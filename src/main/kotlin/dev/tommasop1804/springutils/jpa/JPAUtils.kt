@@ -16,7 +16,6 @@ import dev.tommasop1804.kutils.exceptions.TooManyResultsException
 import org.springframework.data.domain.*
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.CrudRepository
-import kotlin.apply
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
@@ -171,7 +170,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
  * @return a list of entities matching the specified example and sorted according to the given sort options
  * @since 1.0.0
  */
-inline fun <reified T : Any> JpaRepository<T, *>.findAll(example: Example<T>, vararg sort: SortOption): List<T> = findAll(example, sort.toList().toJPASort())
+inline fun <reified T : Any> JpaRepository<T, *>.findAll(example: Example<T>, vararg sort: SortOption): List<T> = findAll(example, sort.toList().toJpaSort())
 /**
  * Retrieves a list of entities of type [T] from the repository, sorted according to the provided sorting options.
  *
@@ -179,7 +178,7 @@ inline fun <reified T : Any> JpaRepository<T, *>.findAll(example: Example<T>, va
  * @return A list of entities of type [T] sorted as per the provided options.
  * @since 1.0.0
  */
-inline fun <reified T : Any> JpaRepository<T, *>.findAll(vararg sort: SortOption): List<T> = findAll(sort.toList().toJPASort())
+inline fun <reified T : Any> JpaRepository<T, *>.findAll(vararg sort: SortOption): List<T> = findAll(sort.toList().toJpaSort())
 
 /**
  * Retrieves an entity by its ID or throws an exception if the entity is not found.
@@ -335,7 +334,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(sort: Sort): List<T> = findAll
  * @return A list of entities of type [T] sorted as per the provided options.
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(vararg sort: SortOption): List<T> = findAll(sort.toList().toJPASort())
+operator fun <T : Any> JpaRepository<T, *>.invoke(vararg sort: SortOption): List<T> = findAll(sort.toList().toJpaSort())
 /**
  * Invokes the repository to find all entities matching the provided example.
  *
@@ -364,7 +363,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, sort: Sor
  * @return a list of entities matching the specified example and sorted according to the given sort options
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, vararg sort: SortOption): List<T> = findAll(example, sort.toList().toJPASort())
+operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, vararg sort: SortOption): List<T> = findAll(example, sort.toList().toJpaSort())
 /**
  * Executes a query based on the provided example and pageable information.
  *
@@ -601,7 +600,7 @@ fun PageRequest(offset: Int, pageSize: Int, direction: Sort.Direction, vararg pr
  * @return a `PageRequest` instance configured with the given parameters.
  * @since 1.0.0
  */
-fun PageRequest(offset: Int, pageSize: Int, direction: SortDirection, vararg properties: String): PageRequest = PageRequest.of(offset, pageSize, direction.toJPASortDirection(), *properties)
+fun PageRequest(offset: Int, pageSize: Int, direction: SortDirection, vararg properties: String): PageRequest = PageRequest.of(offset, pageSize, direction.toJpaSortDirection(), *properties)
 /**
  * Creates and returns a PageRequest object configured with the given parameters for pagination and sorting.
  *
@@ -612,7 +611,7 @@ fun PageRequest(offset: Int, pageSize: Int, direction: SortDirection, vararg pro
  * @return a PageRequest object configured with the provided page and sorting settings.
  * @since 1.0.0
  */
-fun PageRequest(offset: Int, pageSize: Int, direction: SortDirection, vararg properties: KProperty<*>): PageRequest = PageRequest.of(offset, pageSize, direction.toJPASortDirection(), *(properties.map(KProperty<*>::name).toTypedArray()))
+fun PageRequest(offset: Int, pageSize: Int, direction: SortDirection, vararg properties: KProperty<*>): PageRequest = PageRequest.of(offset, pageSize, direction.toJpaSortDirection(), *(properties.map(KProperty<*>::name).toTypedArray()))
 /**
  * Returns a new [PageRequest] with the specified sort configuration applied.
  *
@@ -620,7 +619,7 @@ fun PageRequest(offset: Int, pageSize: Int, direction: SortDirection, vararg pro
  * @return A new [PageRequest] instance incorporating the specified sort options.
  * @since 1.0.0
  */
-fun PageRequest.withSort(vararg sort: SortOption): PageRequest = withSort(sort.toList().toJPASort())
+fun PageRequest.withSort(vararg sort: SortOption): PageRequest = withSort(sort.toList().toJpaSort())
 /**
  * Returns a new `PageRequest` instance with sorting applied based on the specified direction and properties.
  *
@@ -630,7 +629,7 @@ fun PageRequest.withSort(vararg sort: SortOption): PageRequest = withSort(sort.t
  * @since 1.0.0
  */
 fun PageRequest.withSort(direction: SortDirection, vararg properties: String): PageRequest = withSort(Sort.by(
-    direction.toJPASortDirection(),
+    direction.toJpaSortDirection(),
     *properties
 ))
 /**
@@ -642,7 +641,7 @@ fun PageRequest.withSort(direction: SortDirection, vararg properties: String): P
  * @since 1.0.0
  */
 fun PageRequest.withSort(direction: SortDirection, vararg properties: KProperty<*>): PageRequest = withSort(Sort.by(
-    direction.toJPASortDirection(),
+    direction.toJpaSortDirection(),
     *(properties.map(KProperty<*>::name).toTypedArray())
 ))
 
@@ -673,14 +672,14 @@ fun <T : Any> Page<T>.toChunkedObj(limit: Int? = null, appliedFilters: List<Filt
  *
  * @receiver The `Chunked<T>` instance to be converted into a JPA-compatible page representation.
  * @return A `PageImpl` instance containing the paginated data and metadata derived from the original `Chunked<T>`.
- * @since 1.0.0
+ * @since 3.0.0
  */
-fun <T : Any> Chunked<T>.toJPAPage() = PageImpl(
+fun <T : Any> Chunked<T>.toJpaPage() = PageImpl(
     data.orEmpty(),
     PageRequest(
         pageIndex,
         limit.requiredField(::limit, "chunked"),
-        sort.toJPASort()
+        sort.toJpaSort()
     ),
     totalElements.toLong()
 )
@@ -696,11 +695,11 @@ internal fun Sort.toSortOption(): List<SortOption> = toList().map { SortOption(i
  * the sort direction and field name, then combines all orders into a single Sort object.
  *
  * @return a JPA Sort instance containing all the sort orders from this collection
- * @since 1.0.0
+ * @since 3.0.0
  */
-fun Collection<SortOption>.toJPASort(): Sort {
+fun Collection<SortOption>.toJpaSort(): Sort {
     val list = emptyMList<Sort.Order>()
-    forEach { list.add(Sort.Order(it.direction.toJPASortDirection(), it.field)) }
+    forEach { list.add(Sort.Order(it.direction.toJpaSortDirection(), it.field)) }
     return Sort.by(list)
 }
 /**
@@ -712,9 +711,9 @@ fun Collection<SortOption>.toJPASort(): Sort {
  *
  * @receiver the SortDirection value to convert.
  * @return the corresponding JPA Sort.Direction value.
- * @since 1.0.0
+ * @since 3.0.0
  */
-fun SortDirection.toJPASortDirection() = when (this) {
+fun SortDirection.toJpaSortDirection() = when (this) {
     SortDirection.ASCENDING -> Sort.Direction.ASC
     SortDirection.DESCENDING -> Sort.Direction.DESC
 }

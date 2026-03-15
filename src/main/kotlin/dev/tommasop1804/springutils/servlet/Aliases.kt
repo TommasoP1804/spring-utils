@@ -5,7 +5,7 @@
 package dev.tommasop1804.springutils.servlet
 
 import dev.tommasop1804.kutils.annotations.Since
-import dev.tommasop1804.kutils.classes.coding.JSON
+import dev.tommasop1804.kutils.classes.coding.Json
 import org.springframework.http.ResponseEntity
 
 /**
@@ -36,4 +36,4 @@ typealias Response<T> = ResponseEntity<T>
  * when working with endpoints that return JSON data.
  * @since 2.3.1
  */
-typealias JsonResponse = ResponseEntity<JSON>
+typealias JsonResponse = ResponseEntity<Json>

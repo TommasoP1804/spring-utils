@@ -1,7 +1,7 @@
 package dev.tommasop1804.springutils.servlet.request
 
 import dev.tommasop1804.kutils.MList
-import dev.tommasop1804.kutils.classes.security.JWT
+import dev.tommasop1804.kutils.classes.security.Jwt
 import dev.tommasop1804.kutils.notStartsWithIgnoreCase
 import dev.tommasop1804.springutils.exception.UnauthorizedException
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -30,28 +30,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  */
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class JWTToken(
+annotation class JwtToken(
     val header: String = "Authorization"
 )
 @Component
 class JWTTokenArgumentResolver : HandlerMethodArgumentResolver {
 
     override fun supportsParameter(parameter: MethodParameter) =
-        parameter.hasParameterAnnotation(JWTToken::class.java)
+        parameter.hasParameterAnnotation(JwtToken::class.java)
 
     override fun resolveArgument(
         parameter: MethodParameter,
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): JWT {
-        val annotation = parameter.getParameterAnnotation(JWTToken::class.java)!!
+    ): Jwt {
+        val annotation = parameter.getParameterAnnotation(JwtToken::class.java)!!
         val authHeader = webRequest.getHeader(annotation.header)
             ?: throw UnauthorizedException("Missing ${annotation.header} header")
 
         if (authHeader notStartsWithIgnoreCase "Bearer ")
             throw UnauthorizedException("Invalid ${annotation.header} header format")
-        return JWT(authHeader)
+        return Jwt(authHeader)
     }
 }
 

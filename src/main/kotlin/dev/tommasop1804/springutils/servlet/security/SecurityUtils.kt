@@ -5,7 +5,7 @@ package dev.tommasop1804.springutils.servlet.security
 
 import dev.tommasop1804.kutils.StringSet
 import dev.tommasop1804.kutils.ThrowableSupplier
-import dev.tommasop1804.kutils.classes.security.JWT
+import dev.tommasop1804.kutils.classes.security.Jwt
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.AUTHORIZATION
 import dev.tommasop1804.kutils.requireNotNullOrThrow
 import dev.tommasop1804.kutils.tryOrNull
@@ -80,7 +80,7 @@ fun token(headerName: String = AUTHORIZATION, lazyException: ThrowableSupplier =
         .request
         .getHeader(headerName)
         .requireNotNullOrThrow(lazyException)
-        .let(::JWT)
+        .let(::Jwt)
 
 /**
  * Extracts and processes a JWT token from the HTTP request header, if available.
@@ -95,4 +95,4 @@ fun tokenOrNull(headerName: String = AUTHORIZATION, lazyException: ThrowableSupp
     (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
         .request
         .getHeader(headerName)
-        ?.let { tryOrNull { JWT(it) } }
+        ?.let { tryOrNull { Jwt(it) } }

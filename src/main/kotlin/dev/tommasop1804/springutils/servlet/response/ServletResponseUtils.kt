@@ -13,18 +13,15 @@ import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.toHeaderDate
 import dev.tommasop1804.kutils.classes.web.HttpHeaders
 import dev.tommasop1804.kutils.classes.web.HttpStatus
 import dev.tommasop1804.kutils.classes.web.HttpStatus.Companion.toHttpStatus
+import dev.tommasop1804.kutils.classes.web.HttpVersion
 import dev.tommasop1804.kutils.exceptions.NoSuchEntryException
-import dev.tommasop1804.springutils.FEATURE_CODE
-import dev.tommasop1804.springutils.REQUEST_ID
+import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.exception.PreconditionFailedException
 import dev.tommasop1804.springutils.exception.PreconditionRequiredException
-import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.servlet.Response
 import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
-import dev.tommasop1804.springutils.toSpringHttpHeaders
-import dev.tommasop1804.springutils.toSpringHttpStatus
 import org.springframework.http.ResponseEntity
 import java.net.URI
 import java.net.URL
@@ -1304,7 +1301,7 @@ fun MultiStatusResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
-    httpVersion: String = "HTTP/1.1",
+    httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
     action: Action? = null
 ): Response<Any> {
     action?.invoke()
@@ -1316,10 +1313,10 @@ fun MultiStatusResponse(
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.body(when(responseType) {
-        MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion)
-        MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion)
-        MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion)
-        MultiStatusResponseType.GROUPED_BY_SUCCESS_AND_FAILURE_MAP -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion)
+        MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
+        MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
+        MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
+        MultiStatusResponseType.GROUPED_BY_SUCCESS_AND_FAILURE_MAP -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion.notation)
     })
 }
 /**
@@ -1346,7 +1343,7 @@ fun MultiStatusResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
-    httpVersion: String = "HTTP/1.1",
+    httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
 ): Response<Any> {
     val re = Response.status(org.springframework.http.HttpStatus.MULTI_STATUS)
     if (headers.isNotEmpty()) re.headers(headers.toSpringHttpHeaders())
@@ -1356,10 +1353,10 @@ fun MultiStatusResponse(
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.body(when(responseType) {
-        MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion)
-        MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion)
-        MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion)
-        MultiStatusResponseType.GROUPED_BY_SUCCESS_AND_FAILURE_MAP -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion)
+        MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
+        MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
+        MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
+        MultiStatusResponseType.GROUPED_BY_SUCCESS_AND_FAILURE_MAP -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion.notation)
     })
 }
 

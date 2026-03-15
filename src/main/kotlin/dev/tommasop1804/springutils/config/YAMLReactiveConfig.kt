@@ -37,7 +37,7 @@ import java.time.OffsetDateTime
 @AutoConfiguration
 @ConditionalOnClass(ObjectMapper::class, YAMLFactory::class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
-class YAMLReactiveAutoConfiguration {
+class YamlReactiveAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
@@ -58,8 +58,8 @@ class YAMLReactiveAutoConfiguration {
     fun yamlWebFluxConfigurer(yamlMapper: YAMLMapper): WebFluxConfigurer {
         return object : WebFluxConfigurer {
             override fun configureHttpMessageCodecs(configurer: org.springframework.http.codec.ServerCodecConfigurer) {
-                configurer.customCodecs().register(YAMLHttpMessageReader(yamlMapper))
-                configurer.customCodecs().register(YAMLHttpMessageWriter(yamlMapper))
+                configurer.customCodecs().register(YamlHttpMessageReader(yamlMapper))
+                configurer.customCodecs().register(YamlHttpMessageWriter(yamlMapper))
             }
 
             override fun configureContentTypeResolver(builder: RequestedContentTypeResolverBuilder) {
@@ -72,8 +72,8 @@ class YAMLReactiveAutoConfiguration {
 
     @Bean
     fun yamlCodecCustomizer(yamlMapper: YAMLMapper) = CodecCustomizer { configurer ->
-        configurer.customCodecs().register(YAMLHttpMessageReader(yamlMapper))
-        configurer.customCodecs().register(YAMLHttpMessageWriter(yamlMapper))
+        configurer.customCodecs().register(YamlHttpMessageReader(yamlMapper))
+        configurer.customCodecs().register(YamlHttpMessageWriter(yamlMapper))
     }
 }
 
@@ -83,7 +83,7 @@ val YAML_MEDIA_TYPES = listOf(
     MediaType("text", "yaml")
 )
 
-class YAMLHttpMessageReader(private val yamlMapper: YAMLMapper) : HttpMessageReader<Any> {
+class YamlHttpMessageReader(private val yamlMapper: YAMLMapper) : HttpMessageReader<Any> {
 
     override fun getReadableMediaTypes(): List<MediaType> = YAML_MEDIA_TYPES
 
@@ -111,7 +111,7 @@ class YAMLHttpMessageReader(private val yamlMapper: YAMLMapper) : HttpMessageRea
     }
 }
 
-class YAMLHttpMessageWriter(private val yamlMapper: YAMLMapper) : HttpMessageWriter<Any> {
+class YamlHttpMessageWriter(private val yamlMapper: YAMLMapper) : HttpMessageWriter<Any> {
 
     override fun getWritableMediaTypes(): List<MediaType> = YAML_MEDIA_TYPES
 

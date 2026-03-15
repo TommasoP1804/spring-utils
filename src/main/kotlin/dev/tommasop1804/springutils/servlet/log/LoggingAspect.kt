@@ -1,6 +1,8 @@
 package dev.tommasop1804.springutils.servlet.log
 
 import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.classes.web.HttpHeader
+import dev.tommasop1804.springutils.FROM_SERVICE
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.getStatus
 import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
@@ -36,7 +38,7 @@ internal class LoggingAspect(
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.BEFORE) == true) {
             val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
                 .request
-                .getHeader("From-Service")
+                .getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -62,7 +64,7 @@ internal class LoggingAspect(
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER) == true) {
             val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
                 .request
-                .getHeader("From-Service")
+                .getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -90,7 +92,7 @@ internal class LoggingAspect(
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER_THROWING) == true) {
             val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
                 .request
-                .getHeader("From-Service")
+                .getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }

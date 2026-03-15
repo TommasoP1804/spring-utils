@@ -1,6 +1,8 @@
 package dev.tommasop1804.springutils.reactive.log
 
 import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.classes.web.HttpHeader
+import dev.tommasop1804.springutils.FROM_SERVICE
 import dev.tommasop1804.springutils.annotations.Feature
 import dev.tommasop1804.springutils.findCallerMethod
 import dev.tommasop1804.springutils.getStatus
@@ -130,7 +132,7 @@ class LoggingWebFilter(
             val methodName = handler.method.name
             val className = handler.beanType.simpleName
             val featureCode = handler.getMethodAnnotation(Feature::class.java)?.code
-            val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
+            val serviceValue: String? = exchange.request.headers.getFirst(HttpHeader.FROM_SERVICE)
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
                 Logs.logStart(finalComponents, className, methodName, currentUser, serviceValue, featureCode, requestId)
