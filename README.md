@@ -17,19 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.tommasop1804:spring-utils:2.3.5")
-}
-```
-
-### Gradle (Groovy)
-
-```groovy
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'dev.tommasop1804:spring-utils:2.3.5'
+    implementation("dev.tommasop1804:spring-utils:2.3.6")
 }
 ```
 
