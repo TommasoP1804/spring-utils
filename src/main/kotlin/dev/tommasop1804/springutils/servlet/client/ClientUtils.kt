@@ -6,6 +6,7 @@ package dev.tommasop1804.springutils.servlet.client
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
+import dev.tommasop1804.kutils.classes.coding.Json
 import dev.tommasop1804.kutils.classes.web.HttpHeader
 import dev.tommasop1804.kutils.classes.web.HttpHeaders
 import dev.tommasop1804.kutils.classes.web.MediaType
@@ -17,8 +18,11 @@ import io.micrometer.observation.ObservationRegistry
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
+import org.springframework.http.codec.json.JacksonJsonDecoder
+import org.springframework.http.codec.json.JacksonJsonEncoder
 import org.springframework.web.reactive.function.client.*
 import reactor.core.publisher.Mono
+import tools.jackson.databind.module.SimpleModule
 import java.net.URL
 
 /**
@@ -68,7 +72,16 @@ fun WebClient(
     }.defaultStatusHandler(HttpStatusCode::isError) { _ -> Mono.empty() }
     .contentType(contentType)
     .accept(accept)
-    .also { builder ->
+    .codecs {
+        val mapper = Json.MAPPER.rebuild()
+            .addModule(SimpleModule().apply {
+                addSerializer(Json::class.java, Json.Companion.Serializer())
+                addDeserializer(Json::class.java, Json.Companion.Deserializer())
+            })
+            .build()!!
+        it.defaultCodecs().jacksonJsonEncoder(JacksonJsonEncoder(mapper))
+        it.defaultCodecs().jacksonJsonDecoder(JacksonJsonDecoder(mapper))
+    }.also { builder ->
         if (fromService.isNotNull()) builder.fromService(fromService)
         if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
         if (defaultApiVersion.isNotNull()) builder.defaultApiVersion(defaultApiVersion)
