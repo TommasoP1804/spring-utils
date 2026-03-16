@@ -7,6 +7,7 @@ package dev.tommasop1804.springutils.servlet.client
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.Since
 import dev.tommasop1804.kutils.classes.coding.Json
+import dev.tommasop1804.kutils.classes.coding.Json.Companion
 import dev.tommasop1804.kutils.classes.web.HttpHeader
 import dev.tommasop1804.kutils.classes.web.HttpHeaders
 import dev.tommasop1804.kutils.classes.web.MediaType
@@ -15,6 +16,7 @@ import dev.tommasop1804.springutils.FROM_SERVICE
 import dev.tommasop1804.springutils.toMultiValueMap
 import dev.tommasop1804.springutils.toSpringHttpHeaders
 import io.micrometer.observation.ObservationRegistry
+import org.springframework.core.ResolvableType
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
@@ -22,8 +24,20 @@ import org.springframework.http.codec.json.JacksonJsonDecoder
 import org.springframework.http.codec.json.JacksonJsonEncoder
 import org.springframework.web.reactive.function.client.*
 import reactor.core.publisher.Mono
+import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
 import java.net.URL
+
+class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
+    override fun canDecode(
+        elementType: ResolvableType,
+        mimeType: org.springframework.util.MimeType?
+    ): Boolean {
+        if (elementType.toClass() == Json::class.java)
+            return true
+        return super.canDecode(elementType, mimeType)
+    }
+}
 
 /**
  * Constructs a fully customized instance of `WebClient` with the provided parameters.
@@ -75,12 +89,13 @@ fun WebClient(
     .codecs {
         val mapper = Json.MAPPER.rebuild()
             .addModule(SimpleModule().apply {
-                addSerializer(Json::class.java, Json.Companion.Serializer())
-                addDeserializer(Json::class.java, Json.Companion.Deserializer())
+                addSerializer(Json::class.java, Companion.Serializer())
+                addDeserializer(Json::class.java, Companion.Deserializer())
             })
             .build()!!
         it.defaultCodecs().jacksonJsonEncoder(JacksonJsonEncoder(mapper))
         it.defaultCodecs().jacksonJsonDecoder(JacksonJsonDecoder(mapper))
+        it.defaultCodecs().jacksonJsonDecoder(JsonSupportingDecoder(mapper))
     }.also { builder ->
         if (fromService.isNotNull()) builder.fromService(fromService)
         if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
