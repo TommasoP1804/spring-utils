@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.LOOP_DETECTED)
 @Suppress("unused")
 class LoopDetectedException : ResponseException {
-    constructor() : super()
-    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
+    constructor() : super(HttpStatus.LOOP_DETECTED)
+    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.LOOP_DETECTED, message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.LOOP_DETECTED, cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.LOOP_DETECTED, message, cause, internalErrorCode)
 }

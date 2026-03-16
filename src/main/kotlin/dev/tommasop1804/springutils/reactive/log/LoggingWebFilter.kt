@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.bind.DefaultValue
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.method.HandlerMethod
 import org.springframework.web.reactive.function.server.HandlerFunction
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.server.support.RouterFunctionMa
 import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping
 import org.springframework.web.server.CoWebFilter
 import org.springframework.web.server.CoWebFilterChain
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.ServerWebExchangeDecorator
 import reactor.util.context.Context
@@ -194,7 +196,7 @@ class LoggingWebFilter(
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
-                    val status = getStatus(e)
+                    val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
 
                     Logs.logException(
                         finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser,

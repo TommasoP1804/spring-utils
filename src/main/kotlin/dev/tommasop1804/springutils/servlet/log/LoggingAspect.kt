@@ -14,9 +14,11 @@ import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.annotation.Before
 import org.aspectj.lang.reflect.MethodSignature
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.context.request.RequestContextHolder
 import org.springframework.web.context.request.ServletRequestAttributes
+import org.springframework.web.server.ResponseStatusException
 
 @Aspect
 @Component
@@ -114,7 +116,7 @@ internal class LoggingAspect(
 
             val className = joinPoint.target.javaClass.getSimpleName()
             val methodName = joinPoint.signature.name
-            val status = getStatus(e)
+            val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
             Logs.logException(
                 finalComponents,
                 className,

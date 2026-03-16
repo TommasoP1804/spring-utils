@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.CONFLICT)
 @Suppress("unused")
 class ConflictException : ResponseException {
-    constructor() : super()
-    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
+    constructor() : super(HttpStatus.CONFLICT)
+    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.CONFLICT, message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.CONFLICT, cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.CONFLICT, message, cause, internalErrorCode)
 }

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 @Suppress("unused")
 class NotAcceptableException : ResponseException {
-    constructor() : super()
-    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
+    constructor() : super(HttpStatus.NOT_ACCEPTABLE)
+    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.NOT_ACCEPTABLE, message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.NOT_ACCEPTABLE, cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.NOT_ACCEPTABLE, message, cause, internalErrorCode)
 }
