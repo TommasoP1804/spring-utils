@@ -5,14 +5,10 @@
 package dev.tommasop1804.springutils.jpa
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.annotations.Since
-import dev.tommasop1804.kutils.classes.constants.SortDirection
-import dev.tommasop1804.kutils.classes.pagination.Chunked
-import dev.tommasop1804.kutils.classes.pagination.FilterOption
-import dev.tommasop1804.kutils.classes.pagination.SortOption
-import dev.tommasop1804.kutils.exceptions.PropertyNotAccessibleException
-import dev.tommasop1804.kutils.exceptions.ResourceNotFoundException
-import dev.tommasop1804.kutils.exceptions.TooManyResultsException
+import dev.tommasop1804.kutils.annotations.*
+import dev.tommasop1804.kutils.classes.constants.*
+import dev.tommasop1804.kutils.classes.pagination.*
+import dev.tommasop1804.kutils.exceptions.*
 import org.springframework.data.domain.*
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.CrudRepository
@@ -385,7 +381,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, pageable:
  */
 inline operator fun <reified T : Any, R> JpaRepository<T, *>.invoke(vararg search: Pair<KProperty1<T, R>, R>): List<T> {
     val probe = T::class.java.getDeclaredConstructor().newInstance()
-    search.forEach { (property, value) ->
+    search.forEach { [property, `value`] ->
         property.javaField?.apply { isAccessible = true; set(probe, value) }
             ?: throw PropertyNotAccessibleException("Property ${property.name} is not accessible.")
     }
@@ -419,7 +415,7 @@ fun <T : Any> CrudRepository<T, *>.count(predicate: Predicate<T>): Long = invoke
  */
 inline fun <reified T : Any, R> JpaRepository<T, *>.count(vararg search: Pair<KProperty1<T, R>, R>): Long {
     val probe = T::class.java.getDeclaredConstructor().newInstance()
-    search.forEach { (property, value) ->
+    search.forEach { [property, `value`] ->
         property.javaField?.apply { isAccessible = true; set(probe, value) }
             ?: throw PropertyNotAccessibleException("Property ${property.name} is not accessible.")
     }

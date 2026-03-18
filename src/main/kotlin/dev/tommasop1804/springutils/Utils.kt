@@ -4,14 +4,12 @@
 package dev.tommasop1804.springutils
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.classes.web.HttpHeader
-import dev.tommasop1804.kutils.classes.web.HttpHeaders
+import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
-import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.exception.*
-import dev.tommasop1804.springutils.reactive.request.RequiredPathVariableException
-import dev.tommasop1804.springutils.reactive.request.RequiredQueryParamException
-import dev.tommasop1804.springutils.request.RequestId
+import dev.tommasop1804.springutils.reactive.request.*
+import dev.tommasop1804.springutils.request.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
@@ -256,7 +254,7 @@ fun HttpHeaders.setRequestId(requestId: RequestId) = set(HttpHeader.REQUEST_ID, 
  * @since 2.3.1
  */
 fun HttpHeaders.toSpringHttpHeaders() = org.springframework.http.HttpHeaders().apply {
-    forEach { (name, values) -> addAll(name, values) }
+    forEach { [name, values] -> addAll(name, values) }
 }
 /**
  * Converts an instance of `org.springframework.http.HttpHeaders` to a new instance
@@ -291,7 +289,7 @@ fun org.springframework.http.HttpHeaders.add(header: HttpHeader) {
  * @since 2.3.1
  */
 fun org.springframework.http.HttpHeaders.addAll(headers: HttpHeaders) {
-    headers.forEach { (key, values) -> addAll(key, values) }
+    headers.forEach { [key, values] -> addAll(key, values) }
 }
 
 /**

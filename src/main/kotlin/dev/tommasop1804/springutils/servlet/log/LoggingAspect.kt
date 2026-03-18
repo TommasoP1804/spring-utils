@@ -1,12 +1,11 @@
 package dev.tommasop1804.springutils.servlet.log
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.classes.web.HttpHeader
-import dev.tommasop1804.springutils.FROM_SERVICE
-import dev.tommasop1804.springutils.annotations.Feature
-import dev.tommasop1804.springutils.getStatus
-import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
-import dev.tommasop1804.springutils.servlet.security.username
+import dev.tommasop1804.kutils.classes.web.*
+import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.annotations.*
+import dev.tommasop1804.springutils.servlet.request.*
+import dev.tommasop1804.springutils.servlet.security.*
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.After
 import org.aspectj.lang.annotation.AfterThrowing
@@ -99,7 +98,7 @@ internal class LoggingAspect(
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
 
-            var (basePackage, includeHighlight) = annotation.run { basePackage.ifEmpty { null } to includeHighlight }
+            var [basePackage, includeHighlight] = annotation.run { basePackage.ifEmpty { null } to includeHighlight }
             if (!includeHighlight) basePackage = null
             else {
                 if (basePackage.isNull()) basePackage = tryOrNull {

@@ -3,9 +3,9 @@ import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.3.0"
-    id("org.jetbrains.kotlin.plugin.spring") version "2.3.0"
-    id("org.jetbrains.kotlin.plugin.jpa") version "2.3.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.20"
+    id("org.jetbrains.kotlin.plugin.spring") version "2.3.20"
+    id("org.jetbrains.kotlin.plugin.jpa") version "2.3.20"
     id("org.springframework.boot") version "4.0.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "9.1.0"
@@ -15,7 +15,7 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "2.3.6"
+version = "2.4.0"
 // Spring-Utils
 // Tommaso Pastorelli
 // Last update: Tommaso Pastorelli | 20260316T104022Z
@@ -56,16 +56,16 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:3.0.4")
-    api("dev.tommasop1804:kotlin-utils:3.0.4")
+    aspect("dev.tommasop1804:kotlin-utils:3.1.0")
+    api("dev.tommasop1804:kotlin-utils:3.1.0")
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
-            "-Xallow-contracts-on-more-functions",
-            "-Xcontext-parameters"
+            "-Xcontext-parameters",
+            "-Xname-based-destructuring=complete"
         )
     }
 }
@@ -78,10 +78,8 @@ java {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        freeCompilerArgs.add("-Xallow-contracts-on-more-functions")
         freeCompilerArgs.add("-Xcontext-parameters")
-        freeCompilerArgs.add("-Xallow-holdsin-contract")
-        freeCompilerArgs.add("-Xallow-condition-implies-returns-contracts")
+        freeCompilerArgs.add("-Xname-based-destructuring=complete")
     }
 }
 
@@ -103,7 +101,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "2.3.6")
+    coordinates("dev.tommasop1804", "spring-utils", "2.4.0")
 
     pom {
         name.set("Spring Utils")
