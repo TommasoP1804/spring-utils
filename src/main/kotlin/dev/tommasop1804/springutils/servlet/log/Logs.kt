@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component as SpringComponent
 internal object Logs {
     private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
+    fun logPath(uri: String?, id: RequestId) = LOGGER.info("$id | $uri")
+
     fun logStart(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)

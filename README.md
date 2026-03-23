@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-blue.svg)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Spring_Boot-4.0.0-green.svg)](https://spring.io/projects/spring-boot)
 [![JDK](https://img.shields.io/badge/JDK-21-orange.svg)](https://openjdk.org)
 
 A comprehensive Kotlin/JVM utility library providing extensions, helpers, and ready-to-use classes for common development tasks.
@@ -16,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.tommasop1804:spring-utils:2.4.0")
+    implementation("dev.tommasop1804:spring-utils:2.5.0")
 }
 ```
 

@@ -36,6 +36,12 @@ internal class LoggingAspect(
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
+        if (annotation?.behaviour?.contains(LogExecution.Behaviour.PATH_BEFORE) == true) {
+            val uri: String = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+                .request.let { it.method + " " + it.requestURI }
+            val id = RequestIdProvider.requestIdThreadLocal.get()
+            if (id.isNotNull()) Logs.logPath(uri, id)
+        }
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.BEFORE) == true) {
             val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
                 .request

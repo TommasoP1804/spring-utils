@@ -8,7 +8,7 @@ package dev.tommasop1804.springutils.servlet.log
 )
 @Retention(AnnotationRetention.RUNTIME)
 annotation class LogExecution(
-    val behaviour: Array<Behaviour> = [Behaviour.BEFORE, Behaviour.AFTER, Behaviour.AFTER_THROWING],
+    val behaviour: Array<Behaviour> = [Behaviour.PATH_BEFORE, Behaviour.BEFORE, Behaviour.AFTER, Behaviour.AFTER_THROWING],
     val basePackage: String = "",
     val includeHighlight: Boolean = true,
     val exclude: Array<Component> = [],
@@ -29,6 +29,7 @@ annotation class LogExecution(
     }
 
     enum class Behaviour {
+        PATH_BEFORE,
         BEFORE,
         AFTER,
         AFTER_THROWING,
