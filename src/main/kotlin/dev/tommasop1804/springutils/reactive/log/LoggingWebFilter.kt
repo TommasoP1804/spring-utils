@@ -135,16 +135,25 @@ class LoggingWebFilter(
             val className = handler.beanType.simpleName
             val featureCode = handler.getMethodAnnotation(Feature::class.java)?.code
             val serviceValue: String? = exchange.request.headers.getFirst(HttpHeader.FROM_SERVICE)
+            val path = "${exchange.request.method} ${exchange.request.uri.path}${compute {
+                val map = exchange.request.queryParams
+                var string = String.EMPTY
+                if (map.isEmpty()) string
+                else {
+                    string += "?"
+                    string += map.entries.joinToString("&") { [k, v] -> "$k=$v" }
+                }
+            }}"
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, className, methodName, "${exchange.request.method} ${exchange.request.uri}", currentUser, serviceValue, featureCode, requestId)
+                Logs.logStart(finalComponents, className, methodName, path, currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, className, methodName, "${exchange.request.method} ${exchange.request.uri}", currentUser, serviceValue, featureCode, requestId)
+                    Logs.logEnd(finalComponents, className, methodName, path, currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
@@ -157,7 +166,7 @@ class LoggingWebFilter(
                     } else null
 
                     Logs.logException(
-                        finalComponents, className, methodName, "${exchange.request.method} ${exchange.request.uri}", currentUser,
+                        finalComponents, className, methodName, path, currentUser,
                         "${status.value()} ${status.reasonPhrase}",
                         serviceValue, featureCode, requestId, e, resolvedBasePackage
                     )
@@ -180,7 +189,15 @@ class LoggingWebFilter(
 
         withContext(contextToPropagate) {
             val currentUser = username()
-            val path = "${exchange.request.method} ${exchange.request.uri.path}"
+            val path = "${exchange.request.method} ${exchange.request.uri.path}${compute {
+                val map = exchange.request.queryParams
+                var string = String.EMPTY
+                if (map.isEmpty()) string
+                else {
+                    string += "?"
+                    string += map.entries.joinToString("&") { [k, v] -> "$k=$v" }
+                }
+            }}"
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
             val featureCode = findCallerMethod()?.getAnnotation(Feature::class.java)?.code
 

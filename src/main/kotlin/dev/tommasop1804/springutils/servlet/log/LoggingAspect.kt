@@ -53,7 +53,10 @@ internal class LoggingAspect(
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
             val path = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
-                .request.let { "${it.method} ${it.requestURI}" }
+                .request.let {
+                    val query = it.queryString?.let { q -> "?$q" } ?: String.EMPTY
+                    "${it.method} ${it.requestURI}$query"
+                }
             Logs.logStart(finalComponents, className, methodName, path, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!)
         }
     }
