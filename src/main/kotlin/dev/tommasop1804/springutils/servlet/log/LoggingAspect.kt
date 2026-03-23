@@ -35,11 +35,10 @@ internal class LoggingAspect(
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
+        val request = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes).request
 
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.BEFORE) == true) {
-            val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
-                .request
-                .getHeader(HttpHeader.FROM_SERVICE)
+            val serviceValue: String? = request.getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -52,12 +51,20 @@ internal class LoggingAspect(
 
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            val path = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
-                .request.let {
-                    val query = it.queryString?.let { q -> "?$q" } ?: String.EMPTY
-                    "${it.method} ${it.requestURI}$query"
+            val path = request.let {
+                val query = it.queryString?.let { q -> "?$q" } ?: String.EMPTY
+                "${it.method} ${it.requestURI}$query"
+            }
+            val customs = emptyMList<String2>()
+            annotation.customMessages.forEach { cm ->
+                customs += cm.key to when (cm.type) {
+                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)
+                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)
+                    LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }.orEmpty()
+                    LogExecution.CustomMessage.Type.STATIC -> cm.reference
                 }
-            Logs.logStart(finalComponents, className, methodName, path, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!)
+            }
+            Logs.logStart(finalComponents, className, methodName, path, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!, customs)
         }
     }
 
@@ -66,11 +73,10 @@ internal class LoggingAspect(
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
+        val request = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes).request
 
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER) == true) {
-            val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
-                .request
-                .getHeader(HttpHeader.FROM_SERVICE)
+            val serviceValue: String? = request.getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -81,7 +87,16 @@ internal class LoggingAspect(
             if (!isAfterThrowing.get()!!) {
                 val methodName = joinPoint.signature.name
                 val className = joinPoint.target.javaClass.getSimpleName()
-                Logs.logEnd(finalComponents, className, methodName, null, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get())
+                val customs = emptyMList<String2>()
+                annotation.customMessages.forEach { cm ->
+                    customs += cm.key to when (cm.type) {
+                        LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)
+                        LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)
+                        LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }.orEmpty()
+                        LogExecution.CustomMessage.Type.STATIC -> cm.reference
+                    }
+                }
+                Logs.logEnd(finalComponents, className, methodName, null, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get(), customs)
             }
         }
     }
@@ -94,11 +109,10 @@ internal class LoggingAspect(
         val signature = joinPoint.signature as MethodSignature
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
+        val request = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes).request
 
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.AFTER_THROWING) == true) {
-            val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
-                .request
-                .getHeader(HttpHeader.FROM_SERVICE)
+            val serviceValue: String? = request.getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
             featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
@@ -121,6 +135,15 @@ internal class LoggingAspect(
             val className = joinPoint.target.javaClass.getSimpleName()
             val methodName = joinPoint.signature.name
             val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
+            val customs = emptyMList<String2>()
+            annotation.customMessages.forEach { cm ->
+                customs += cm.key to when (cm.type) {
+                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)
+                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)
+                    LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }.orEmpty()
+                    LogExecution.CustomMessage.Type.STATIC -> cm.reference
+                }
+            }
             Logs.logException(
                 finalComponents,
                 className,
@@ -132,7 +155,8 @@ internal class LoggingAspect(
                 featureCode,
                 RequestIdProvider.requestIdThreadLocal.get(),
                 e,
-                basePackage
+                basePackage,
+                customs
             )
         }
     }

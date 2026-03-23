@@ -37,6 +37,7 @@ import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.ServerWebExchangeDecorator
 import reactor.util.context.Context
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.plusAssign
 
 @ConfigurationProperties(prefix = "spring-utils.reactive.logging")
 data class LoggingProperties(
@@ -142,6 +143,7 @@ class LoggingWebFilter(
                 else {
                     string += "?"
                     string += map.entries.joinToString("&") { [k, v] -> "$k=$v" }
+                    string
                 }
             }}"
 

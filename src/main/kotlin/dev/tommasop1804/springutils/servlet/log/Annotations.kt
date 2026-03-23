@@ -12,7 +12,8 @@ annotation class LogExecution(
     val basePackage: String = "",
     val includeHighlight: Boolean = true,
     val exclude: Array<Component> = [],
-    val includeOnly: Array<Component> = []
+    val includeOnly: Array<Component> = [],
+    val customMessages: Array<CustomMessage> = []
 ) {
     enum class Component {
         FUNCTION_NAME,
@@ -33,5 +34,19 @@ annotation class LogExecution(
         AFTER,
         AFTER_THROWING,
         @Suppress("unused") NONE
+    }
+
+    @Retention(AnnotationRetention.RUNTIME)
+    annotation class CustomMessage(
+        val key: String,
+        val type: Type,
+        val reference: String
+    ) {
+        enum class Type {
+            HEADER,
+            QUERY_PARAM,
+            PATH_PARAM,
+            STATIC
+        }
     }
 }
