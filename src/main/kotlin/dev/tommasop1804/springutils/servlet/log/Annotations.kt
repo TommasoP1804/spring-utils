@@ -45,7 +45,7 @@ annotation class LogExecution(
         enum class Type {
             HEADER,
             QUERY_PARAM,
-            PATH_PARAM,
+            PATH_INDEX,
             STATIC
         }
     }
