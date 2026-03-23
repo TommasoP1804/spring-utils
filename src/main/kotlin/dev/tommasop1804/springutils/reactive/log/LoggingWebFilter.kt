@@ -137,14 +137,14 @@ class LoggingWebFilter(
             val serviceValue: String? = exchange.request.headers.getFirst(HttpHeader.FROM_SERVICE)
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, className, methodName, currentUser, serviceValue, featureCode, requestId)
+                Logs.logStart(finalComponents, className, methodName, "${exchange.request.method} ${exchange.request.uri}", currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, className, methodName, currentUser, serviceValue, featureCode, requestId)
+                    Logs.logEnd(finalComponents, className, methodName, "${exchange.request.method} ${exchange.request.uri}", currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
@@ -157,7 +157,7 @@ class LoggingWebFilter(
                     } else null
 
                     Logs.logException(
-                        finalComponents, className, methodName, currentUser,
+                        finalComponents, className, methodName, "${exchange.request.method} ${exchange.request.uri}", currentUser,
                         "${status.value()} ${status.reasonPhrase}",
                         serviceValue, featureCode, requestId, e, resolvedBasePackage
                     )
@@ -185,21 +185,21 @@ class LoggingWebFilter(
             val featureCode = findCallerMethod()?.getAnnotation(Feature::class.java)?.code
 
             if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
-                Logs.logStart(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, requestId)
+                Logs.logStart(finalComponents, null, null, path, currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
                 if (LogExecution.Behaviour.AFTER in properties.behaviour) {
-                    Logs.logEnd(finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser, serviceValue, featureCode, requestId)
+                    Logs.logEnd(finalComponents, null, null, path, currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
                 if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
                     val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
 
                     Logs.logException(
-                        finalComponents, null, path whenTrue (LogExecution.Component.PATH in finalComponents), currentUser,
+                        finalComponents, null, null, path, currentUser,
                         "${status.value()} ${status.reasonPhrase}",
                         serviceValue, null, requestId, e, properties.basePackage
                     )

@@ -36,12 +36,6 @@ internal class LoggingAspect(
         val annotation = signature.method.getAnnotation(LogExecution::class.java)
             ?: joinPoint.target.javaClass.getAnnotation(LogExecution::class.java)
 
-        if (annotation?.behaviour?.contains(LogExecution.Behaviour.PATH_BEFORE) == true) {
-            val [method, uri] = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
-                .request.let { it.method to it.requestURI }
-            val id = RequestIdProvider.requestIdThreadLocal.get()
-            if (id.isNotNull()) Logs.logPath(method, uri, id)
-        }
         if (annotation?.behaviour?.contains(LogExecution.Behaviour.BEFORE) == true) {
             val serviceValue: String? = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
                 .request
@@ -58,7 +52,9 @@ internal class LoggingAspect(
 
             val methodName = joinPoint.signature.name
             val className = joinPoint.target.javaClass.getSimpleName()
-            Logs.logStart(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!)
+            val path = (RequestContextHolder.getRequestAttributes() as ServletRequestAttributes)
+                .request.let { "${it.method} ${it.requestURI}" }
+            Logs.logStart(finalComponents, className, methodName, path, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!)
         }
     }
 
@@ -82,7 +78,7 @@ internal class LoggingAspect(
             if (!isAfterThrowing.get()!!) {
                 val methodName = joinPoint.signature.name
                 val className = joinPoint.target.javaClass.getSimpleName()
-                Logs.logEnd(finalComponents, className, methodName, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get())
+                Logs.logEnd(finalComponents, className, methodName, null, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get())
             }
         }
     }
@@ -126,6 +122,7 @@ internal class LoggingAspect(
                 finalComponents,
                 className,
                 methodName,
+                null,
                 username,
                 "${status.value()} ${status.reasonPhrase}",
                 serviceValue,

@@ -3,10 +3,14 @@ package dev.tommasop1804.springutils.servlet.log
 import dev.tommasop1804.kutils.ConditionNotPreventingExceptions
 import dev.tommasop1804.kutils.EMPTY
 import dev.tommasop1804.kutils.Instant
+import dev.tommasop1804.kutils.SPACE
+import dev.tommasop1804.kutils.compute
 import dev.tommasop1804.kutils.get
 import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
+import dev.tommasop1804.kutils.second
+import dev.tommasop1804.kutils.splitAndTrim
 import dev.tommasop1804.kutils.whenTrue
 import dev.tommasop1804.springutils.request.RequestId
 import dev.tommasop1804.springutils.servlet.log.LogExecution.Component
@@ -23,15 +27,14 @@ import org.springframework.stereotype.Component as SpringComponent
 internal object Logs {
     private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
-    fun logPath(method: String, uri: String, id: RequestId) = LOGGER.info("$id | ⓘ ${method.padEnd(7)}  $uri")
-
-    fun logStart(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
+    fun logStart(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)
         val username = username whenTrue (Component.USER in components)
         val service = service whenTrue (Component.SERVICE in components)
         val id = id whenTrue (Component.ID in components)
         val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
+        val path = path whenTrue (Component.PATH in components)
 
         LOGGER.info(
             (if (id.isNotNull()) "$id | " else String.EMPTY)
@@ -41,10 +44,11 @@ internal object Logs {
                     + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
                     + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
+                    + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
         )
     }
 
-    fun logEnd(components: Array<Component>, clazz: String?, method: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
+    fun logEnd(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, service: String?, featureCode: String?, id: RequestId) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)
         val username = username whenTrue (Component.USER in components)
@@ -52,6 +56,7 @@ internal object Logs {
         val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
         val end = Instant()
         val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ELAPSED_TIME in components)
+        val path = path whenTrue (Component.PATH in components)
 
         LOGGER.info(
             (if (Component.ID in components) "$id | " else String.EMPTY)
@@ -62,10 +67,11 @@ internal object Logs {
                     + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
+                    + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
         )
     }
 
-    fun logException(components: Array<Component>, clazz: String?, method: String?, username: String?, status: String, service: String?, featureCode: String?, id: RequestId, e: Throwable?, basePackage: String?) {
+    fun logException(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, status: String, service: String?, featureCode: String?, id: RequestId, e: Throwable?, basePackage: String?) {
         val clazz = clazz whenTrue (Component.CLASS_NAME in components)
         val method = method whenTrue (Component.FUNCTION_NAME in components)
         val username = username whenTrue (Component.USER in components)
@@ -82,6 +88,7 @@ internal object Logs {
                 break
             }
         }
+        val path = path whenTrue (Component.PATH in components)
 
         LOGGER.error(
             (if (Component.ID in components) "$id | " else String.EMPTY)
@@ -95,6 +102,7 @@ internal object Logs {
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
                     + (if (Component.EXCEPTION in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
                     + (if (Component.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
+                    + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
         )
     }
 
