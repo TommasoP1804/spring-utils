@@ -57,11 +57,11 @@ internal class LoggingAspect(
             }
             val customs = emptyMList<String2>()
             annotation.customMessages.forEach { cm ->
-                customs += cm.key to when (cm.type) {
-                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)
-                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)
-                    LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }.orEmpty()
-                    LogExecution.CustomMessage.Type.STATIC -> cm.reference
+                when (cm.type) {
+                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
                 }
             }
             Logs.logStart(finalComponents, className, methodName, path, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!, customs)
@@ -89,11 +89,11 @@ internal class LoggingAspect(
                 val className = joinPoint.target.javaClass.getSimpleName()
                 val customs = emptyMList<String2>()
                 annotation.customMessages.forEach { cm ->
-                    customs += cm.key to when (cm.type) {
-                        LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)
-                        LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)
-                        LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }.orEmpty()
-                        LogExecution.CustomMessage.Type.STATIC -> cm.reference
+                    when (cm.type) {
+                        LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to it }
+                        LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to it }
+                        LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }?.let { customs += cm.key to it }
+                        LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
                     }
                 }
                 Logs.logEnd(finalComponents, className, methodName, null, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get(), customs)
@@ -137,11 +137,11 @@ internal class LoggingAspect(
             val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
             val customs = emptyMList<String2>()
             annotation.customMessages.forEach { cm ->
-                customs += cm.key to when (cm.type) {
-                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)
-                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)
-                    LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }.orEmpty()
-                    LogExecution.CustomMessage.Type.STATIC -> cm.reference
+                when (cm.type) {
+                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.PATH_PARAM -> request.queryString.splitAndTrim(Char.AND).find { it.splitAndTrim(Char.EQUALS_SIGN).first() equalsIgnoreCase cm.reference }?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
                 }
             }
             Logs.logException(
