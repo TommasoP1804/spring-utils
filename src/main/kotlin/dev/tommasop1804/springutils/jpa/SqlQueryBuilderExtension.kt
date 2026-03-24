@@ -25,7 +25,7 @@ import kotlin.reflect.full.findAnnotation
  */
 fun SqlQueryBuilder.select(vararg columns: Pair<String?, KProperty1<*, *>>, distinct: Boolean = false) =
     select(
-        *columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name ?: -col.second.name}" }.toTypedArray(),
+        *columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -col.second.name}" }.toTypedArray(),
         distinct = distinct
     )
 /**
@@ -39,7 +39,7 @@ fun SqlQueryBuilder.select(vararg columns: Pair<String?, KProperty1<*, *>>, dist
  */
 fun SqlQueryBuilder.select(vararg columns: KProperty1<*, *>, distinct: Boolean = false) =
     select(
-        *columns.map { it.findAnnotationAnywhere<Column>()?.name ?: -it.name }.toTypedArray(),
+        *columns.map { it.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.name }.toTypedArray(),
         distinct = distinct
     )
 /**
@@ -69,7 +69,7 @@ fun SqlQueryBuilder.select(tableAlias: String?, vararg columns: KProperty1<*, *>
  */
 inline fun <reified T> SqlQueryBuilder.from(alias: String? = null): SqlQueryBuilder {
     val clazz = T::class
-    return from((clazz.findAnnotation<Table>()?.name?.ifEmpty { null } ?: -clazz.simpleName!!) + alias?.let { " $it" })
+    return from(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY))
 }
 /**
  * Specifies the source tables and their aliases for the SQL query.
@@ -84,7 +84,7 @@ inline fun <reified T> SqlQueryBuilder.from(alias: String? = null): SqlQueryBuil
 fun SqlQueryBuilder.from(vararg tables: Pair<KClass<*>, String>): SqlQueryBuilder {
     validate(tables.map(Pair<*, *>::second).distinct().size == tables.size) { "All aliases must be unique" }
     return tables.map { [clazz, alias] ->
-        (clazz.findAnnotation<Table>()?.name?.ifEmpty { null } ?: -clazz.simpleName!!) + " $alias"
+        convertName(clazz) + " $alias"
     }.let { from(*it.toTypedArray()) }
 }
 
@@ -102,7 +102,7 @@ fun SqlQueryBuilder.from(vararg tables: Pair<KClass<*>, String>): SqlQueryBuilde
  */
 inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, @Language("sql") joinType: String, @Language("sql") joinCondition: String): SqlQueryBuilder {
     val clazz = T::class
-    return join((clazz.findAnnotation<Table>()?.name?.ifEmpty { null } ?: -clazz.simpleName!!) + alias?.let { " $it" }, joinType, joinCondition)
+    return join(convertName(clazz) + alias?.let { " $it" }, joinType, joinCondition)
 }
 /**
  * Adds a join clause to the SQL query being built.
@@ -116,7 +116,7 @@ inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, @Language("sq
  */
 inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, joinType: SqlQueryBuilder.JoinType, @Language("sql") joinCondition: String): SqlQueryBuilder {
     val clazz = T::class
-    return join((clazz.findAnnotation<Table>()?.name?.ifEmpty { null } ?: -clazz.simpleName!!) + alias?.let { " $it" }, joinType, joinCondition)
+    return join(convertName(clazz) + alias?.let { " $it" }, joinType, joinCondition)
 }
 
 /**
@@ -128,7 +128,7 @@ inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, joinType: Sql
  * @since 2.7.0
  */
 fun SqlQueryBuilder.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
-    groupBy(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name ?: -col.second.name}" }.toTypedArray())
+    groupBy(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -col.second.name}" }.toTypedArray())
 /**
  * Specifies the columns for the GROUP BY clause of the SQL query.
  *
@@ -138,7 +138,7 @@ fun SqlQueryBuilder.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
  * @since 2.7.0
  */
 fun SqlQueryBuilder.groupBy(vararg columns: KProperty1<*, *>) =
-    groupBy(*columns.map { it.findAnnotationAnywhere<Column>()?.name ?: -it.name }.toTypedArray())
+    groupBy(*columns.map { it.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.name }.toTypedArray())
 
 /**
  * Adds an INSERT INTO statement to the query for the table corresponding to the specified generic type.
@@ -163,7 +163,7 @@ inline fun <reified T> SqlQueryBuilder.insertInto(): SqlQueryBuilder {
  * @since 2.7.0
  */
 fun SqlQueryBuilder.columns(vararg columns: Pair<String?, KProperty1<*, *>>) =
-    columns(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name ?: -col.second.name}" }.toTypedArray())
+    columns(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -col.second.name}" }.toTypedArray())
 /**
  * Specifies the columns to be used in the SQL query being built.
  *
@@ -174,7 +174,7 @@ fun SqlQueryBuilder.columns(vararg columns: Pair<String?, KProperty1<*, *>>) =
  * @since 2.7.0
  */
 fun SqlQueryBuilder.columns(vararg columns: KProperty1<*, *>) =
-    columns(*columns.map { it.findAnnotationAnywhere<Column>()?.name ?: -it.name }.toTypedArray())
+    columns(*columns.map { it.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.name }.toTypedArray())
 
 /**
  * Configures an SQL `UPDATE` statement for the specified table type.
@@ -214,7 +214,7 @@ inline fun <reified T> SqlQueryBuilder.deleteFrom(): SqlQueryBuilder {
  * @since 2.7.0
  */
 fun SqlQueryBuilder.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, SortDirection>) =
-    orderBy(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name ?: -col.second.name}" to col.third }.toTypedArray())
+    orderBy(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -col.second.name}" to col.third }.toTypedArray())
 /**
  * Adds an ORDER BY clause to the SQL query using the specified columns and their sort directions.
  *
@@ -224,7 +224,7 @@ fun SqlQueryBuilder.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, So
  * @since 2.7.0
  */
 fun SqlQueryBuilder.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
-    orderBy(*columns.map { (it.first.findAnnotationAnywhere<Column>()?.name ?: -it.first.name) to it.second }.toTypedArray())
+    orderBy(*columns.map { (it.first.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.first.name) to it.second }.toTypedArray())
 /**
  * Adds an ORDER BY clause to the SQL query based on the provided column and direction specifications.
  *
@@ -234,7 +234,7 @@ fun SqlQueryBuilder.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection
  * @since 2.7.0
  */
 fun SqlQueryBuilder.orderBy(vararg columns: Pair<String?, KProperty1<*, *>>, direction: SortDirection = SortDirection.ASCENDING) =
-    orderBy(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name ?: -col.second.name}" to direction }.toTypedArray())
+    orderBy(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -col.second.name}" to direction }.toTypedArray())
 /**
  * Specifies the `ORDER BY` clause for the SQL query using the provided columns and sorting direction.
  *
@@ -243,7 +243,7 @@ fun SqlQueryBuilder.orderBy(vararg columns: Pair<String?, KProperty1<*, *>>, dir
  * @since 2.7.0
  */
 fun SqlQueryBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
-    orderBy(*columns.map { (it.findAnnotationAnywhere<Column>()?.name ?: -it.name) to direction }.toTypedArray())
+    orderBy(*columns.map { (it.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.name) to direction }.toTypedArray())
 
 /**
  * Builds a SQL query to truncate a table corresponding to the specified type.
@@ -374,5 +374,5 @@ inline fun <reified T> SqlQueryBuilder.onTable(): SqlQueryBuilder {
 @UnsafeUsage
 fun convertName(clazz: KClass<*>): String {
     val annotation = clazz.findAnnotation<Table>()
-    return (annotation?.schema?.let { "$it." } ?: String.EMPTY) + (annotation?.name ?: -clazz.simpleName!!)
+    return (annotation?.schema?.ifEmpty { null }?.let { "$it." } ?: String.EMPTY) + (annotation?.name?.ifEmpty { null } ?: -clazz.simpleName!!)
 }
