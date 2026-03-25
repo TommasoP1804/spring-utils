@@ -8,7 +8,6 @@ import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.exception.*
-import dev.tommasop1804.springutils.reactive.request.*
 import dev.tommasop1804.springutils.request.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -139,8 +138,6 @@ internal fun getStatus(e: Throwable) = when (e) {
     is BadRequestException,
     is RequiredFieldException,
     is RequiredParameterException,
-    is RequiredPathVariableException,
-    is RequiredQueryParamException,
     is RequiredHeaderException,
     is MalformedInputException -> HttpStatus.BAD_REQUEST
     is ContentTooLargeException -> HttpStatus.CONTENT_TOO_LARGE

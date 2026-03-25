@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package dev.tommasop1804.springutils.reactive.request
+package dev.tommasop1804.springutils.exception
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.exceptions.*
@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
  * requests when a mandatory path variable is not provided or fails to meet the expected criteria.
  *
  * @author Tommaso Pastorelli
- * @since 2.0.0
+ * @since 3.0.0
  */
 open class RequiredPathVariableException : RequiredParameterException {
     /**
@@ -21,7 +21,7 @@ open class RequiredPathVariableException : RequiredParameterException {
      * Inherits behavior from the ValidationFailedException superclass.
      * Typically utilized when no additional details need to be specified
      * at the time of throwing the exception.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor() : super()
     /**
@@ -37,7 +37,7 @@ open class RequiredPathVariableException : RequiredParameterException {
      * @param cause The cause of the exception, if any. This can be null.
      * @param internalErrorCode An optional internal error code for contextualizing the exception.
      *                          Defaults to null. If provided, it will be prepended to the error message.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", cause, internalErrorCode)
     /**
@@ -46,7 +46,7 @@ open class RequiredPathVariableException : RequiredParameterException {
      * @param name The name of the missing or required path variable. If non-null and not blank, it is included in the message.
      * @param `class` The expected type of the path variable. If non-null, the simple name of the type is included in the message.
      * @param internalErrorCode An optional internal error code that is prefixed to the exception message, separated by " @@@ ".
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY} ${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", internalErrorCode)
 }
@@ -57,14 +57,14 @@ open class RequiredPathVariableException : RequiredParameterException {
  * This exception is typically thrown when a required query parameter is not provided
  * in an HTTP request, or when its value does not fulfill the expected conditions.
  * @author Tommaso Pastorelli
- * @since 2.0.0
+ * @since 3.0.0
  */
 open class RequiredQueryParamException : RequiredParameterException {
     /**
      * Constructs a new instance of the RequiredQueryParamException class.
      * This constructor calls the default constructor of the superclass
      * ValidationFailedException, initializing an empty exception instance.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor() : super()
     /**
@@ -76,7 +76,7 @@ open class RequiredQueryParamException : RequiredParameterException {
      * @param cause The underlying cause of the exception, if any. Can be null.
      * @param internalErrorCode An optional internal error code to be included in the error message. Defaults to null.
      *                          If provided, it is prepended to the error message with a separator " @@@ ".
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", cause, internalErrorCode)
     /**
@@ -88,7 +88,7 @@ open class RequiredQueryParamException : RequiredParameterException {
      * in the exception message as the type of the required parameter.
      * @param internalErrorCode An optional internal error code for further classification of the error.
      * If provided, it will be included as a prefix in the exception message.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", internalErrorCode)
 }
@@ -100,13 +100,13 @@ open class RequiredQueryParamException : RequiredParameterException {
  * when dealing with server requests, where the variable name or type does not meet
  * the expected format or requirements.
  * @author Tommaso Pastorelli
- * @since 2.0.0
+ * @since 3.0.0
  */
 open class MalformedPathVariableException : MalformedInputException {
     /**
      * Constructs an instance of `MalformedPathVariableException` with no additional details.
      * This constructor initializes the exception with default values inherited from the superclass.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor() : super()
     /**
@@ -117,7 +117,7 @@ open class MalformedPathVariableException : MalformedInputException {
      * @param internalErrorCode An optional internal error code that can provide
      * additional information about the error. Defaults to `null`. If present, the
      * error code is prepended to the message, separated by " @@@ ".
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(message: String, internalErrorCode: String? = null) : super(message, internalErrorCode)
     /**
@@ -133,7 +133,7 @@ open class MalformedPathVariableException : MalformedInputException {
      * @param `class` The expected type (class) of the path variable. Can be null.
      * @param cause The underlying cause of the exception, if any. Can be null.
      * @param internalErrorCode An optional identifier to represent the specific internal error. Defaults to null.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", cause, internalErrorCode)
     /**
@@ -143,7 +143,7 @@ open class MalformedPathVariableException : MalformedInputException {
      * @param `class` The expected class of the path variable, if applicable. Can be null.
      * @param internalErrorCode An optional internal error code to include in the exception message for debugging purposes.
      * Defaults to null.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", internalErrorCode)
 }
@@ -152,13 +152,13 @@ open class MalformedPathVariableException : MalformedInputException {
  * Exception thrown to indicate that a query parameter provided in an HTTP request is malformed or invalid.
  * This class extends the `MalformedInputException` to provide context-specific error handling.
  * @author Tommaso Pastorelli
- * @since 2.0.0
+ * @since 3.0.0
  */
 open class MalformedQueryParamException : MalformedInputException {
     /**
      * A default constructor for the `MalformedQueryParamException` class.
      * This initializes the exception without any specific message or cause.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor() : super()
     /**
@@ -167,7 +167,7 @@ open class MalformedQueryParamException : MalformedInputException {
      *
      * @param message The message describing the error.
      * @param internalErrorCode An optional internal error code to associate with this exception.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(message: String, internalErrorCode: String? = null) : super(message, internalErrorCode)
     /**
@@ -181,7 +181,7 @@ open class MalformedQueryParamException : MalformedInputException {
      * @param `class` The class type of the expected query parameter. If null, it is omitted from the message.
      * @param cause The optional cause of the exception, typically another Throwable.
      * @param internalErrorCode An optional internal error code to include in the message.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", cause, internalErrorCode)
     /**
@@ -192,7 +192,7 @@ open class MalformedQueryParamException : MalformedInputException {
      * @param name The name of the query parameter that is invalid. If null or blank, it will not be included in the message.
      * @param `class` The KClass of the parameter type associated with the query parameter. If null, it will be excluded from the message.
      * @param internalErrorCode An optional internal error code to include in the message. If null, no error code is added.
-     * @since 2.0.0
+     * @since 3.0.0
      */
     constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", internalErrorCode)
 }

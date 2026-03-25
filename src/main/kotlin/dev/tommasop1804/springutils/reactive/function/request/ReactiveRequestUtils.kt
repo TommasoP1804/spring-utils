@@ -2,7 +2,7 @@
 @file:Since("2.0.0")
 @file:Suppress("unused")
 
-package dev.tommasop1804.springutils.reactive.request
+package dev.tommasop1804.springutils.reactive.function.request
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.*
@@ -17,6 +17,8 @@ import dev.tommasop1804.kutils.classes.security.Jwt.Companion.toJwt
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.headerDateToInstant
 import dev.tommasop1804.kutils.exceptions.*
+import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.servlet.request.*
 import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -24,6 +26,30 @@ import org.springframework.web.reactive.function.server.queryParamOrNull
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import kotlin.reflect.KClass
+
+/**
+ * Retrieves all query parameters from the server request and converts them into a `MultiMap`.
+ *
+ * This method extracts the query parameters from the server request as a `MultiValueMap`
+ * and transforms it into a `MultiMap`, preserving the order of keys and their associated values.
+ *
+ * @return A `MultiMap` representing the query parameters of the request.
+ * @since 3.0.0
+ */
+fun ServerRequest.allParams() = queryParams().toMultiMap()
+/**
+ * Retrieves all headers from the current server request and converts them 
+ * into an instance of `HttpHeaders` from the `kutils` library.
+ *
+ * This method first accesses the headers of the server request, then converts 
+ * the `org.springframework.http.HttpHeaders` instance into the `HttpHeaders` 
+ * used by the `kutils` library, ensuring the headers are retained in the process.
+ *
+ * @receiver The server request from which headers are to be retrieved.
+ * @return An instance of `HttpHeaders` containing all headers from the request.
+ * @since 3.0.0
+ */
+fun ServerRequest.allHeaders() = headers().asHttpHeaders().toKutilsHttpHeaders()
 
 /**
  * Retrieves the value of a query parameter by its name or throws an exception if it is missing.
@@ -37,7 +63,7 @@ import kotlin.reflect.KClass
  *                      creating a `RequiredQueryParamException` with the provided `name` and `class`.
  * @throws Throwable The exception provided by the `lazyException` supplier, if the query parameter is not found.
  * @return The value of the query parameter if it exists.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.queryParamOrThrow(
     name: String,
@@ -58,7 +84,7 @@ fun ServerRequest.queryParamOrThrow(
  * @param internalErrorCode An internal error code that adds context to the thrown exception. Typically
  * used for error classification or logging.
  * @throws RequiredQueryParamException if the query parameter is not present in the request.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.queryParamOrThrow(
     name: String,
@@ -72,7 +98,7 @@ fun ServerRequest.queryParamOrThrow(
  * @param name the name of the query parameter to retrieve
  * @param defaultValue a supplier that provides a default value if the query parameter is not found
  * @return the value of the query parameter as a string, or the supplied default value if not present
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.queryParamOrDefault(
     name: String,
@@ -89,7 +115,7 @@ fun ServerRequest.queryParamOrDefault(
  *                      the missing variable.
  * @throws Throwable The exception supplied by `lazyException` if the path variable is missing or invalid.
  * @return The path variable as a string if the retrieval is successful.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, lazyException: ThrowableSupplier = { RequiredPathVariableException(name, `class`) }) =
     tryOrThrow(lazyException, includeCause = false) { pathVariable(name) }
@@ -104,7 +130,7 @@ fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, lazyExce
  * @param internalErrorCode An internal error code for contextualizing the exception, appended in the exception message.
  *                          This is especially useful for providing additional diagnostic information.
  * @throws RequiredPathVariableException If the path variable is not present or invalid.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String) =
     tryOrThrow({ -> RequiredPathVariableException(name, `class`, internalErrorCode) }, includeCause = false) { pathVariable(name) }
@@ -116,7 +142,7 @@ fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, internal
  * @param name The name of the path variable to retrieve.
  * @param defaultValue A supplier providing the default value to use if the path variable is not found or an error occurs.
  * @return The value of the path variable if found, otherwise the default value supplied.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.pathVariableOrDefault(name: String, defaultValue: Supplier<Any>) =
     tryOr({ defaultValue().toString() }) { pathVariable(name) }
@@ -126,7 +152,7 @@ fun ServerRequest.pathVariableOrDefault(name: String, defaultValue: Supplier<Any
  *
  * @param name the name of the path variable to retrieve
  * @return the value of the path variable, or null if not found or an exception occurs
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.pathVariableOrNull(name: String): String? = tryOrNull { pathVariable(name) }
 
@@ -141,7 +167,7 @@ fun ServerRequest.pathVariableOrNull(name: String): String? = tryOrNull { pathVa
  * header name and expected type.
  * @throws Throwable if the header is not present or has an empty value, as provided by the
  * `lazyException` parameter.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }) =
     tryOrThrow(lazyException, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
@@ -152,7 +178,7 @@ fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException:
  * @param name the name of the header to retrieve
  * @param class the expected class type of the header value
  * @param internalErrorCode the internal error code to associate with the exception if the header is missing or invalid
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String) =
     tryOrThrow({ -> RequiredHeaderException(name, `class`, internalErrorCode) }, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
@@ -163,7 +189,7 @@ fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorC
  * @param name the name of the header to retrieve
  * @param defaultValue a supplier that provides a default value if the header is not present or has no values
  * @return a list of strings containing the header values, or a single-element list with the default value
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.headerOrDefault(
     name: String,
@@ -174,7 +200,7 @@ fun ServerRequest.headerOrDefault(
  *
  * @param name the name of the header to retrieve.
  * @return a list of values associated with the specified header, or an empty list if the header is not present.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerRequest.header(name: String): StringList = tryOrNull { headers().header(name) }.orEmpty()
 

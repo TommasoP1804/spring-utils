@@ -1,8 +1,8 @@
-@file:JvmName("ReactiveResponseUtilsKt")
-@file:Since("2.0.0")
+@file:JvmName("ServletResponseUtilsKt")
+@file:Since("3.0.0")
 @file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST")
 
-package dev.tommasop1804.springutils.reactive.response
+package dev.tommasop1804.springutils.servlet.function.response
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.*
@@ -16,15 +16,13 @@ import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.config.*
 import dev.tommasop1804.springutils.exception.*
-import dev.tommasop1804.springutils.reactive.*
-import dev.tommasop1804.springutils.reactive.request.*
 import dev.tommasop1804.springutils.request.*
-import dev.tommasop1804.springutils.servlet.EmptyResponse
+import dev.tommasop1804.springutils.servlet.function.*
+import dev.tommasop1804.springutils.servlet.request.*
 import dev.tommasop1804.springutils.servlet.response.*
 import org.springframework.http.MediaType
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait
-import org.springframework.web.reactive.function.server.buildAndAwait
+import org.springframework.web.servlet.function.ServerResponse
+import org.springframework.web.servlet.function.bodyWithType
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
@@ -37,16 +35,16 @@ import java.time.temporal.TemporalAccessor
  * @param request The server request containing headers including the `Accept` header to negotiate content type.
  * @param body The body object to be set in the response.
  * @return The `ServerResponse` with the negotiated content type and provided body.
- * @since 2.0.3
+ * @since 3.0.0
  */
-suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTypeAndAwait(
+inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithType(
     request: Request,
     body: T
-): ServerResponse {
+): Response {
     val accepted = request.headers().accept()
     val yamlType = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { yaml.equalsTypeAndSubtype(it) } }
     contentType(yamlType ?: MediaType.APPLICATION_JSON)
-    return bodyValueWithTypeAndAwait(body)
+    return bodyWithType(body)
 }
 
 /**
@@ -74,10 +72,10 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyVal
  * @param body A supplier for the body of the response. The resource body is only included in the response when the
  *             resource is considered modified.
  * @return A [Response] entity containing the appropriate HTTP status, headers, and optional response body.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> conditionalGet(
+inline fun <reified T : Any> conditionalGet(
     eTagNoneMatch: StringList? = null,
     ifModifiedSince: OffsetDateTime? = null,
     resourceETag: String? = null,
@@ -113,12 +111,12 @@ suspend inline fun <reified T : Any> conditionalGet(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    if (status == HttpStatus.NOT_MODIFIED) return response.buildAndAwait()
-    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(request, body ?: body())
+    if (status == HttpStatus.NOT_MODIFIED) return response.build()
+    return response.eTag(eTag).negotiateBodyValueWithType(request, body ?: body())
 }
 /**
  * Processes conditional GET requests based on the provided HTTP headers and configuration,
@@ -150,10 +148,10 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param body A supplier function to provide the body of the response when validation succeeds.
  * @return A [Response] object with an appropriate HTTP status and body, depending on the result
  * of the validation.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> conditionalGet(
+inline fun <reified T : Any> conditionalGet(
     eTagNoneMatch: StringList? = null,
     ifModifiedSince: OffsetDateTime? = null,
     resourceETag: String? = null,
@@ -189,13 +187,13 @@ suspend inline fun <reified T : Any> conditionalGet(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    if (status == HttpStatus.NOT_MODIFIED) return response.buildAndAwait()
-    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(request, body ?: body())
+    if (status == HttpStatus.NOT_MODIFIED) return response.build()
+    return response.eTag(eTag).negotiateBodyValueWithType(request, body ?: body())
 }
 
 /**
@@ -225,11 +223,11 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @return A [Response] containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
  * @throws PreconditionFailedException Thrown if the ETag or If-Unmodified-Since validation fails.
  * @throws PreconditionRequiredException Thrown if conditional update headers (e.g., If-Match, If-Unmodified-Since) are required but missing.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
-suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
+inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -268,12 +266,12 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithType(request, body)
 }
 /**
  * Attempts to conditionally update a resource based on ETag or If-Unmodified-Since headers.
@@ -302,11 +300,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @return A [Response] containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
  * @throws PreconditionFailedException Thrown if the ETag or If-Unmodified-Since validation fails.
  * @throws PreconditionRequiredException Thrown if conditional update headers (e.g., If-Match, If-Unmodified-Since) are required but missing.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
-suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
+inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -339,14 +337,14 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithType(request, body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -376,11 +374,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @return A [Response] object containing the updated body or an appropriate status, headers, and metadata.
  *         If the update is successful, the response will include relevant headers like `Last-Modified`
  *         or `ETag` as applicable.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
-suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
+inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -420,11 +418,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithType(request, body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -453,11 +451,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @return A [Response] object containing the updated body or an appropriate status, headers, and metadata.
  *         If the update is successful, the response will include relevant headers like `Last-Modified`
  *         or `ETag` as applicable.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
-suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
+inline fun <T : Any, reified R : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -492,12 +490,12 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     response.featureCode(featureCode)
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (expires.isNotNull()) response.expires(expires)
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithType(request, body)
 }
 /**
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
@@ -520,10 +518,10 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param previousValue Supplier of the previous value of the resource, utilized for ETag validation.
  * @param action Action to execute as the conditional operation if validators pass.
  * @return An empty [Response] object representing a successful operation.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
-suspend fun <T : Any> conditionalUpdate(
+fun <T : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -560,11 +558,11 @@ suspend fun <T : Any> conditionalUpdate(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    return response.buildAndAwait()
+    return response.build()
 }
 /**
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
@@ -587,10 +585,10 @@ suspend fun <T : Any> conditionalUpdate(
  * @param previousETag The previous ETag of the resource.
  * @param action Action to execute as the conditional operation if validators pass.
  * @return An empty [Response] object representing a successful operation.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
-suspend fun <T : Any> conditionalUpdate(
+fun <T : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -623,11 +621,11 @@ suspend fun <T : Any> conditionalUpdate(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    return response.buildAndAwait()
+    return response.build()
 }
 /**
  * Executes a conditional update operation based on the provided validators, such as ETags or last modified date.
@@ -651,10 +649,10 @@ suspend fun <T : Any> conditionalUpdate(
  * @return [Response] object representing the outcome of the conditional update.
  * @throws PreconditionFailedException if the conditions for update are not satisfied.
  * @throws PreconditionRequiredException if required validators are missing but necessary.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
-suspend fun <T : Any> conditionalUpdate(
+fun <T : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -690,12 +688,12 @@ suspend fun <T : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    return response.buildAndAwait()
+    return response.build()
 }
 /**
  * Executes a conditional update operation based on the provided validators, such as ETags or last modified date.
@@ -719,10 +717,10 @@ suspend fun <T : Any> conditionalUpdate(
  * @return [Response] object representing the outcome of the conditional update.
  * @throws PreconditionFailedException if the conditions for update are not satisfied.
  * @throws PreconditionRequiredException if required validators are missing but necessary.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
-suspend fun <T : Any> conditionalUpdate(
+fun <T : Any> conditionalUpdate(
     eTagIfMatch: StringList? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
@@ -754,12 +752,12 @@ suspend fun <T : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    return response.buildAndAwait()
+    return response.build()
 }
 
 /**
@@ -780,9 +778,9 @@ suspend fun <T : Any> conditionalUpdate(
  * @param headers Optional HTTP headers to include in the response (overrides any other header parameters of this method). Defaults to `null`.
  * @param action An optional action to execute before building the response. Defaults to `null`.
  * @return A constructed `Response` object with the specified settings.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun EmptyResponse(
+fun EmptyResponse(
     status: HttpStatus = HttpStatus.NO_CONTENT,
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
@@ -799,14 +797,14 @@ suspend fun EmptyResponse(
 
     val re = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModified.isNotNull()) re.lastModified(lastModified.toInstant())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs an `Response` with the given HTTP status, feature code, optional headers, and action.
@@ -822,9 +820,9 @@ suspend fun EmptyResponse(
  * @param headers optional HTTP headers to include in the response (overrides any other header parameters of this method); can be null
  * @param action an optional action to execute; can be null
  * @return an `Response` constructed with the specified parameters
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun EmptyResponse(
+fun EmptyResponse(
     status: HttpStatus = HttpStatus.NO_CONTENT,
     featureCode: String,
     includeRequestId: Boolean = true,
@@ -843,12 +841,12 @@ suspend fun EmptyResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (eTag.isNotNull()) re.eTag(eTag)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -867,10 +865,10 @@ suspend fun EmptyResponse(
  * @param headers Additional HTTP headers to include in the response. Defaults to null if no extra headers are needed.
  * @param body A supplier function that provides the response body content. Defaults to null.
  * @return An HTTP response of type `Response` with the specified status, headers, and body content.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> OKResponse(
+inline fun <reified T : Any> OKResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -887,14 +885,14 @@ suspend inline fun <reified T : Any> OKResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 /**
  * Constructs an HTTP OK response with optional headers and body content.
@@ -910,10 +908,10 @@ suspend inline fun <reified T : Any> OKResponse(
  * @param headers additional headers to include in the response, defaults to null
  * @param body a supplier for the response body content, which can be null
  * @return a Response instance of type T encapsulating the provided configurations
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> OKResponse(
+inline fun <reified T : Any> OKResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -932,12 +930,12 @@ suspend inline fun <reified T : Any> OKResponse(
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 
 /**
@@ -958,10 +956,10 @@ suspend inline fun <reified T : Any> OKResponse(
  * @param includeBody Whether to include the response body. Defaults to `true` if `location` is null.
  * @param body A supplier for the response body. Defaults to null if no body is required.
  * @return A `Response` object containing the constructed HTTP status, headers, and optional body.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> CreatedResponse(
+inline fun <reified T : Any> CreatedResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -982,13 +980,13 @@ suspend inline fun <reified T : Any> CreatedResponse(
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (location.isNotNull()) re.location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 /**
  * Constructs an HTTP 201 Created response with optional headers, body content, and metadata.
@@ -1006,10 +1004,10 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param includeBody a boolean indicating whether to include the body in the response, defaults to true if `location` is null
  * @param body a supplier providing the body of the response, invoked if a body is to be included
  * @return a Response object of type T representing the constructed 201 Created response
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> CreatedResponse(
+inline fun <reified T : Any> CreatedResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -1031,12 +1029,12 @@ suspend inline fun <reified T : Any> CreatedResponse(
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (location.isNotNull()) re.location(location)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header("Request-Id", requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 
 /**
@@ -1057,10 +1055,10 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param headers Additional HTTP headers to include in the response. Can be null if no additional headers are needed.
  * @param body A supplier function that provides the response body content. Can be null if no body content is needed.
  * @return The constructed Response object containing the specified HTTP status, headers, and body.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> AcceptedResponse(
+inline fun <reified T : Any> AcceptedResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -1078,13 +1076,13 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 /**
  * Builds a response with an HTTP status of 202 Accepted, optionally including headers and body content.
@@ -1100,10 +1098,10 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @param headers optional additional headers to include in the response
  * @param body optional supplier for the response body content
  * @return a Response object containing the HTTP status, headers, and optionally body content
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> AcceptedResponse(
+inline fun <reified T : Any> AcceptedResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -1120,14 +1118,14 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     re.featureCode(featureCode)
     val result = body?.invoke()
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 
 /**
@@ -1144,9 +1142,9 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @param headers Optional additional headers to include in the response.
  * @param action An optional action to execute before building the response. Defaults to `null`.
  * @return A `Response` object with the specified settings and content.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun ResetContentResponse(
+fun ResetContentResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     eTag: String? = null,
@@ -1164,12 +1162,12 @@ suspend fun ResetContentResponse(
     if (includeFeatureCode) re.featureCode()
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs a `Response` object with a status of `RESET_CONTENT` and optional headers and body content.
@@ -1185,9 +1183,9 @@ suspend fun ResetContentResponse(
  * @param headers Optional additional headers to include in the response.
  * @param action an optional action to execute; can be null
  * @return A `Response` object with the specified settings and content.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun ResetContentResponse(
+fun ResetContentResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     eTag: String? = null,
@@ -1204,13 +1202,13 @@ suspend fun ResetContentResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (eTag.isNotNull()) re.eTag(eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -1231,10 +1229,10 @@ suspend fun ResetContentResponse(
  * @param headers Custom headers to include in the response. Can be null or empty. Defaults to null.
  * @param body A supplier that provides the body content of the response. Can be null. Defaults to null.
  * @return A `Response` object of type `T` with the specified properties and HTTP status 206.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> PartialContentResponse(
+inline fun <reified T : Any> PartialContentResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -1252,13 +1250,13 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 /**
  * Builds and returns a response with HTTP status 206 (Partial Content) and additional metadata or body content.
@@ -1275,10 +1273,10 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * @param headers Additional HTTP headers to be included in the response, if specified.
  * @param body A supplier function providing the body content for the response, if specified.
  * @return A built response object containing the given metadata and body content.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> PartialContentResponse(
+inline fun <reified T : Any> PartialContentResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
@@ -1294,15 +1292,15 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 
 /**
@@ -1318,10 +1316,10 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @return A `Response` instance with a status of HTTP 207 Multi-Status and a body formatted according to the specified `responseType`.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend fun MultiStatusResponse(
+fun MultiStatusResponse(
     resources: List<ResourceResult>,
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
@@ -1337,11 +1335,11 @@ suspend fun MultiStatusResponse(
     val re = Response.status(HttpStatus.MULTI_STATUS.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
+    return re.negotiateBodyValueWithType(request, when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
@@ -1361,10 +1359,10 @@ suspend fun MultiStatusResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @return A `Response` object containing the multi-status HTTP response.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend fun MultiStatusResponse(
+fun MultiStatusResponse(
     resources: List<ResourceResult>,
     featureCode: String,
     includeRequestId: Boolean = true,
@@ -1379,10 +1377,10 @@ suspend fun MultiStatusResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
+    return re.negotiateBodyValueWithType(request, when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
@@ -1478,10 +1476,10 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @param headers Additional headers to include in the response, if provided. Defaults to null.
  * @param body A supplier for generating the response body, if needed. Defaults to null.
  * @return A `Response` instance with the configured attributes.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> IMUsedResponse(
+inline fun <reified T : Any> IMUsedResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     newETag: String? = null,
@@ -1497,15 +1495,15 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     if (expires.isNotNull()) re.expires(expires)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 /**
  * Creates an HTTP response with the status `IM_USED` (226) and optionally includes additional headers, body content,
@@ -1522,10 +1520,10 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * @param headers Optional additional HTTP headers to be included in the response.
  * @param body An optional supplier for generating the body of the response.
  * @return A `Response` instance representing the constructed HTTP response.
- * @since 2.0.0
+ * @since 3.0.0
  */
 context(request: Request)
-suspend inline fun <reified T : Any> IMUsedResponse(
+inline fun <reified T : Any> IMUsedResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     newETag: String? = null,
@@ -1542,14 +1540,14 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     re.featureCode(featureCode)
     if (expires.isNotNull()) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
-    return re.buildAndAwait()
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    return re.build()
 }
 
 /**
@@ -1568,9 +1566,9 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * @param retryAfter optional duration after which the client should retry the request
  * @param action An optional action to be executed during the response building process.
  * @return A `Response` instance with the specified HTTP status, headers, and location.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun SeeOtherResponse(
+fun SeeOtherResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1584,12 +1582,12 @@ suspend fun SeeOtherResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Creates a "See Other" HTTP response with a feature code, optional headers, and a specified location URI.
@@ -1603,9 +1601,9 @@ suspend fun SeeOtherResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param action an optional lambda that defines additional actions or settings for the response
  * @return a pre-built response entity with the "See Other" HTTP status
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun SeeOtherResponse(
+fun SeeOtherResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1618,12 +1616,12 @@ suspend fun SeeOtherResponse(
     val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -1642,9 +1640,9 @@ suspend fun SeeOtherResponse(
  * @param retryAfter optional duration after which the client should retry the request
  * @param action An optional action to be executed during the response building process.
  * @return A `Response` instance with the specified HTTP status, headers, and location.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun SeeOtherResponse(
+fun SeeOtherResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1658,12 +1656,12 @@ suspend fun SeeOtherResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Creates a "See Other" HTTP response with a feature code, optional headers, and a specified location URI.
@@ -1677,9 +1675,9 @@ suspend fun SeeOtherResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param action an optional lambda that defines additional actions or settings for the response
  * @return a pre-built response entity with the "See Other" HTTP status
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun SeeOtherResponse(
+fun SeeOtherResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1692,12 +1690,12 @@ suspend fun SeeOtherResponse(
     val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -1713,9 +1711,9 @@ suspend fun SeeOtherResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param action An optional lambda function to perform additional customization on the response.
  * @return A `Response` instance with the specified properties and configurations.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun FoundResponse(
+fun FoundResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1729,12 +1727,12 @@ suspend fun FoundResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Builds and returns an HTTP 302 Found response with optional headers and an optional action.
@@ -1748,9 +1746,9 @@ suspend fun FoundResponse(
  * @param location the URI to be set in the "Location" header for the response
  * @param action an optional action to execute before building the response, can be null
  * @return a `Response` object with HTTP status 302 (Found) and the provided details
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun FoundResponse(
+fun FoundResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1764,11 +1762,11 @@ suspend fun FoundResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -1784,9 +1782,9 @@ suspend fun FoundResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param action An optional lambda function to perform additional customization on the response.
  * @return A `Response` instance with the specified properties and configurations.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun FoundResponse(
+fun FoundResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1801,11 +1799,11 @@ suspend fun FoundResponse(
     if (includeFeatureCode) re.featureCode()
     re.location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Builds and returns an HTTP 302 Found response with optional headers and an optional action.
@@ -1819,9 +1817,9 @@ suspend fun FoundResponse(
  * @param location the URI to be set in the "Location" header for the response
  * @param action an optional action to execute before building the response, can be null
  * @return a `Response` object with HTTP status 302 (Found) and the provided details
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun FoundResponse(
+fun FoundResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -1835,11 +1833,11 @@ suspend fun FoundResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -1857,9 +1855,9 @@ suspend fun FoundResponse(
  * @param location The target URI where the client should be redirected.
  * @param action An optional additional action to execute while building the response.
  * @return A constructed response with HTTP status 301 (Moved Permanently) and the specified parameters.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun MovedPermanentlyResponse(
+fun MovedPermanentlyResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -1872,11 +1870,11 @@ suspend fun MovedPermanentlyResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Creates a response with HTTP status 301 (Moved Permanently).
@@ -1887,9 +1885,9 @@ suspend fun MovedPermanentlyResponse(
  * @param location a URI indicating the new location of the requested resource.
  * @param action an optional action to be executed during the construction of the response.
  * @return a response object with HTTP status 301 (Moved Permanently) and the specified attributes.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun MovedPermanentlyResponse(
+fun MovedPermanentlyResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     headers: HttpHeaders = HttpHeaders(),
@@ -1898,10 +1896,10 @@ suspend fun MovedPermanentlyResponse(
 ): Response {
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     re.featureCode(featureCode).location(location)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Creates an HTTP 301 Moved Permanently response.
@@ -1918,9 +1916,9 @@ suspend fun MovedPermanentlyResponse(
  * @param location The target URI where the client should be redirected.
  * @param action An optional additional action to execute while building the response.
  * @return A constructed response with HTTP status 301 (Moved Permanently) and the specified parameters.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun MovedPermanentlyResponse(
+fun MovedPermanentlyResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -1934,10 +1932,10 @@ suspend fun MovedPermanentlyResponse(
     re.location(location)
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Creates a response with HTTP status 301 (Moved Permanently).
@@ -1950,9 +1948,9 @@ suspend fun MovedPermanentlyResponse(
  * @param location a URI indicating the new location of the requested resource.
  * @param action an optional action to be executed during the construction of the response.
  * @return a response object with HTTP status 301 (Moved Permanently) and the specified attributes.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun MovedPermanentlyResponse(
+fun MovedPermanentlyResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -1965,10 +1963,10 @@ suspend fun MovedPermanentlyResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -1990,9 +1988,9 @@ suspend fun MovedPermanentlyResponse(
  * @param action An optional action to invoke for configuring the `Response` further.
  * If `null`, no action is performed.
  * @return The fully configured `Response` object with a `308 Permanent Redirect` status code.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun PermanentRedirectResponse(
+fun PermanentRedirectResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -2005,11 +2003,11 @@ suspend fun PermanentRedirectResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.location(location)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs a response with a 308 Permanent Redirect status, allowing for a new location to be provided.
@@ -2022,9 +2020,9 @@ suspend fun PermanentRedirectResponse(
  * @param location the URI to which the client is redirected
  * @param action an optional action to execute additional response configuration
  * @return a `Response` object with status 308 Permanent Redirect and the specified configurations
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun PermanentRedirectResponse(
+fun PermanentRedirectResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -2037,10 +2035,10 @@ suspend fun PermanentRedirectResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Builds and returns an HTTP response with a `308 Permanent Redirect` status code.
@@ -2061,9 +2059,9 @@ suspend fun PermanentRedirectResponse(
  * @param action An optional action to invoke for configuring the `Response` further.
  * If `null`, no action is performed.
  * @return The fully configured `Response` object with a `308 Permanent Redirect` status code.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun PermanentRedirectResponse(
+fun PermanentRedirectResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -2077,10 +2075,10 @@ suspend fun PermanentRedirectResponse(
     re.location(location)
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs a response with a 308 Permanent Redirect status, allowing for a new location to be provided.
@@ -2093,9 +2091,9 @@ suspend fun PermanentRedirectResponse(
  * @param location the URI to which the client is redirected
  * @param action an optional action to execute additional response configuration
  * @return a `Response` object with status 308 Permanent Redirect and the specified configurations
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun PermanentRedirectResponse(
+fun PermanentRedirectResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
@@ -2107,11 +2105,11 @@ suspend fun PermanentRedirectResponse(
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -2127,9 +2125,9 @@ suspend fun PermanentRedirectResponse(
  * @param location The URI to which the client is redirected.
  * @param action An optional lambda for additional customization of the response before it is built. Default is `null`.
  * @return A `Response` object with the status set to `302 Temporary Redirect` and the specified attributes.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun TemporaryRedirectResponse(
+fun TemporaryRedirectResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -2143,12 +2141,12 @@ suspend fun TemporaryRedirectResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs a response with HTTP status code "307 Temporary Redirect."
@@ -2162,9 +2160,9 @@ suspend fun TemporaryRedirectResponse(
  * @param location the URI to which the client is redirected
  * @param action an optional action to execute before building the response
  * @return a constructed response with the specified parameters and a "307 Temporary Redirect" status
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun TemporaryRedirectResponse(
+fun TemporaryRedirectResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -2178,11 +2176,11 @@ suspend fun TemporaryRedirectResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Creates a response with a `302 Temporary Redirect` status. Allows customization of headers,
@@ -2197,9 +2195,9 @@ suspend fun TemporaryRedirectResponse(
  * @param location The URI to which the client is redirected.
  * @param action An optional lambda for additional customization of the response before it is built. Default is `null`.
  * @return A `Response` object with the status set to `302 Temporary Redirect` and the specified attributes.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun TemporaryRedirectResponse(
+fun TemporaryRedirectResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -2213,12 +2211,12 @@ suspend fun TemporaryRedirectResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     re.location(location)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs a response with HTTP status code "307 Temporary Redirect."
@@ -2232,9 +2230,9 @@ suspend fun TemporaryRedirectResponse(
  * @param location the URI to which the client is redirected
  * @param action an optional action to execute before building the response
  * @return a constructed response with the specified parameters and a "307 Temporary Redirect" status
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun TemporaryRedirectResponse(
+fun TemporaryRedirectResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
@@ -2248,11 +2246,11 @@ suspend fun TemporaryRedirectResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode).location(location)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -2270,9 +2268,9 @@ suspend fun TemporaryRedirectResponse(
  * @param headers Optional additional HTTP headers to include in the response (overrides any other header parameters of this method). Defaults to `null`.
  * @param action An optional action to perform before finalizing the response. Defaults to `null`.
  * @return A `Response` instance representing the 304 Not Modified HTTP response.
- * @since 2.0.0
+ * @since 3.0.0
  */
-suspend fun NotModifiedResponse(
+fun NotModifiedResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     eTag: String? = null,
@@ -2287,11 +2285,11 @@ suspend fun NotModifiedResponse(
     if (eTag.isNotNull()) re.eTag(eTag)
     if (expires.isNotNull()) re.expires(expires)
     if (includeFeatureCode) re.featureCode()
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Constructs a 304 Not Modified HTTP response.
@@ -2299,7 +2297,7 @@ suspend fun NotModifiedResponse(
  * This method customizes the response by adding optional headers, an ETag, and feature code metadata.
  * It uses the `HttpStatus.NOT_MODIFIED` status to indicate that the resource has not changed since last requested.
  *
- * @param featurecode Specifies the "Feature-Code" header in the response.
+ * @param featureCode Specifies the "Feature-Code" header in the response.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag An optional ETag value to include in the response for resource versioning. Defaults to `null`.
  * @param expires An optional expiration date for the response. Defaults to `null`.
@@ -2308,9 +2306,9 @@ suspend fun NotModifiedResponse(
  * @param headers Optional additional HTTP headers to include in the response (overrides any other header parameters of this method). Defaults to `null`.
  * @param action An optional action to perform before finalizing the response. Defaults to `null`.
  * @return A `Response` instance representing the 304 Not Modified HTTP response.
- * @since 2.7.2
+ * @since 3.0.0
  */
-suspend fun NotModifiedResponse(
+fun NotModifiedResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     eTag: String? = null,
@@ -2325,11 +2323,11 @@ suspend fun NotModifiedResponse(
     if (eTag.isNotNull()) re.eTag(eTag)
     if (expires.isNotNull()) re.expires(expires)
     re.featureCode(featureCode)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -2350,14 +2348,14 @@ suspend fun NotModifiedResponse(
  * @param headers Optional custom HTTP headers to add to the response (overrides any other header parameters of this method). Can be `null` or empty.
  * @param action An optional action to further customize the response object. Can be `null`.
  * @return A `Response` object with an HTTP 204 (No Content) status code and any specified metadata.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @Deprecated("Use EmptyResponse instead")
-suspend fun NoContentResponse(
+fun NoContentResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
@@ -2366,11 +2364,11 @@ suspend fun NoContentResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (includeFeatureCode) re.featureCode()
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 /**
  * Builds an HTTP 204 No Content response with optional headers and eTag.
@@ -2385,14 +2383,14 @@ suspend fun NoContentResponse(
  * @param headers optional custom headers to include in the response (overrides any other header parameters of this method)
  * @param action an optional action to further modify the response
  * @return a response with an HTTP 204 No Content status
- * @since 2.0.0
+ * @since 3.0.0
  */
 @Deprecated("Use EmptyResponse instead")
-suspend fun NoContentResponse(
+fun NoContentResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: StringList = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
@@ -2401,11 +2399,11 @@ suspend fun NoContentResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
-    return re.buildAndAwait()
+    return re.build()
 }
 
 /**
@@ -2417,14 +2415,15 @@ suspend fun NoContentResponse(
  *
  * @receiver The response body builder to which the header might be added.
  * @return The modified response body builder with the optional "Request-Id" header.
- * @since 2.0.9
+ * @since 3.0.0
  */
-suspend fun ServerResponse.BodyBuilder.requestId() = header("Request-Id", dev.tommasop1804.springutils.reactive.request.requestId().toString())
+fun ServerResponse.BodyBuilder.requestId() = if (RequestIdProvider.requestIdThreadLocal.get().isNull()) this
+else header(HttpHeader.REQUEST_ID, RequestIdProvider.requestIdThreadLocal.get().toString())
 /**
  * Adds a "Request-Id" header to the response with the provided identifier value.
  *
  * @param id The identifier to associate with the "Request-Id" header.
- * @since 2.0.9
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.requestId(id: RequestId) = header("Request-Id", id.toString())
 
@@ -2432,7 +2431,7 @@ fun ServerResponse.BodyBuilder.requestId(id: RequestId) = header("Request-Id", i
  * Adds a "Feature-Code" header with the provided code to the response.
  *
  * @param code the feature code to be added as the "Feature-Code" header in the response
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.featureCode(code: String): ServerResponse.BodyBuilder = header("Feature-Code", code)
 /**
@@ -2447,7 +2446,7 @@ fun ServerResponse.BodyBuilder.featureCode(code: String): ServerResponse.BodyBui
  *
  * @receiver The `Response.BodyBuilder` instance on which this method is invoked.
  * @return The same instance of `Response.BodyBuilder` with the "Feature-Code" header added.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.featureCode(): ServerResponse.BodyBuilder = header("Feature-Code",
     findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
@@ -2458,7 +2457,7 @@ fun ServerResponse.BodyBuilder.featureCode(): ServerResponse.BodyBuilder = heade
  *
  * @param time The expiration time to be set in the `Expires` header. It must be a valid `TemporalAccessor` instance.
  * @return The updated `Response.BodyBuilder` with the `Expires` header added.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.expires(time: TemporalAccessor): ServerResponse.BodyBuilder =
     header("Expires", time.toHeaderDate())
@@ -2468,7 +2467,7 @@ fun ServerResponse.BodyBuilder.expires(time: TemporalAccessor): ServerResponse.B
  *
  * @param preferences A vararg of preference names to include in the "Preference-Applied" header.
  * @return The updated response entity builder with the added "Preference-Applied" header.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.preferenceApplied(vararg preferences: String): ServerResponse.BodyBuilder =
     header("Preference-Applied", preferences.joinToString(", "))
@@ -2479,7 +2478,7 @@ fun ServerResponse.BodyBuilder.preferenceApplied(vararg preferences: String): Se
  * @param time The duration after which the client should refresh or perform the redirect.
  * @param url The optional URL to redirect the client to after the refresh.
  * @return The updated Response.BodyBuilder with the "Refresh" header set.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
 fun ServerResponse.BodyBuilder.refresh(time: Duration, url: Url? = null): ServerResponse.BodyBuilder =
@@ -2489,7 +2488,7 @@ fun ServerResponse.BodyBuilder.refresh(time: Duration, url: Url? = null): Server
  *
  * @param timeAndURL A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
  * @return The updated Response.BodyBuilder with the "Refresh" header set.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
 fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, Url?>): ServerResponse.BodyBuilder =
@@ -2502,7 +2501,7 @@ fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, Url?>): Server
  * @param url The optional URL to which the client will be redirected after the specified interval. 
  * If null, the client will refresh the current URL.
  * @return The current instance of [ServerResponse.BodyBuilder] with the `Refresh` header added.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.refresh(seconds: Int, url: Url? = null): ServerResponse.BodyBuilder =
     header("Refresh", "${seconds}${url?.let { "; url=$it" } ?: String.EMPTY}")
@@ -2512,7 +2511,7 @@ fun ServerResponse.BodyBuilder.refresh(seconds: Int, url: Url? = null): ServerRe
  *
  * @param duration The duration to be included in the `Retry-After` header.
  * @return The modified {@link Response.BodyBuilder} with the `Retry-After` header set.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
 fun ServerResponse.BodyBuilder.retryAfter(duration: Duration): ServerResponse.BodyBuilder =
@@ -2522,7 +2521,7 @@ fun ServerResponse.BodyBuilder.retryAfter(duration: Duration): ServerResponse.Bo
  *
  * @param seconds The number of seconds to indicate in the "Retry-After" header.
  * @return The updated Response.BodyBuilder with the "Retry-After" header applied.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.retryAfter(seconds: Int): ServerResponse.BodyBuilder =
     header("Retry-After", seconds.toString())
@@ -2533,7 +2532,7 @@ fun ServerResponse.BodyBuilder.retryAfter(seconds: Int): ServerResponse.BodyBuil
  * @param temporal The temporal accessor representing the time or delay for the "Retry-After" header.
  *                 This value is expected to be formatted in the RFC 1123 date-time format.
  * @return The instance of the response builder with the "Retry-After" header included.
- * @since 2.0.0
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.retryAfter(temporal: TemporalAccessor): ServerResponse.BodyBuilder =
     header("Retry-After", temporal.toHeaderDate())
@@ -2547,7 +2546,7 @@ fun ServerResponse.BodyBuilder.retryAfter(temporal: TemporalAccessor): ServerRes
  * @param timingMetric Vararg of pairs where each pair consists of a metric name (String) and its duration (Duration).
  *                     The name identifies the metric, and the duration represents the time taken by the metric in milliseconds.
  * @return The modified [ServerResponse.BodyBuilder] instance with the `Server-Timing` header added.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Duration>): ServerResponse.BodyBuilder =
@@ -2561,7 +2560,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Du
  * - `first`: The metric name (e.g., "db", "cpu").
  * - `second`: The duration of the metric as a number (interpreted as milliseconds).
  * @return The updated `Response.BodyBuilder` instance with the added `Server-Timing` header.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("serverTimingNumberDuration")
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Number>): ServerResponse.BodyBuilder =
@@ -2575,7 +2574,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Nu
  *   - The second element is a `Duration` object indicating the elapsed time for the metric.
  *   - The third element provides an optional description of the metric.
  * @return The updated `Response.BodyBuilder` with the "Server-Timing" header included.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, Duration, String?>): ServerResponse.BodyBuilder =
@@ -2591,7 +2590,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, 
  * - The second element is the duration value as a number (e.g., milliseconds).
  * - The third element is the description of the metric.
  * @return The modified instance of [ServerResponse.BodyBuilder] with the `Server-Timing` header added.
- * @since 2.0.0
+ * @since 3.0.0
  */
 @JvmName("serverTimingNumberDuration")
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, Number, String?>): ServerResponse.BodyBuilder =
@@ -2601,7 +2600,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, 
  * Adds a custom HTTP header to the response.
  *
  * @param header The custom HTTP header containing the name and values to be added.
- * @since 2.3.1
+ * @since 3.0.0
  */
 fun ServerResponse.BodyBuilder.header(header: HttpHeader) = header(header.name, *header.values.toTypedArray())
 
@@ -2613,7 +2612,7 @@ fun ServerResponse.BodyBuilder.header(header: HttpHeader) = header(header.name, 
  *
  * @return The HTTP status corresponding to the response's status code.
  * @throws NoSuchEntryException if the status code does not correspond to a valid HTTP status.
- * @since 2.2.6
+ * @since 3.0.0
  */
-val Response.status
+val ServerResponse.status
     get() = statusCode().value().toHttpStatus() ?: throw NoSuchEntryException("Not a valid HTTP status code")

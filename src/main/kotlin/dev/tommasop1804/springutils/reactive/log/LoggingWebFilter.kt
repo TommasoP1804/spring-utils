@@ -1,17 +1,14 @@
 package dev.tommasop1804.springutils.reactive.log
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.classes.web.HttpHeader
-import dev.tommasop1804.springutils.FROM_SERVICE
-import dev.tommasop1804.springutils.annotations.Feature
-import dev.tommasop1804.springutils.findCallerMethod
-import dev.tommasop1804.springutils.getStatus
-import dev.tommasop1804.springutils.reactive.request.RequestIdContext
-import dev.tommasop1804.springutils.reactive.security.username
-import dev.tommasop1804.springutils.request.RequestId
-import dev.tommasop1804.springutils.servlet.log.LogExecution
-import dev.tommasop1804.springutils.servlet.log.Logs
-import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
+import dev.tommasop1804.kutils.classes.web.*
+import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.annotations.*
+import dev.tommasop1804.springutils.reactive.function.request.*
+import dev.tommasop1804.springutils.reactive.security.*
+import dev.tommasop1804.springutils.request.*
+import dev.tommasop1804.springutils.servlet.log.*
+import dev.tommasop1804.springutils.servlet.request.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -30,14 +27,9 @@ import org.springframework.web.method.HandlerMethod
 import org.springframework.web.reactive.function.server.HandlerFunction
 import org.springframework.web.reactive.function.server.support.RouterFunctionMapping
 import org.springframework.web.reactive.result.method.annotation.RequestMappingHandlerMapping
-import org.springframework.web.server.CoWebFilter
-import org.springframework.web.server.CoWebFilterChain
-import org.springframework.web.server.ResponseStatusException
-import org.springframework.web.server.ServerWebExchange
-import org.springframework.web.server.ServerWebExchangeDecorator
+import org.springframework.web.server.*
 import reactor.util.context.Context
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.plusAssign
 
 @ConfigurationProperties(prefix = "spring-utils.reactive.logging")
 data class LoggingProperties(
@@ -198,6 +190,7 @@ class LoggingWebFilter(
                 else {
                     string += "?"
                     string += map.entries.joinToString("&") { [k, v] -> "$k=$v" }
+                    string
                 }
             }}"
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
