@@ -2,10 +2,9 @@
 @file:Since("1.0.0")
 @file:Suppress("unused")
 
-package dev.tommasop1804.springutils.reactive
+package dev.tommasop1804.springutils.reactive.function
 
-import dev.tommasop1804.kutils.annotations.Since
-import org.springframework.http.ResponseEntity
+import dev.tommasop1804.kutils.annotations.*
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 

@@ -48,7 +48,7 @@ class LogHandler(
                 checkExcludeOrInclude(exclude.toTypedArray(), includeOnly.toTypedArray()),
                 handler,
                 function,
-                "${request!!.method()} ${request!!.path()}",
+                "${request!!.method()} ${request!!.path()}${if (request!!.allParams().isEmpty()) String.EMPTY else "?${request!!.allParams().toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
                 username,
                 request!!.header(HttpHeader.FROM_SERVICE).firstOrNull(),
                 featureCode,
@@ -60,17 +60,14 @@ class LogHandler(
                     val customs = emptyMList<String2>()
                     customMessages.forEach { cm ->
                         when (cm.type) {
-                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()
-                                ?.let { customs += cm.key to it }
-
-                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)
-                                ?.let { customs += cm.key to it }
-
-                            LogExecution.CustomMessage.Type.PATH_INDEX -> customs += cm.key to request!!.path()
-                                .let { if (it startsWith Char.SLASH) (-1)(it) else it }
-                                .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
-                                ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
-
+                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
+                                customs += cm.key to request!!.path()
+                                    .let { if (it startsWith Char.SLASH) (-1)(it) else it }
+                                    .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
+                                    ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
+                            }
                             LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
                         }
                     }
@@ -87,29 +84,23 @@ class LogHandler(
                 checkExcludeOrInclude(exclude.toTypedArray(), includeOnly.toTypedArray()),
                 handler,
                 function,
-                "${request!!.method()} ${request!!.path()}",
+                "${request!!.method()} ${request!!.path()}${if (request!!.allParams().isEmpty()) String.EMPTY else "?${request!!.allParams().toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
                 username,
                 request!!.header(HttpHeader.FROM_SERVICE).firstOrNull(),
                 featureCode,
-                compute {
-                    RequestIdProvider.requestIdThreadLocal.set(requestIdProvider.generate())
-                    RequestIdProvider.requestId!!
-                },
+                RequestIdProvider.requestId!!,
                 compute {
                     val customs = emptyMList<String2>()
                     customMessages.forEach { cm ->
                         when (cm.type) {
-                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()
-                                ?.let { customs += cm.key to it }
-
-                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)
-                                ?.let { customs += cm.key to it }
-
-                            LogExecution.CustomMessage.Type.PATH_INDEX -> customs += cm.key to request!!.path()
-                                .let { if (it startsWith Char.SLASH) (-1)(it) else it }
-                                .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
-                                ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
-
+                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
+                                customs += cm.key to request!!.path()
+                                    .let { if (it startsWith Char.SLASH) (-1)(it) else it }
+                                    .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
+                                    ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
+                            }
                             LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
                         }
                     }
@@ -131,15 +122,12 @@ class LogHandler(
                 checkExcludeOrInclude(exclude.toTypedArray(), includeOnly.toTypedArray()),
                 handler,
                 function,
-                "${request!!.method()} ${request!!.path()}",
+                "${request!!.method()} ${request!!.path()}${if (request!!.allParams().isEmpty()) String.EMPTY else "?${request!!.allParams().toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
                 username,
                 (if (exception is ResponseStatusException) HttpStatus.valueOf(exception.statusCode.value()) else getStatus(exception)).let { "${it.value()} ${it.reasonPhrase}" },
                 request!!.header(HttpHeader.FROM_SERVICE).firstOrNull(),
                 featureCode,
-                compute {
-                    RequestIdProvider.requestIdThreadLocal.set(requestIdProvider.generate())
-                    RequestIdProvider.requestId!!
-                },
+                RequestIdProvider.requestId!!,
                 exception,
                 basePackage,
                 compute {
@@ -148,7 +136,12 @@ class LogHandler(
                         when (cm.type) {
                             LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.PATH_INDEX -> customs += cm.key to request!!.path().let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
+                            LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
+                                customs += cm.key to request!!.path()
+                                    .let { if (it startsWith Char.SLASH) (-1)(it) else it }
+                                    .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
+                                    ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
+                            }
                             LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
                         }
                     }

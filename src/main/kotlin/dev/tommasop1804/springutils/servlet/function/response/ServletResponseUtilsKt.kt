@@ -18,6 +18,7 @@ import dev.tommasop1804.springutils.config.*
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.request.*
 import dev.tommasop1804.springutils.servlet.function.*
+import dev.tommasop1804.springutils.servlet.function.request.*
 import dev.tommasop1804.springutils.servlet.request.*
 import dev.tommasop1804.springutils.servlet.response.*
 import org.springframework.http.MediaType
@@ -51,11 +52,6 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTy
  * Evaluates conditional GET preconditions based on request headers and returns an appropriate response status
  * depending on whether the resource has been modified or not.
  *
- * @param eTagNoneMatch A list of ETag values to match against. If provided, the resource's ETag is compared
- *                      to these values to determine if it has been modified. Has higher priority than `ifModifiedSince`.
- * @param ifModifiedSince An instant in time representing the "If-Modified-Since" header from the request. This is
- *                        used to check if the resource has been updated after the specified time. If eTagNoneMatch is present,
- *                        this is not considered.
  * @param resourceETag The ETag of the resource. If provided, it is used in place of the resource's actual ETag.
  * @param lastModifiedDate The last modification date of the resource. It is used to evaluate the "If-Modified-Since" condition.
  * @param requireAtLeastOneValidator If true, ensures at least one of ETag or "If-Modified-Since" validators
@@ -76,8 +72,6 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTy
  */
 context(request: Request)
 inline fun <reified T : Any> conditionalGet(
-    eTagNoneMatch: StringList? = null,
-    ifModifiedSince: OffsetDateTime? = null,
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -92,7 +86,9 @@ inline fun <reified T : Any> conditionalGet(
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
 ): Response {
-    if (requireAtLeastOneValidator && eTagNoneMatch.isNullOrEmpty() && ifModifiedSince.isNull())
+    val eTagNoneMatch = request.ifNoneMatch()
+    val ifModifiedSince = request.ifModifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagNoneMatch.isEmpty() && ifModifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     var status = status
@@ -122,10 +118,6 @@ inline fun <reified T : Any> conditionalGet(
  * Processes conditional GET requests based on the provided HTTP headers and configuration,
  * and returns an appropriate response.
  *
- * @param eTagNoneMatch A list of ETag values to validate against. If the resource's ETag matches any of
- * these values, a 304 Not Modified response will be returned. Has higher priority than `ifModifiedSince`.
- * @param ifModifiedSince A timestamp to validate whether the resource has been modified after this date.
- * If the resource was not modified, a 304 Not Modified response will be returned. If `eTagNoneMatch` is present, this is not considered.
  * @param resourceETag The ETag of the resource. If provided, it is used in place of the resource's actual ETag.
  * @param lastModifiedDate The timestamp representing the last modification date of the resource.
  * Used in conjunction with `ifModifiedSince` for conditional validation.
@@ -152,8 +144,6 @@ inline fun <reified T : Any> conditionalGet(
  */
 context(request: Request)
 inline fun <reified T : Any> conditionalGet(
-    eTagNoneMatch: StringList? = null,
-    ifModifiedSince: OffsetDateTime? = null,
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     requireAllValidators: Boolean = false,
@@ -169,7 +159,9 @@ inline fun <reified T : Any> conditionalGet(
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
 ): Response {
-    if (requireAtLeastOneValidator && eTagNoneMatch.isNullOrEmpty() && ifModifiedSince.isNull())
+    val eTagNoneMatch = request.ifNoneMatch()
+    val ifModifiedSince = request.ifModifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagNoneMatch.isEmpty() && ifModifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     var status = status
@@ -203,8 +195,6 @@ inline fun <reified T : Any> conditionalGet(
  * against the current or previous state of the resource and only updates if the conditions are met.
  * If the conditions are not met, an exception is thrown, and the response status is not 2xx.
  *
- * @param eTagIfMatch A list of ETag values to be checked against the resource's current ETag. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince A timestamp indicating that the resource will only be updated if it has not been modified since this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate The last known modification timestamp of the resource.
  * @param requireAtLeastOneValidator When true, at least one conditional header must be present for the operation to proceed.
  * @param status A custom HTTP status to assign to the response when the update is successful.
@@ -228,8 +218,6 @@ inline fun <reified T : Any> conditionalGet(
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
 inline fun <T : Any, reified R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus? = null,
@@ -246,7 +234,9 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -280,8 +270,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
  * against the current or previous state of the resource and only updates if the conditions are met.
  * If the conditions are not met, an exception is thrown, and the response status is not 2xx.
  *
- * @param eTagIfMatch A list of ETag values to be checked against the resource's current ETag. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince A timestamp indicating that the resource will only be updated if it has not been modified since this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate The last known modification timestamp of the resource.
  * @param requireAtLeastOneValidator When true, at least one conditional header must be present for the operation to proceed.
  * @param status A custom HTTP status to assign to the response when the update is successful.
@@ -305,8 +293,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
 inline fun <T : Any, reified R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus? = null,
@@ -323,7 +309,9 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     previousETag: String?,
     noinline body: Supplier<R>
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -349,9 +337,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
  *
- * @param eTagIfMatch Optional list of ETags that the resource must match for the update to proceed. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince Optional timestamp indicating that the update should proceed only if the resource
- *        has not been modified since this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate The last known modification date of the resource, used to compare with
  *        the `ifUnmodifiedSince` parameter.
  * @param requireAtLeastOneValidator If true, at least one validator (e.g., `eTagIfMatch`, `ifUnmodifiedSince`)
@@ -379,8 +364,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
 inline fun <T : Any, reified R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus? = null,
@@ -397,7 +380,9 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -427,9 +412,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
  *
- * @param eTagIfMatch Optional list of ETags that the resource must match for the update to proceed. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince Optional timestamp indicating that the update should proceed only if the resource
- *        has not been modified since this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate The last known modification date of the resource, used to compare with
  *        the `ifUnmodifiedSince` parameter.
  * @param requireAtLeastOneValidator If true, at least one validator (e.g., `eTagIfMatch`, `ifUnmodifiedSince`)
@@ -456,8 +438,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
 @JvmName("conditionalUpdateNewValue")
 context(request: Request)
 inline fun <T : Any, reified R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus? = null,
@@ -474,7 +454,9 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     previousETag: String?,
     noinline body: Supplier<R>
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -501,8 +483,6 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
  * If-Unmodified-Since headers. It throws exceptions if the preconditions are not met.
  *
- * @param eTagIfMatch Optional list of ETag values to match against the existing resource's ETag. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince Optional timestamp to ensure the resource has not been modified after this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate Optional previous last modified date of the resource.
  * @param requireAtLeastOneValidator If true, at least one validator (ETag or If-Unmodified-Since) must be provided and pass.
  * @param status HTTP status to be used for a successful response. Defaults to HttpStatus.NO_CONTENT.
@@ -521,9 +501,8 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
+context(request: Request)
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus = HttpStatus.NO_CONTENT,
@@ -539,7 +518,9 @@ fun <T : Any> conditionalUpdate(
     previousValue: Supplier<T?>?,
     action: Action? = null
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -568,8 +549,6 @@ fun <T : Any> conditionalUpdate(
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
  * If-Unmodified-Since headers. It throws exceptions if the preconditions are not met.
  *
- * @param eTagIfMatch Optional list of ETag values to match against the existing resource's ETag. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince Optional timestamp to ensure the resource has not been modified after this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate Optional previous last modified date of the resource.
  * @param requireAtLeastOneValidator If true, at least one validator (ETag or If-Unmodified-Since) must be provided and pass.
  * @param status HTTP status to be used for a successful response. Defaults to HttpStatus.NO_CONTENT.
@@ -588,9 +567,8 @@ fun <T : Any> conditionalUpdate(
  * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
+context(request: Request)
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus = HttpStatus.NO_CONTENT,
@@ -606,7 +584,9 @@ fun <T : Any> conditionalUpdate(
     previousETag: String?,
     action: Action? = null
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -630,8 +610,6 @@ fun <T : Any> conditionalUpdate(
 /**
  * Executes a conditional update operation based on the provided validators, such as ETags or last modified date.
  *
- * @param eTagIfMatch List of ETags that must match for the update to proceed. If null, this aspect is ignored. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince Date and time indicating the resource must not have been modified since this timestamp to proceed. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate Previous timestamp of when the resource was last modified, used for comparison.
  * @param requireAtLeastOneValidator Whether at least one validator must be satisfied for the operation to proceed.
  * @param status HTTP status code to return on successful execution of the update.
@@ -652,9 +630,8 @@ fun <T : Any> conditionalUpdate(
  * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
+context(request: Request)
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus = HttpStatus.NO_CONTENT,
@@ -670,7 +647,9 @@ fun <T : Any> conditionalUpdate(
     previousValue: Supplier<T?>?,
     action: Action? = null
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
@@ -698,8 +677,6 @@ fun <T : Any> conditionalUpdate(
 /**
  * Executes a conditional update operation based on the provided validators, such as ETags or last modified date.
  *
- * @param eTagIfMatch List of ETags that must match for the update to proceed. If null, this aspect is ignored. Has higher priority than `ifUnmodifiedSince`.
- * @param ifUnmodifiedSince Date and time indicating the resource must not have been modified since this timestamp to proceed. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate Previous timestamp of when the resource was last modified, used for comparison.
  * @param requireAtLeastOneValidator Whether at least one validator must be satisfied for the operation to proceed.
  * @param status HTTP status code to return on successful execution of the update.
@@ -720,9 +697,8 @@ fun <T : Any> conditionalUpdate(
  * @since 3.0.0
  */
 @JvmName("conditionalUpdateAction")
+context(request: Request)
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
-    ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus = HttpStatus.NO_CONTENT,
@@ -738,7 +714,9 @@ fun <T : Any> conditionalUpdate(
     previousETag: String?,
     action: Action? = null
 ): Response {
-    if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
+    val eTagIfMatch = request.ifMatch()
+    val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
         throw lazyExceptionIfNotPresent()
 
     if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
