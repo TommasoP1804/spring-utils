@@ -67,7 +67,7 @@ fun SqlQueryBuilder.select(tableAlias: String?, vararg columns: KProperty1<*, *>
  * @return The updated SqlQueryBuilder instance with the source table and alias set.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.from(alias: String? = null): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.from(alias: String? = null): SqlQueryBuilder {
     val clazz = T::class
     return from(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY))
 }
@@ -94,15 +94,15 @@ fun SqlQueryBuilder.from(vararg tables: Pair<KClass<*>, String>): SqlQueryBuilde
  * @param T The type of the entity to join. The table name is inferred from the class annotation
  *          or simple name of the class.
  * @param alias An optional alias for the table being joined. Defaults to `null` if not provided.
- * @param joinType The SQL keyword representing the type of join (e.g., "INNER JOIN", "LEFT JOIN").
- * @param joinCondition The SQL condition for the join, typically specifying the relationship
+ * @param joinType The SQL keyword representing the type of join (e.g., "INNER", "LEFT").
+ * @param onCondition The SQL condition for the join, typically specifying the relationship
  *                      between columns of the tables being joined.
  * @return The modified instance of the SqlQueryBuilder with the join clause added.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, @Language("sql") joinType: String, @Language("sql") joinCondition: String): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.join(alias: String? = null, @Language("sql") joinType: String, @Language("sql") onCondition: String): SqlQueryBuilder {
     val clazz = T::class
-    return join(convertName(clazz) + alias?.let { " $it" }, joinType, joinCondition)
+    return join(convertName(clazz) + alias?.let { " $it" }, joinType, onCondition)
 }
 /**
  * Adds a join clause to the SQL query being built.
@@ -110,13 +110,13 @@ inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, @Language("sq
  * @param T The type representing the table being joined.
  * @param alias An optional alias for the joined table. Defaults to null.
  * @param joinType The type of join to apply (e.g., INNER, LEFT, RIGHT), provided as a [SqlQueryBuilder.JoinType].
- * @param joinCondition The SQL condition that defines the join logic.
+ * @param onCondition The SQL condition that defines the join logic.
  * @return The updated [SqlQueryBuilder] instance with the join clause added.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.join(alias: String? = null, joinType: SqlQueryBuilder.JoinType, @Language("sql") joinCondition: String): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.join(alias: String? = null, joinType: SqlQueryBuilder.JoinType, @Language("sql") onCondition: String): SqlQueryBuilder {
     val clazz = T::class
-    return join(convertName(clazz) + alias?.let { " $it" }, joinType, joinCondition)
+    return join(convertName(clazz) + alias?.let { " $it" }, joinType, onCondition)
 }
 
 /**
@@ -139,6 +139,18 @@ fun SqlQueryBuilder.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
  */
 fun SqlQueryBuilder.groupBy(vararg columns: KProperty1<*, *>) =
     groupBy(*columns.map { it.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.name }.toTypedArray())
+/**
+ * Specifies the columns for the GROUP BY clause of the SQL query.
+ *
+ * @param columns The properties representing the columns to be included in the GROUP BY clause,
+ *                resolved to their corresponding database column names. If no column name annotation
+ *                is found, the property name is used by default.
+ * @since 2.7.0
+ */
+fun SqlQueryBuilder.groupBy(tableAlias: String?, vararg columns: KProperty1<*, *>) =
+    (tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()).let { alias ->
+        groupBy(*columns.map { alias to it }.toTypedArray())
+    }
 
 /**
  * Adds an INSERT INTO statement to the query for the table corresponding to the specified generic type.
@@ -149,21 +161,10 @@ fun SqlQueryBuilder.groupBy(vararg columns: KProperty1<*, *>) =
  * @return The instance of SqlQueryBuilder with the updated statement.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.insertInto(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.insertInto(): SqlQueryBuilder {
     val clazz = T::class
     return insertInto(convertName(clazz))
 }
-/**
- * Specifies the columns to be used in the SQL query being built.
- *
- * @param columns A variable number of pairs, where each pair consists of an optional table alias (nullable String)
- *                and a Kotlin property representing the column. The table alias, if provided, is prefixed
- *                to the column name. The column name is determined either from the `@Column` annotation
- *                on the property or defaults to the property's name.
- * @since 2.7.0
- */
-fun SqlQueryBuilder.columns(vararg columns: Pair<String?, KProperty1<*, *>>) =
-    columns(*columns.map { col -> "${col.first?.let { "$it." }}${col.second.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -col.second.name}" }.toTypedArray())
 /**
  * Specifies the columns to be used in the SQL query being built.
  *
@@ -185,7 +186,7 @@ fun SqlQueryBuilder.columns(vararg columns: KProperty1<*, *>) =
  * @return The updated instance of the `SqlQueryBuilder` configured for the `UPDATE` statement.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.update(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.update(): SqlQueryBuilder {
     val clazz = T::class
     return update(convertName(clazz))
 }
@@ -199,7 +200,7 @@ inline fun <reified T> SqlQueryBuilder.update(): SqlQueryBuilder {
  * @return A modified instance of [SqlQueryBuilder], representing the DELETE query.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.deleteFrom(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.deleteFrom(): SqlQueryBuilder {
     val clazz = T::class
     return deleteFrom(convertName(clazz))
 }
@@ -226,6 +227,19 @@ fun SqlQueryBuilder.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, So
 fun SqlQueryBuilder.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
     orderBy(*columns.map { (it.first.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.first.name) to it.second }.toTypedArray())
 /**
+ * Adds an ORDER BY clause to the SQL query using the specified table alias, columns, and their sorting directions.
+ *
+ * @param tableAlias An optional alias for the table. If null, the alias will attempt to be inferred from the first column's owner class name.
+ * @param columns A vararg of pairs where:
+ *  - The first element is a property reference (KProperty1) that maps to the desired column.
+ *  - The second element specifies the sort direction (SortDirection) for the column.
+ *  @since 2.7.2
+ */
+fun SqlQueryBuilder.orderBy(tableAlias: String?, vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
+    (tableAlias ?: columns.firstOrNull()?.first?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()).let { alias ->
+        orderBy(*columns.map { (alias to it.first) + it.second }.toTypedArray())
+    }
+/**
  * Adds an ORDER BY clause to the SQL query based on the provided column and direction specifications.
  *
  * @param columns A variable-length argument of pairs, where each pair consists of an optional table alias (or null)
@@ -244,6 +258,18 @@ fun SqlQueryBuilder.orderBy(vararg columns: Pair<String?, KProperty1<*, *>>, dir
  */
 fun SqlQueryBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     orderBy(*columns.map { (it.findAnnotationAnywhere<Column>()?.name?.ifEmpty { null } ?: -it.name) to direction }.toTypedArray())
+/**
+ * Appends an ORDER BY clause to the SQL query using the specified columns and their sorting direction.
+ *
+ * @param tableAlias An optional table alias to qualify the column names in the ORDER BY clause. If null, a default alias will be determined based on the columns.
+ * @param columns A vararg of property references (KProperty1) representing the columns to be sorted.
+ * @param direction The sort direction to apply for the specified columns. Defaults to ascending (SortDirection.ASCENDING).
+ * @since 2.7.2
+ */
+fun SqlQueryBuilder.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+    (tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()).let { alias ->
+        orderBy(*columns.map { (alias to it) + direction }.toTypedArray())
+    }
 
 /**
  * Builds a SQL query to truncate a table corresponding to the specified type.
@@ -255,7 +281,7 @@ fun SqlQueryBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDir
  * @return The SqlQueryBuilder instance with the truncate operation included.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.truncate(ifExists: Boolean = false, dropType: SqlQueryBuilder.DropType = SqlQueryBuilder.DropType.RESTRICT): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.truncate(ifExists: Boolean = false, dropType: SqlQueryBuilder.DropType = SqlQueryBuilder.DropType.RESTRICT): SqlQueryBuilder {
     val clazz = T::class
     return truncate(convertName(clazz), ifExists, dropType)
 }
@@ -268,7 +294,7 @@ inline fun <reified T> SqlQueryBuilder.truncate(ifExists: Boolean = false, dropT
  * @return the current instance of the SqlQueryBuilder for chaining operations.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.createTable(@Language("sql") body: String): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.createTable(@Language("sql") body: String): SqlQueryBuilder {
     val clazz = T::class
     return createTable(convertName(clazz), body)
 }
@@ -281,7 +307,7 @@ inline fun <reified T> SqlQueryBuilder.createTable(@Language("sql") body: String
  * @return The updated SqlQueryBuilder instance with the applied alterations.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.alterTable(ifExists: Boolean = false, @Language("sql") alteration: String): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.alterTable(ifExists: Boolean = false, @Language("sql") alteration: String): SqlQueryBuilder {
     val clazz = T::class
     return alterTable(convertName(clazz), ifExists, alteration)
 }
@@ -293,7 +319,7 @@ inline fun <reified T> SqlQueryBuilder.alterTable(ifExists: Boolean = false, @La
  * @return The `SqlQueryBuilder` instance with the generated drop table query.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.dropTable(ifExists: Boolean = false, dropType: SqlQueryBuilder.DropType = SqlQueryBuilder.DropType.RESTRICT): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.dropTable(ifExists: Boolean = false, dropType: SqlQueryBuilder.DropType = SqlQueryBuilder.DropType.RESTRICT): SqlQueryBuilder {
     val clazz = T::class
     return dropTable(convertName(clazz), ifExists, dropType)
 }
@@ -307,7 +333,7 @@ inline fun <reified T> SqlQueryBuilder.dropTable(ifExists: Boolean = false, drop
  * @return An updated instance of [SqlQueryBuilder] with the index creation SQL statement added.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.createIndex(indexName: String, @Language("sql") columns: String): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.createIndex(indexName: String, @Language("sql") columns: String): SqlQueryBuilder {
     val clazz = T::class
     return createIndex(indexName, convertName(clazz), columns)
 }
@@ -320,7 +346,7 @@ inline fun <reified T> SqlQueryBuilder.createIndex(indexName: String, @Language(
  * @return The current instance of [SqlQueryBuilder], allowing for further query configuration.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.showTable(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.showTable(): SqlQueryBuilder {
     val clazz = T::class
     return showTable(convertName(clazz))
 }
@@ -332,7 +358,7 @@ inline fun <reified T> SqlQueryBuilder.showTable(): SqlQueryBuilder {
  * @return The updated instance of [SqlQueryBuilder] with the SHOW COLUMNS configuration applied.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.showColumnsFromTable(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.showColumnsFromTable(): SqlQueryBuilder {
     val clazz = T::class
     return showColumnsFromTable(convertName(clazz))
 }
@@ -343,9 +369,9 @@ inline fun <reified T> SqlQueryBuilder.showColumnsFromTable(): SqlQueryBuilder {
  * @return An instance of [SqlQueryBuilder] with the updated query to show index information.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.showIndexFromTable(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.showIndexFromTable(): SqlQueryBuilder {
     val clazz = T::class
-    return showColumnsFromTable(convertName(clazz))
+    return showIndexFromTable(convertName(clazz))
 }
 
 /**
@@ -358,7 +384,7 @@ inline fun <reified T> SqlQueryBuilder.showIndexFromTable(): SqlQueryBuilder {
  * @return The current instance of SqlQueryBuilder with the target table configured.
  * @since 2.7.0
  */
-inline fun <reified T> SqlQueryBuilder.onTable(): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.onTable(): SqlQueryBuilder {
     val clazz = T::class
     return onTable(convertName(clazz))
 }
