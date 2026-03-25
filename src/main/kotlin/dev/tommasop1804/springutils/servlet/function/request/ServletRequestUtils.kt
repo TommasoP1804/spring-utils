@@ -1,6 +1,6 @@
 @file:JvmName("ServletRequestUtilsKt")
 @file:Since("3.0.0")
-@file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST")
+@file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST", "MoveLambdaOutsideParentheses")
 
 package dev.tommasop1804.springutils.servlet.function.request
 
@@ -235,13 +235,13 @@ fun ServerRequest.paramOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedQue
 fun ServerRequest.paramOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, Long::class).toLong() }
 fun ServerRequest.paramOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, Double::class).toDouble() }
 fun ServerRequest.paramOrThrowAsBoolean(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Boolean::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, Boolean::class).toBoolean() }
-fun ServerRequest.paramOrThrowAsUuid(name: String) = paramOrThrow(name, Uuid::class).toUuid()() { MalformedQueryParamException(name, Uuid::class) }
-fun ServerRequest.paramOrThrowAsUlid(name: String) = paramOrThrow(name, Ulid::class).toUlid()() { MalformedQueryParamException(name, Ulid::class) }
-fun ServerRequest.paramOrThrowAsKsuid(name: String) = paramOrThrow(name, Ksuid::class).toKsuid()() { MalformedQueryParamException(name, Ksuid::class) }
-fun ServerRequest.paramOrThrowAsCuid(name: String) = paramOrThrow(name, Cuid::class).toCuid()() { MalformedQueryParamException(name, Cuid::class) }
-fun ServerRequest.paramOrThrowAsTsid(name: String) = paramOrThrow(name, Tsid::class).toTsid()() { MalformedQueryParamException(name, Tsid::class) }
-fun ServerRequest.paramOrThrowAsDate(name: String) = paramOrThrow(name, LocalDate::class).parseToLocalDate()() { MalformedQueryParamException(name, LocalDate::class) }
-fun ServerRequest.paramOrThrowAsDateTime(name: String) = paramOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime()() { MalformedQueryParamException(name, OffsetDateTime::class) }
+fun ServerRequest.paramOrThrowAsUuid(name: String) = paramOrThrow(name, Uuid::class).toUuid().getOrThrow(lazyException = { MalformedQueryParamException(name, Uuid::class) })
+fun ServerRequest.paramOrThrowAsUlid(name: String) = paramOrThrow(name, Ulid::class).toUlid().getOrThrow(lazyException = { MalformedQueryParamException(name, Ulid::class) })
+fun ServerRequest.paramOrThrowAsKsuid(name: String) = paramOrThrow(name, Ksuid::class).toKsuid().getOrThrow(lazyException = { MalformedQueryParamException(name, Ksuid::class) })
+fun ServerRequest.paramOrThrowAsCuid(name: String) = paramOrThrow(name, Cuid::class).toCuid().getOrThrow(lazyException = { MalformedQueryParamException(name, Cuid::class) })
+fun ServerRequest.paramOrThrowAsTsid(name: String) = paramOrThrow(name, Tsid::class).toTsid().getOrThrow(lazyException = { MalformedQueryParamException(name, Tsid::class) })
+fun ServerRequest.paramOrThrowAsDate(name: String) = paramOrThrow(name, LocalDate::class).parseToLocalDate().getOrThrow(lazyException = { MalformedQueryParamException(name, LocalDate::class) })
+fun ServerRequest.paramOrThrowAsDateTime(name: String) = paramOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedQueryParamException(name, OffsetDateTime::class) })
 inline fun <reified T : Enum<T>> ServerRequest.paramOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, T::class).toEnumConst<T>() }
 
 fun ServerRequest.paramOrNullAsStringList(name: String) = paramOrNull(name)?.splitAndTrim(Char.COMMA)
@@ -277,13 +277,13 @@ fun ServerRequest.pathVariableOrThrowAsInt(name: String) = tryOrThrow({ -> Malfo
 fun ServerRequest.pathVariableOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Long::class).toLong() }
 fun ServerRequest.pathVariableOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Double::class).toDouble() }
 fun ServerRequest.pathVariableOrThrowAsBoolean(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Boolean::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Boolean::class).toBoolean() }
-fun ServerRequest.pathVariableOrThrowAsUuid(name: String) = pathVariableOrThrow(name, Uuid::class).toUuid()() { MalformedPathVariableException(name, Uuid::class) }
-fun ServerRequest.pathVariableOrThrowAsUlid(name: String) = pathVariableOrThrow(name, Ulid::class).toUlid()() { MalformedPathVariableException(name, Ulid::class) }
-fun ServerRequest.pathVariableOrThrowAsKsuid(name: String) = pathVariableOrThrow(name, Ksuid::class).toKsuid()() { MalformedPathVariableException(name, Ksuid::class) }
-fun ServerRequest.pathVariableOrThrowAsCuid(name: String) = pathVariableOrThrow(name, Cuid::class).toCuid()() { MalformedPathVariableException(name, Cuid::class) }
-fun ServerRequest.pathVariableOrThrowAsTsid(name: String) = pathVariableOrThrow(name, Tsid::class).toTsid()() { MalformedPathVariableException(name, Tsid::class) }
-fun ServerRequest.pathVariableOrThrowAsDate(name: String) = pathVariableOrThrow(name, LocalDate::class).parseToLocalDate()() { MalformedPathVariableException(name, LocalDate::class) }
-fun ServerRequest.pathVariableOrThrowAsDateTime(name: String) = pathVariableOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime()() { MalformedPathVariableException(name, OffsetDateTime::class) }
+fun ServerRequest.pathVariableOrThrowAsUuid(name: String) = pathVariableOrThrow(name, Uuid::class).toUuid().getOrThrow(lazyException = { MalformedPathVariableException(name, Uuid::class) })
+fun ServerRequest.pathVariableOrThrowAsUlid(name: String) = pathVariableOrThrow(name, Ulid::class).toUlid().getOrThrow(lazyException = { MalformedPathVariableException(name, Ulid::class) })
+fun ServerRequest.pathVariableOrThrowAsKsuid(name: String) = pathVariableOrThrow(name, Ksuid::class).toKsuid().getOrThrow(lazyException = { MalformedPathVariableException(name, Ksuid::class) })
+fun ServerRequest.pathVariableOrThrowAsCuid(name: String) = pathVariableOrThrow(name, Cuid::class).toCuid().getOrThrow(lazyException = { MalformedPathVariableException(name, Cuid::class) })
+fun ServerRequest.pathVariableOrThrowAsTsid(name: String) = pathVariableOrThrow(name, Tsid::class).toTsid().getOrThrow(lazyException = { MalformedPathVariableException(name, Tsid::class) })
+fun ServerRequest.pathVariableOrThrowAsDate(name: String) = pathVariableOrThrow(name, LocalDate::class).parseToLocalDate().getOrThrow(lazyException = { MalformedPathVariableException(name, LocalDate::class) })
+fun ServerRequest.pathVariableOrThrowAsDateTime(name: String) = pathVariableOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedPathVariableException(name, OffsetDateTime::class) })
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, T::class).toEnumConst<T>() }
 
 fun ServerRequest.pathVariableOrNullAsStringList(name: String) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA)
