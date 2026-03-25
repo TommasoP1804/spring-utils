@@ -123,8 +123,6 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param resourceETag The ETag of the resource. If provided, it is used in place of the resource's actual ETag.
  * @param lastModifiedDate The timestamp representing the last modification date of the resource.
  * Used in conjunction with `ifModifiedSince` for conditional validation.
- * @param requireAllValidators If true, all validators (ETag, If-Modified-Since) must pass
- * for the request to proceed.
  * @param requireAtLeastOneValidator If true, at least one validator (ETag, If-Modified-Since) must be
  * present in the request. If none are provided, an exception will be thrown.
  * @param status The default HTTP status to return if the request is not conditional or if validation passes.
@@ -148,7 +146,6 @@ context(request: Request)
 suspend inline fun <reified T : Any> conditionalGet(
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
-    requireAllValidators: Boolean = false,
     requireAtLeastOneValidator: Boolean = false,
     status: HttpStatus = HttpStatus.OK,
     featureCode: String,
