@@ -59,11 +59,13 @@ fun ProblemDetail(
 internal fun findCallerMethod(): Method? = tryOrNull {
     val stackTrace = Thread.currentThread().stackTrace
 
-    for (i in 2 until stackTrace.size) {
+    for (i in stackTrace.indices) {
         val element = stackTrace[i]
         try {
             if (element.className.startsWith("java.") || element.className.startsWith("kotlin.")) continue
-            val clazz = Class.forName(element.className)
+            val clazz = Class.forName(element.className).let {
+                if ($$$"$$EnhancerBySpringCGLIB$$" in it.name || $$$"$$SpringCGLIB$$" in it.name) it.superclass else it
+            }
             val methods = clazz.declaredMethods
 
             val method = methods.find {
