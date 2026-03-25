@@ -42,15 +42,15 @@ class AcceptRangesArgumentResolver : HandlerMethodArgumentResolver {
 }
 
 @AutoConfiguration
-@ConditionalOnClass(AcceptEncodingArgumentResolver::class)
+@ConditionalOnClass(AcceptRangesArgumentResolver::class)
 class AcceptRangesArgumentResolverAutoConfiguration {
     @Configuration
-    @ConditionalOnBean(AcceptEncodingArgumentResolver::class)
-    class AcceptEncodingResolverRegistration(
-        private val resolvers: List<AcceptEncodingArgumentResolver>
+    @ConditionalOnBean(AcceptRangesArgumentResolver::class)
+    class AcceptRangesResolverRegistration(
+        private val resolvers: List<AcceptRangesArgumentResolver>
     ) : WebMvcConfigurer {
         override fun addArgumentResolvers(resolvers: MList<HandlerMethodArgumentResolver>) {
-            resolvers.addAll(this@AcceptEncodingResolverRegistration.resolvers)
+            resolvers.addAll(this@AcceptRangesResolverRegistration.resolvers)
         }
     }
 }

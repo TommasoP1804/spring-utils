@@ -1,10 +1,8 @@
 package dev.tommasop1804.springutils.request
 
-import dev.tommasop1804.kutils.COLON
-import dev.tommasop1804.kutils.classes.identifiers.Ulid
+import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.classes.identifiers.*
 import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
-import dev.tommasop1804.kutils.div
-import dev.tommasop1804.kutils.invoke
 
 /**
  * Represents a request identifier composed of a string value that adheres to a specific format.
@@ -33,7 +31,6 @@ value class RequestId internal constructor(val value: String): CharSequence {
      * The value is assumed to be structured such that sections are delimited by a colon (`:`).
      * This property retrieves the second segment (index 1) after splitting the value by the colon delimiter.
      *
-     * @throws IndexOutOfBoundsException If the `value` does not contain enough segments to extract the application name.
      * @since 2.1.0
      */
     val applicationAcronym: String get() = (value / Char.COLON)[1]

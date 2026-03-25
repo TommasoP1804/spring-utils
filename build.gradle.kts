@@ -15,7 +15,7 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "2.7.1"
+version = "2.7.2"
 // Spring-Utils
 // Tommaso Pastorelli
 // Last update: Tommaso Pastorelli | 20260323T203442Z
@@ -101,7 +101,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "2.7.1")
+    coordinates("dev.tommasop1804", "spring-utils", "2.7.2")
 
     pom {
         name.set("Spring Utils")

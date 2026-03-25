@@ -2,12 +2,8 @@
 
 package dev.tommasop1804.springutils.reactive.request
 
-import dev.tommasop1804.kutils.EMPTY
-import dev.tommasop1804.kutils.before
-import dev.tommasop1804.kutils.exceptions.MalformedInputException
-import dev.tommasop1804.kutils.exceptions.ValidationFailedException
-import dev.tommasop1804.kutils.isNotNull
-import dev.tommasop1804.kutils.isNotNullOrBlank
+import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.exceptions.*
 import kotlin.reflect.KClass
 
 /**
@@ -18,18 +14,7 @@ import kotlin.reflect.KClass
  * @author Tommaso Pastorelli
  * @since 2.0.0
  */
-open class RequiredPathVariableException : ValidationFailedException {
-    /**
-     * Extracts an internal error code from the exception message, if present.
-     * The internal error code is expected to appear before a separator sequence " @@@ ".
-     *
-     * @return The extracted internal error code, or null if the message is null,
-     *         empty, or does not contain a valid error code.
-     * @since 2.0.0
-     */
-    val internalErrorCode: String?
-        get() = message?.before(" @@@ ")?.ifBlank { null }
-
+open class RequiredPathVariableException : RequiredParameterException {
     /**
      * Default constructor for the RequiredPathVariableException class.
      *
@@ -54,7 +39,7 @@ open class RequiredPathVariableException : ValidationFailedException {
      *                          Defaults to null. If provided, it will be prepended to the error message.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", cause)
+    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", cause, internalErrorCode)
     /**
      * Constructs a `RequiredPathVariableException` with a message indicating that a specific path variable is required.
      *
@@ -63,7 +48,7 @@ open class RequiredPathVariableException : ValidationFailedException {
      * @param internalErrorCode An optional internal error code that is prefixed to the exception message, separated by " @@@ ".
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY} ${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required")
+    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY} ${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", internalErrorCode)
 }
 
 /**
@@ -74,18 +59,7 @@ open class RequiredPathVariableException : ValidationFailedException {
  * @author Tommaso Pastorelli
  * @since 2.0.0
  */
-open class RequiredQueryParamException : ValidationFailedException {
-    /**
-     * Retrieves the internal error code extracted from the exception message.
-     * The internal error code is assumed to be the substring before the delimiter " @@@ ".
-     * If the extracted substring is blank, `null` is returned.
-     *
-     * @return The internal error code if present and not blank; otherwise, `null`.
-     * @since 2.0.0
-     */
-    val internalErrorCode: String?
-        get() = message?.before(" @@@ ")?.ifBlank { null }
-
+open class RequiredQueryParamException : RequiredParameterException {
     /**
      * Constructs a new instance of the RequiredQueryParamException class.
      * This constructor calls the default constructor of the superclass
@@ -104,7 +78,7 @@ open class RequiredQueryParamException : ValidationFailedException {
      *                          If provided, it is prepended to the error message with a separator " @@@ ".
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", cause)
+    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", cause, internalErrorCode)
     /**
      * Constructs an exception indicating that a required query parameter is missing.
      *
@@ -116,7 +90,7 @@ open class RequiredQueryParamException : ValidationFailedException {
      * If provided, it will be included as a prefix in the exception message.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required")
+    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", internalErrorCode)
 }
 
 /**
@@ -145,7 +119,7 @@ open class MalformedPathVariableException : MalformedInputException {
      * error code is prepended to the message, separated by " @@@ ".
      * @since 2.0.0
      */
-    constructor(message: String, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + message)
+    constructor(message: String, internalErrorCode: String? = null) : super(message, internalErrorCode)
     /**
      * Constructs a `MalformedPathVariableException` with a detailed error message based on the provided
      * path variable name, its expected type, the cause of the exception, and an optional internal error code.
@@ -161,7 +135,7 @@ open class MalformedPathVariableException : MalformedInputException {
      * @param internalErrorCode An optional identifier to represent the specific internal error. Defaults to null.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", cause)
+    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", cause, internalErrorCode)
     /**
      * Constructs a MalformedPathVariableException with a detailed message describing the invalid path variable.
      *
@@ -171,7 +145,7 @@ open class MalformedPathVariableException : MalformedInputException {
      * Defaults to null.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}")
+    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", internalErrorCode)
 }
 
 /**
@@ -195,7 +169,7 @@ open class MalformedQueryParamException : MalformedInputException {
      * @param internalErrorCode An optional internal error code to associate with this exception.
      * @since 2.0.0
      */
-    constructor(message: String, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + message)
+    constructor(message: String, internalErrorCode: String? = null) : super(message, internalErrorCode)
     /**
      * Constructs a MalformedQueryParamException with a detailed error message based on the provided
      * query parameter name, class type, optional cause, and an optional internal error code.
@@ -209,7 +183,7 @@ open class MalformedQueryParamException : MalformedInputException {
      * @param internalErrorCode An optional internal error code to include in the message.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", cause)
+    constructor(name: String?, `class`: KClass<*>?, cause: Throwable?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", cause, internalErrorCode)
     /**
      * Constructs an instance of MalformedQueryParamException with a detailed message indicating
      * the invalid query parameter. Optionally includes the internal error code and the type of the
@@ -220,5 +194,5 @@ open class MalformedQueryParamException : MalformedInputException {
      * @param internalErrorCode An optional internal error code to include in the message. If null, no error code is added.
      * @since 2.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super((internalErrorCode?.plus(" @@@ ") ?: String.EMPTY) + "Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}")
+    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Query param ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}is not valid${if (`class`.isNotNull()) " `${`class`.simpleName}`" else String.EMPTY}", internalErrorCode)
 }

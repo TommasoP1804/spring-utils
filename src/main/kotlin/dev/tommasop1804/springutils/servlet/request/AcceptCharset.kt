@@ -42,12 +42,12 @@ class AcceptCharsetArgumentResolver : HandlerMethodArgumentResolver {
 }
 
 @AutoConfiguration
-@ConditionalOnClass(AcceptArgumentResolver::class)
+@ConditionalOnClass(AcceptCharsetArgumentResolver::class)
 class AcceptCharsetArgumentResolverAutoConfiguration {
     @Configuration
-    @ConditionalOnBean(AcceptArgumentResolver::class)
+    @ConditionalOnBean(AcceptCharsetArgumentResolver::class)
     class AcceptCharsetResolverRegistration(
-        private val resolvers: List<AcceptArgumentResolver>
+        private val resolvers: List<AcceptCharsetArgumentResolver>
     ) : WebMvcConfigurer {
         override fun addArgumentResolvers(resolvers: MList<HandlerMethodArgumentResolver>) {
             resolvers.addAll(this@AcceptCharsetResolverRegistration.resolvers)

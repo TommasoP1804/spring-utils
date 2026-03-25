@@ -5,35 +5,26 @@
 package dev.tommasop1804.springutils.reactive.response
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.annotations.Since
-import dev.tommasop1804.kutils.classes.time.Duration
-import dev.tommasop1804.kutils.classes.web.HttpHeader
+import dev.tommasop1804.kutils.annotations.*
+import dev.tommasop1804.kutils.classes.time.*
+import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.eTag
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.toHeaderDate
-import dev.tommasop1804.kutils.classes.web.HttpHeaders
-import dev.tommasop1804.kutils.classes.web.HttpStatus
 import dev.tommasop1804.kutils.classes.web.HttpStatus.Companion.toHttpStatus
-import dev.tommasop1804.kutils.classes.web.HttpVersion
-import dev.tommasop1804.kutils.exceptions.NoSuchEntryException
-import dev.tommasop1804.springutils.REQUEST_ID
-import dev.tommasop1804.springutils.annotations.Feature
-import dev.tommasop1804.springutils.config.YAML_MEDIA_TYPES
-import dev.tommasop1804.springutils.exception.PreconditionFailedException
-import dev.tommasop1804.springutils.exception.PreconditionRequiredException
-import dev.tommasop1804.springutils.findCallerMethod
-import dev.tommasop1804.springutils.reactive.Request
-import dev.tommasop1804.springutils.reactive.Response
-import dev.tommasop1804.springutils.reactive.request.requestId
+import dev.tommasop1804.kutils.exceptions.*
+import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.annotations.*
+import dev.tommasop1804.springutils.config.*
+import dev.tommasop1804.springutils.exception.*
+import dev.tommasop1804.springutils.reactive.*
+import dev.tommasop1804.springutils.reactive.request.*
+import dev.tommasop1804.springutils.request.*
 import dev.tommasop1804.springutils.servlet.EmptyResponse
-import dev.tommasop1804.springutils.servlet.response.MultiStatusResponseType
-import dev.tommasop1804.springutils.servlet.response.ResourceResult
-import dev.tommasop1804.springutils.toSpringHttpHeaders
-import dev.tommasop1804.springutils.toSpringHttpStatus
+import dev.tommasop1804.springutils.servlet.response.*
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
-import java.net.URI
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
@@ -975,7 +966,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
-    location: URI? = null,
+    location: Uri? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
@@ -1023,7 +1014,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     includeRequestId: Boolean = true,
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
-    location: URI? = null,
+    location: Uri? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: StringList = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
@@ -1586,7 +1577,7 @@ suspend fun SeeOtherResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
@@ -1621,7 +1612,7 @@ suspend fun SeeOtherResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
@@ -1660,7 +1651,7 @@ suspend fun SeeOtherResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
@@ -1695,7 +1686,7 @@ suspend fun SeeOtherResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.SEE_OTHER.toSpringHttpStatus())
@@ -1731,7 +1722,7 @@ suspend fun FoundResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
@@ -1766,7 +1757,7 @@ suspend fun FoundResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
@@ -1802,7 +1793,7 @@ suspend fun FoundResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
@@ -1837,7 +1828,7 @@ suspend fun FoundResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.FOUND.toSpringHttpStatus())
@@ -1874,7 +1865,7 @@ suspend fun MovedPermanentlyResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
@@ -1902,7 +1893,7 @@ suspend fun MovedPermanentlyResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
@@ -1935,7 +1926,7 @@ suspend fun MovedPermanentlyResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
@@ -1967,7 +1958,7 @@ suspend fun MovedPermanentlyResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.MOVED_PERMANENTLY.toSpringHttpStatus())
@@ -2007,7 +1998,7 @@ suspend fun PermanentRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
@@ -2039,7 +2030,7 @@ suspend fun PermanentRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
@@ -2078,7 +2069,7 @@ suspend fun PermanentRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
@@ -2110,7 +2101,7 @@ suspend fun PermanentRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.PERMANENT_REDIRECT.toSpringHttpStatus())
@@ -2145,7 +2136,7 @@ suspend fun TemporaryRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
@@ -2180,7 +2171,7 @@ suspend fun TemporaryRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
@@ -2215,7 +2206,7 @@ suspend fun TemporaryRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
@@ -2250,7 +2241,7 @@ suspend fun TemporaryRedirectResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
-    location: URI,
+    location: Uri,
     action: Action? = null
 ): Response {
     val re = Response.status(HttpStatus.TEMPORARY_REDIRECT.toSpringHttpStatus())
@@ -2296,6 +2287,44 @@ suspend fun NotModifiedResponse(
     if (eTag.isNotNull()) re.eTag(eTag)
     if (expires.isNotNull()) re.expires(expires)
     if (includeFeatureCode) re.featureCode()
+    if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
+    if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
+    if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    if (action.isNotNull()) action()
+    return re.buildAndAwait()
+}
+/**
+ * Constructs a 304 Not Modified HTTP response.
+ *
+ * This method customizes the response by adding optional headers, an ETag, and feature code metadata.
+ * It uses the `HttpStatus.NOT_MODIFIED` status to indicate that the resource has not changed since last requested.
+ *
+ * @param featurecode Specifies the "Feature-Code" header in the response.
+ * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
+ * @param eTag An optional ETag value to include in the response for resource versioning. Defaults to `null`.
+ * @param expires An optional expiration date for the response. Defaults to `null`.
+ * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
+ * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param headers Optional additional HTTP headers to include in the response (overrides any other header parameters of this method). Defaults to `null`.
+ * @param action An optional action to perform before finalizing the response. Defaults to `null`.
+ * @return A `Response` instance representing the 304 Not Modified HTTP response.
+ * @since 2.7.2
+ */
+suspend fun NotModifiedResponse(
+    featureCode: String,
+    includeRequestId: Boolean = true,
+    eTag: String? = null,
+    expires: TemporalAccessor? = null,
+    preferenceApplied: StringList = emptyList(),
+    serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    headers: HttpHeaders = HttpHeaders(),
+    action: Action? = null
+): Response {
+    val re = Response.status(HttpStatus.NOT_MODIFIED.toSpringHttpStatus())
+    if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
+    if (eTag.isNotNull()) re.eTag(eTag)
+    if (expires.isNotNull()) re.expires(expires)
+    re.featureCode(featureCode)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
@@ -2397,7 +2426,7 @@ suspend fun ServerResponse.BodyBuilder.requestId() = header("Request-Id", dev.to
  * @param id The identifier to associate with the "Request-Id" header.
  * @since 2.0.9
  */
-fun ServerResponse.BodyBuilder.requestId(id: Any) = header("Request-Id", id.toString())
+fun ServerResponse.BodyBuilder.requestId(id: RequestId) = header("Request-Id", id.toString())
 
 /**
  * Adds a "Feature-Code" header with the provided code to the response.
@@ -2453,7 +2482,7 @@ fun ServerResponse.BodyBuilder.preferenceApplied(vararg preferences: String): Se
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
-fun ServerResponse.BodyBuilder.refresh(time: Duration, url: URL? = null): ServerResponse.BodyBuilder =
+fun ServerResponse.BodyBuilder.refresh(time: Duration, url: Url? = null): ServerResponse.BodyBuilder =
     header("Refresh", "${time.toSeconds()}${url?.let { "; url=$it" } ?: String.EMPTY}")
 /**
  * Adds a "Refresh" header to the response, indicating a periodic refresh or redirect to a specified URL.
@@ -2463,7 +2492,7 @@ fun ServerResponse.BodyBuilder.refresh(time: Duration, url: URL? = null): Server
  * @since 2.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
-fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, URL?>): ServerResponse.BodyBuilder =
+fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, Url?>): ServerResponse.BodyBuilder =
     header("Refresh", "${timeAndURL.first.toSeconds()}${timeAndURL.second?.let { "; url=$it" } ?: String.EMPTY}")
 /**
  * Adds a `Refresh` header to the HTTP response, which specifies the interval 
@@ -2475,7 +2504,7 @@ fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, URL?>): Server
  * @return The current instance of [ServerResponse.BodyBuilder] with the `Refresh` header added.
  * @since 2.0.0
  */
-fun ServerResponse.BodyBuilder.refresh(seconds: Int, url: URL? = null): ServerResponse.BodyBuilder =
+fun ServerResponse.BodyBuilder.refresh(seconds: Int, url: Url? = null): ServerResponse.BodyBuilder =
     header("Refresh", "${seconds}${url?.let { "; url=$it" } ?: String.EMPTY}")
 
 /**

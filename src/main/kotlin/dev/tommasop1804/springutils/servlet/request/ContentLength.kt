@@ -1,7 +1,8 @@
 package dev.tommasop1804.springutils.servlet.request
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.classes.web.MediaType
+import dev.tommasop1804.kutils.classes.measure.*
+import dev.tommasop1804.kutils.classes.measure.RMeasurement.Companion.ofUnit
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -38,7 +39,7 @@ class ContentLengthArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): Int? = webRequest.getHeader("Content-Length")?.let { it.toInt() }
+    ): DataSize? = webRequest.getHeader("Content-Length")?.let { it.toInt() ofUnit MeasureUnit.DataSizeUnit.BYTE }
 }
 
 @AutoConfiguration

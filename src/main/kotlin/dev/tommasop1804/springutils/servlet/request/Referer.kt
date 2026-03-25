@@ -1,9 +1,7 @@
 package dev.tommasop1804.springutils.servlet.request
 
-import dev.tommasop1804.kutils.MList
-import dev.tommasop1804.kutils.invoke
-import dev.tommasop1804.kutils.toUrl
-import dev.tommasop1804.springutils.exception.BadRequestException
+import dev.tommasop1804.kutils.*
+import dev.tommasop1804.springutils.exception.*
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -41,7 +39,7 @@ class ReferArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): URL? = webRequest.getHeader("Referer")?.toUrl()() { BadRequestException("Invalid Referer header") }
+    ): Url? = webRequest.getHeader("Referer")?.toUrl()() { BadRequestException("Invalid Referer header") }
 }
 
 @AutoConfiguration
