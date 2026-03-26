@@ -164,6 +164,7 @@ internal fun getStatus(e: Throwable) = when (e) {
     is PreconditionRequiredException -> HttpStatus.PRECONDITION_REQUIRED
     is RangeNotSatisfiableException -> HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE
     is RequestTimeoutException -> HttpStatus.REQUEST_TIMEOUT
+    is ServiceUnavailableException -> HttpStatus.SERVICE_UNAVAILABLE
     is TeapotException -> HttpStatus.I_AM_A_TEAPOT
     is TooEarlyException -> HttpStatus.TOO_EARLY
     is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
@@ -171,6 +172,7 @@ internal fun getStatus(e: Throwable) = when (e) {
     is UnavailableForLegalReasonsException -> HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS
     is UnprocessableContentException, is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_CONTENT
     is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
+    is VariantAlsoNegotiatesException -> HttpStatus.VARIANT_ALSO_NEGOTIATES
     else -> HttpStatus.INTERNAL_SERVER_ERROR
 }
 
@@ -185,6 +187,7 @@ internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     MalformedQueryParamException::class,
     MalformedHeaderException::class,
     MalformedInputException::class,
+    ResourceUnaccessibleException::class,
     ResourceAlreadyExistsException::class,
     ResourceConflictException::class,
     InsufficientPermissionsException::class,

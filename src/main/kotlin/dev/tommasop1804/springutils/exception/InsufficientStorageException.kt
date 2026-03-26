@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.INSUFFICIENT_STORAGE)
 @Suppress("unused")
 class InsufficientStorageException : ResponseException {
-    constructor() : super(HttpStatus.INSUFFICIENT_STORAGE)
-    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.INSUFFICIENT_STORAGE, message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.INSUFFICIENT_STORAGE, cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.INSUFFICIENT_STORAGE, message, cause, internalErrorCode)
+    constructor() : super()
+    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
 }

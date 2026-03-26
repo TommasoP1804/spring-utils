@@ -1,7 +1,6 @@
 
 import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import kotlin.jvm.java
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.20"
@@ -16,10 +15,10 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "3.0.2"
+version = "3.0.3"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260326T105342Z
+// Last update: Tommaso Pastorelli | 20260326T122353Z
 
 repositories {
     mavenCentral()
@@ -102,7 +101,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "3.0.2")
+    coordinates("dev.tommasop1804", "spring-utils", "3.0.3")
 
     pom {
         name.set("Spring Utils")

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_EXTENDED)
 @Suppress("unused")
 class NotExtendedException : ResponseException {
-    constructor() : super(HttpStatus.NOT_EXTENDED)
-    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.NOT_EXTENDED, message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.NOT_EXTENDED, cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.NOT_EXTENDED, message, cause, internalErrorCode)
+    constructor() : super()
+    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
 }

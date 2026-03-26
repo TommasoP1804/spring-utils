@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.LOCKED)
 @Suppress("unused")
 class LockedException : ResponseException {
-    constructor() : super(HttpStatus.LOCKED)
-    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.LOCKED, message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.LOCKED, cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.LOCKED, message, cause, internalErrorCode)
+    constructor() : super()
+    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
 }

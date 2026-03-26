@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.PRECONDITION_REQUIRED)
 @Suppress("unused")
 class PreconditionRequiredException : ResponseException {
-    constructor() : super(HttpStatus.PRECONDITION_REQUIRED)
-    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.PRECONDITION_REQUIRED, message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.PRECONDITION_REQUIRED, cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.PRECONDITION_REQUIRED, message, cause, internalErrorCode)
+    constructor() : super()
+    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
 }

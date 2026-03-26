@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
 @Suppress("unused")
 class UnprocessableContentException : ResponseException {
-    constructor() : super(HttpStatus.UNPROCESSABLE_CONTENT)
-    constructor(message: String?, internalErrorCode: String? = null) : super(HttpStatus.UNPROCESSABLE_CONTENT, message, internalErrorCode)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.UNPROCESSABLE_CONTENT, cause, internalErrorCode)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(HttpStatus.UNPROCESSABLE_CONTENT, message, cause, internalErrorCode)
+    constructor() : super()
+    constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super(message, cause, internalErrorCode)
 }
