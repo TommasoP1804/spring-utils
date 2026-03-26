@@ -48,7 +48,7 @@ class LogHandler(
                 checkExcludeOrInclude(exclude.toTypedArray(), includeOnly.toTypedArray()),
                 handler,
                 function,
-                "${request!!.method()} ${request!!.path()}${if (request!!.allParams().isEmpty()) String.EMPTY else "?${request!!.allParams().toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
+                "${request!!.method()} ${request!!.path()}${if (request!!.params.isEmpty()) String.EMPTY else "?${request!!.params.toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
                 username,
                 request!!.header(HttpHeader.FROM_SERVICE).firstOrNull(),
                 featureCode,
@@ -62,6 +62,7 @@ class LogHandler(
                         when (cm.type) {
                             LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
                                 customs += cm.key to request!!.path()
                                     .let { if (it startsWith Char.SLASH) (-1)(it) else it }
@@ -84,7 +85,7 @@ class LogHandler(
                 checkExcludeOrInclude(exclude.toTypedArray(), includeOnly.toTypedArray()),
                 handler,
                 function,
-                "${request!!.method()} ${request!!.path()}${if (request!!.allParams().isEmpty()) String.EMPTY else "?${request!!.allParams().toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
+                "${request!!.method()} ${request!!.path()}${if (request!!.params.isEmpty()) String.EMPTY else "?${request!!.params.toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
                 username,
                 request!!.header(HttpHeader.FROM_SERVICE).firstOrNull(),
                 featureCode,
@@ -95,6 +96,7 @@ class LogHandler(
                         when (cm.type) {
                             LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
                                 customs += cm.key to request!!.path()
                                     .let { if (it startsWith Char.SLASH) (-1)(it) else it }
@@ -122,7 +124,7 @@ class LogHandler(
                 checkExcludeOrInclude(exclude.toTypedArray(), includeOnly.toTypedArray()),
                 handler,
                 function,
-                "${request!!.method()} ${request!!.path()}${if (request!!.allParams().isEmpty()) String.EMPTY else "?${request!!.allParams().toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
+                "${request!!.method()} ${request!!.path()}${if (request!!.params.isEmpty()) String.EMPTY else "?${request!!.params.toList().joinToString("&") { "${it.first}=${it.second.joinToString()}" }}"}",
                 username,
                 (if (exception is ResponseStatusException) HttpStatus.valueOf(exception.statusCode.value()) else getStatus(exception)).let { "${it.value()} ${it.reasonPhrase}" },
                 request!!.header(HttpHeader.FROM_SERVICE).firstOrNull(),
@@ -136,6 +138,7 @@ class LogHandler(
                         when (cm.type) {
                             LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to it }
                             LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
                                 customs += cm.key to request!!.path()
                                     .let { if (it startsWith Char.SLASH) (-1)(it) else it }

@@ -36,9 +36,9 @@ import kotlin.reflect.KClass
  *
  * @receiver The `ServerRequest` from which parameters are extracted.
  * @return A `MultiMap` containing all request parameters and their associated values.
- * @since 3.0.0
+ * @since 3.0.2
  */
-fun ServerRequest.allParams() = params().toMultiMap()
+val ServerRequest.params get() = params().toMultiMap()
 /**
  * Retrieves all headers from the current `ServerRequest` instance and converts them
  * into a `HttpHeaders` structure compatible with the `kutils` library.
@@ -50,9 +50,18 @@ fun ServerRequest.allParams() = params().toMultiMap()
  * @receiver The `ServerRequest` instance from which to extract the headers.
  * @return A `HttpHeaders` instance containing all headers from the request, converted
  *         to the `kutils` library's format.
- * @since 3.0.0
+ * @since 3.0.2
  */
-fun ServerRequest.allHeaders() = headers().asHttpHeaders().toKutilsHttpHeaders()
+val ServerRequest.headers get() = headers().asHttpHeaders().toKutilsHttpHeaders()
+/**
+ * Provides a map of path variables extracted from the current server request.
+ *
+ * This property retrieves the path variable mappings as a `StringMap`, where the keys represent
+ * the variable names and the values represent their corresponding values in the path. It is often
+ * used in the context of handling requests with dynamic path segments.
+ * @since 3.0.2
+ */
+val ServerRequest.pathVariables: StringMap get() = pathVariables()
 
 /**
  * Retrieves the value of a query parameter by its name or throws an exception if it is missing.
@@ -70,7 +79,7 @@ fun ServerRequest.allHeaders() = headers().asHttpHeaders().toKutilsHttpHeaders()
  */
 fun ServerRequest.paramOrThrow(
     name: String,
-    `class`: KClass<*>,
+    `class`: KClass<*> = String::class,
     lazyException: ThrowableSupplier = { RequiredQueryParamException(name, `class`) }
 ) = paramOrNull(name) ?: throw lazyException()
 /**
@@ -91,7 +100,7 @@ fun ServerRequest.paramOrThrow(
  */
 fun ServerRequest.paramOrThrow(
     name: String,
-    `class`: KClass<*>,
+    `class`: KClass<*> = String::class,
     internalErrorCode: String
 ) = paramOrNull(name) ?: throw RequiredQueryParamException(name, `class`, internalErrorCode)
 /**
@@ -120,7 +129,7 @@ fun ServerRequest.paramOrDefault(
  * @return The path variable as a string if the retrieval is successful.
  * @since 3.0.0
  */
-fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, lazyException: ThrowableSupplier = { RequiredPathVariableException(name, `class`) }) =
+fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String::class, lazyException: ThrowableSupplier = { RequiredPathVariableException(name, `class`) }) =
     tryOrThrow(lazyException, includeCause = false) { pathVariable(name) }
 /**
  * Extracts a required path variable from the server request. If the specified path variable
@@ -135,7 +144,7 @@ fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, lazyExce
  * @throws RequiredPathVariableException If the path variable is not present or invalid.
  * @since 3.0.0
  */
-fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String) =
+fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String::class, internalErrorCode: String) =
     tryOrThrow({ -> RequiredPathVariableException(name, `class`, internalErrorCode) }, includeCause = false) { pathVariable(name) }
 /**
  * Retrieves the value of a path variable by the given name from the ServerRequest.
@@ -172,7 +181,7 @@ fun ServerRequest.pathVariableOrNull(name: String): String? = tryOrNull { pathVa
  * `lazyException` parameter.
  * @since 3.0.0
  */
-fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): StringList =
+fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*> = StringList::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): StringList =
     tryOrThrow(lazyException, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
 /**
  * Retrieves the value of a specific header from the server request or throws an exception if the header
@@ -183,7 +192,7 @@ fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException:
  * @param internalErrorCode the internal error code to associate with the exception if the header is missing or invalid
  * @since 3.0.0
  */
-fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String): StringList =
+fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*> = String::class, internalErrorCode: String): StringList =
     tryOrThrow({ -> RequiredHeaderException(name, `class`, internalErrorCode) }, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
 /**
  * Retrieves the header values associated with the given header name from the request. If no values are found,
@@ -206,6 +215,55 @@ fun ServerRequest.headerOrDefault(
  * @since 3.0.0
  */
 fun ServerRequest.header(name: String): StringList = tryOrNull { headers().header(name) }.orEmpty()
+
+/**
+ * Retrieves the specified header from the server request, ensuring it contains only a single value,
+ * or throws an exception if the header is not found, its value is empty, or it contains multiple elements.
+ *
+ * @param name the name of the header to retrieve.
+ * @param class the expected type of the header's value. Defaults to `StringList::class`.
+ * @param lazyException a lambda function that supplies the exception to be thrown if the header
+ * is missing, its value is empty, or it contains multiple elements. Defaults to producing a `RequiredHeaderException`
+ * with the header name and expected type.
+ * @return the single value of the header as a `String`.
+ * @since 3.0.2
+ */
+fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = StringList::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): String =
+    headerOrThrow(name, `class`, lazyException).onlyElement()
+/**
+ * Retrieves the value of a specific header from the server request and ensures that it contains
+ * only a single element. Throws an exception if the header is missing, empty, or contains multiple elements.
+ *
+ * @param name the name of the header to retrieve
+ * @param class the expected class type of the header value
+ * @param internalErrorCode the internal error code to associate with the exception if the header is invalid or contains multiple elements
+ * @return the single value of the specified header
+ * @since 3.0.2
+ */
+fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = String::class, internalErrorCode: String): String =
+    headerOrThrow(name, `class`, internalErrorCode).onlyElement()
+/**
+ * Retrieves the only element of the specified header from the request headers.
+ * If the header is not present or contains multiple elements, the provided default value is returned as a string.
+ *
+ * @param name the name of the header to retrieve
+ * @param defaultValue a supplier that provides a default value if the header is absent or contains multiple elements
+ * @return the single value of the specified header or the default value as a string
+ * @since 3.0.2
+ */
+fun ServerRequest.headerOrDefaultOnlyElement(
+    name: String,
+    defaultValue: Supplier<Any>
+): String = headers().header(name).onlyElementOrNull() ?: defaultValue().toString()
+/**
+ * Retrieves the only element from the values of the specified header in the server request.
+ *
+ * @param name the name of the header whose single value is to be retrieved
+ * @return the single value of the specified header
+ * @throws IllegalArgumentException if the header contains zero or multiple values
+ * @since 3.0.2
+ */
+fun ServerRequest.headerOnlyElement(name: String): String = headers().header(name).onlyElement()
 
 fun ServerRequest.accept() = header(HttpHeaders.ACCEPT)
 fun ServerRequest.acceptCharset() = header(HttpHeaders.ACCEPT_CHARSET)
