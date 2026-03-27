@@ -1,5 +1,5 @@
-@file:JvmName("JPAUtilsKt")
-@file:Since("1.0.0")
+@file:JvmName("JpaUtilsKt")
+@file:Since("3.0.5")
 @file:Suppress("unused", "FunctionName")
 
 package dev.tommasop1804.springutils.jpa
@@ -674,7 +674,7 @@ fun <T : Any> Chunked<T>.toJpaPage() = PageImpl(
     data.orEmpty(),
     PageRequest(
         pageIndex,
-        limit.requiredField(::limit, "chunked"),
+        limit.requiredProperty(::limit, "chunked"),
         sort.toJpaSort()
     ),
     totalElements.toLong()
