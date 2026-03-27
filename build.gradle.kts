@@ -15,7 +15,7 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "3.0.4"
+version = "3.0.5"
 // Spring-Utils
 // Tommaso Pastorelli
 // Last update: Tommaso Pastorelli | 20260326T125321Z
@@ -56,8 +56,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:3.1.3")
-    api("dev.tommasop1804:kotlin-utils:3.1.3")
+    aspect("dev.tommasop1804:kotlin-utils:3.2.0")
+    api("dev.tommasop1804:kotlin-utils:3.2.0")
 }
 
 kotlin {
@@ -101,7 +101,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "3.0.4")
+    coordinates("dev.tommasop1804", "spring-utils", "3.0.5")
 
     pom {
         name.set("Spring Utils")

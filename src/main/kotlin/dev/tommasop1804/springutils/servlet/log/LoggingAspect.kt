@@ -70,8 +70,8 @@ internal class LoggingAspect(
             val customs = emptyMList<String2>()
             annotation.customMessages.forEach { cm ->
                 when (cm.type) {
-                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to it }
-                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
+                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
                     LogExecution.CustomMessage.Type.PATH_VARIABLE -> {
                         val uriTemplate = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
                         val pathVariables = if (uriTemplate.isNotNull()) {
@@ -80,10 +80,10 @@ internal class LoggingAspect(
                             @Suppress("UNCHECKED_CAST")
                             (request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) as? StringMap).orEmpty()
                         }
-                        pathVariables[cm.reference]?.let { customs += cm.key to it }
+                        pathVariables[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                     }
-                    LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) { customs += cm.key to request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")] }
-                    LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
+                    LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                 }
             }
             Logs.logStart(finalComponents, className, methodName, path, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get()!!, customs)
@@ -112,8 +112,8 @@ internal class LoggingAspect(
                 val customs = emptyMList<String2>()
                 annotation.customMessages.forEach { cm ->
                     when (cm.type) {
-                        LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to it }
-                        LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to it }
+                        LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
+                        LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
                         LogExecution.CustomMessage.Type.PATH_VARIABLE -> {
                             val uriTemplate = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
                             val pathVariables = if (uriTemplate.isNotNull()) {
@@ -122,10 +122,10 @@ internal class LoggingAspect(
                                 @Suppress("UNCHECKED_CAST")
                                 (request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) as? StringMap).orEmpty()
                             }
-                            pathVariables[cm.reference]?.let { customs += cm.key to it }
+                            pathVariables[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                         }
-                        LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) { customs += cm.key to request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")] }
-                        LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
+                        LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
+                        LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                     }
                 }
                 Logs.logEnd(finalComponents, className, methodName, null, username, serviceValue, featureCode, RequestIdProvider.requestIdThreadLocal.get(), customs)
@@ -170,8 +170,8 @@ internal class LoggingAspect(
             val customs = emptyMList<String2>()
             annotation.customMessages.forEach { cm ->
                 when (cm.type) {
-                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to it }
-                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.HEADER -> request.getHeader(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
+                    LogExecution.CustomMessage.Type.QUERY_PARAM -> request.getParameter(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
                     LogExecution.CustomMessage.Type.PATH_VARIABLE -> {
                         val uriTemplate = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
                         val pathVariables = if (uriTemplate.isNotNull()) {
@@ -180,10 +180,10 @@ internal class LoggingAspect(
                             @Suppress("UNCHECKED_CAST")
                             (request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE) as? StringMap).orEmpty()
                         }
-                        pathVariables[cm.reference]?.let { customs += cm.key to it }
+                        pathVariables[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                     }
-                    LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) { customs += cm.key to request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")] }
-                    LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
+                    LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
+                    LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                 }
             }
             Logs.logException(

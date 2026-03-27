@@ -138,7 +138,7 @@ fun dev.tommasop1804.kutils.classes.web.MimeType.toSpringMimeType() = MimeType(t
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
     is BadRequestException,
-    is RequiredFieldException,
+    is RequiredPropertyException,
     is RequiredParameterException,
     is RequiredHeaderException,
     is MalformedInputException -> HttpStatus.BAD_REQUEST
@@ -178,7 +178,7 @@ internal fun getStatus(e: Throwable) = when (e) {
 
 internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     ExternalServiceHttpException::class,
-    RequiredFieldException::class,
+    RequiredPropertyException::class,
     RequiredParameterException::class,
     RequiredPathVariableException::class,
     RequiredQueryParamException::class,
@@ -187,6 +187,8 @@ internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     MalformedQueryParamException::class,
     MalformedHeaderException::class,
     MalformedInputException::class,
+    MalformedPropertyException::class,
+    MalformedParameterException::class,
     ResourceUnaccessibleException::class,
     ResourceAlreadyExistsException::class,
     ResourceConflictException::class,

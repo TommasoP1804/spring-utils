@@ -1,5 +1,7 @@
 package dev.tommasop1804.springutils.servlet.log
 
+import dev.tommasop1804.kutils.*
+
 @Target(
     AnnotationTarget.FUNCTION,
     AnnotationTarget.PROPERTY_GETTER,
@@ -40,7 +42,10 @@ annotation class LogExecution(
     annotation class CustomMessage(
         val key: String,
         val type: Type,
-        val reference: String
+        val reference: String,
+        val effects: Array<Ansi.Effect> = [],
+        val textColor: Ansi.TextColor = Ansi.TextColor.DEFAULT,
+        val bgColor: Ansi.BackgroundColor = Ansi.BackgroundColor.DEFAULT,
     ) {
         enum class Type {
             HEADER,
@@ -51,3 +56,7 @@ annotation class LogExecution(
         }
     }
 }
+
+internal fun applyAnsi(cm: LogExecution.CustomMessage, string: String) = with(cm) { Ansi.compose(
+    *(effects.map { it.code } + textColor.code + bgColor.code).toTypedArray()
+) + string + Ansi.RESET }

@@ -81,8 +81,8 @@ internal object Logs {
                     + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
-                    + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
                     + custom
+                    + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
         )
     }
 
@@ -120,9 +120,9 @@ internal object Logs {
                     + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
                     + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
+                    + custom
                     + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
-                    + custom
                     + (if (Component.EXCEPTION in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
                     + (if (Component.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
         )

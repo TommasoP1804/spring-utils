@@ -60,16 +60,16 @@ class LogHandler(
                     val customs = emptyMList<String2>()
                     customMessages.forEach { cm ->
                         when (cm.type) {
-                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to applyAnsi(cm, it) }
+                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
+                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                             LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
-                                customs += cm.key to request!!.path()
+                                customs += cm.key to applyAnsi(cm, request!!.path()
                                     .let { if (it startsWith Char.SLASH) (-1)(it) else it }
                                     .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
                                     ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
-                            }
-                            LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
+                                ) }
+                            LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                         }
                     }
                     customs
@@ -94,16 +94,16 @@ class LogHandler(
                     val customs = emptyMList<String2>()
                     customMessages.forEach { cm ->
                         when (cm.type) {
-                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to applyAnsi(cm, it) }
+                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
+                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                             LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
-                                customs += cm.key to request!!.path()
+                                customs += cm.key to applyAnsi(cm, request!!.path()
                                     .let { if (it startsWith Char.SLASH) (-1)(it) else it }
                                     .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
                                     ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
-                            }
-                            LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
+                                ) }
+                            LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                         }
                     }
                     customs
@@ -136,16 +136,16 @@ class LogHandler(
                     val customs = emptyMList<String2>()
                     customMessages.forEach { cm ->
                         when (cm.type) {
-                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to it }
-                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to it }
+                            LogExecution.CustomMessage.Type.HEADER -> request!!.header(cm.reference).firstOrNull()?.let { customs += cm.key to applyAnsi(cm, it) }
+                            LogExecution.CustomMessage.Type.QUERY_PARAM -> request!!.paramOrNull(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
+                            LogExecution.CustomMessage.Type.PATH_VARIABLE -> request!!.pathVariables()[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                             LogExecution.CustomMessage.Type.PATH_INDEX -> tryOr({}) {
-                                customs += cm.key to request!!.path()
+                                customs += cm.key to applyAnsi(cm, request!!.path()
                                     .let { if (it startsWith Char.SLASH) (-1)(it) else it }
                                     .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
                                     ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
-                            }
-                            LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to it }
+                            ) }
+                            LogExecution.CustomMessage.Type.STATIC -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                         }
                     }
                     customs
