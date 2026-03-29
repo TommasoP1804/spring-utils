@@ -5,18 +5,12 @@
 package dev.tommasop1804.springutils.reactive.client
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.annotations.Since
-import dev.tommasop1804.kutils.classes.coding.Json
-import dev.tommasop1804.kutils.classes.coding.Json.Companion
-import dev.tommasop1804.kutils.classes.measure.DataSize
-import dev.tommasop1804.kutils.classes.measure.MeasureUnit
-import dev.tommasop1804.kutils.classes.web.HttpHeader
-import dev.tommasop1804.kutils.classes.web.HttpHeaders
-import dev.tommasop1804.kutils.classes.web.MediaType
-import dev.tommasop1804.kutils.classes.web.MimeType
-import dev.tommasop1804.springutils.FROM_SERVICE
-import dev.tommasop1804.springutils.toMultiValueMap
-import dev.tommasop1804.springutils.toSpringHttpHeaders
+import dev.tommasop1804.kutils.annotations.*
+import dev.tommasop1804.kutils.classes.coding.*
+import dev.tommasop1804.kutils.classes.coding.Json.*
+import dev.tommasop1804.kutils.classes.measure.*
+import dev.tommasop1804.kutils.classes.web.*
+import dev.tommasop1804.springutils.*
 import io.micrometer.observation.ObservationRegistry
 import org.springframework.core.ResolvableType
 import org.springframework.http.HttpStatusCode
@@ -28,7 +22,6 @@ import org.springframework.web.reactive.function.client.*
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
-import java.net.URL
 
 class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
     override fun canDecode(
@@ -66,7 +59,7 @@ class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
  * @since 2.3.6
  */
 fun WebClient(
-    baseUrl: URL? = null,
+    baseUrl: Url? = null,
     statusHandler: Pair<Predicate<HttpStatusCode>, Transformer<ClientResponse, Mono<out Throwable>>> = HttpStatusCode::isError to { _ -> Mono.empty() },
     contentType: MediaType = MediaType.APPLICATION_JSON,
     accept: MediaType = MediaType.APPLICATION_JSON,
@@ -87,7 +80,7 @@ fun WebClient(
 ) = WebClient.builder()
     .also {
         if (baseUrl.isNotNull()) it.baseUrl(baseUrl)
-    }.defaultStatusHandler(HttpStatusCode::isError) { _ -> Mono.empty() }
+    }.defaultStatusHandler(statusHandler.first, statusHandler.second)
     .contentType(contentType)
     .accept(accept)
     .codecs {
@@ -123,7 +116,7 @@ fun WebClient(
  * @param baseUrl The base URL to be used for all requests made by the WebClient.
  * @since 2.3.6
  */
-fun WebClient.Builder.baseUrl(baseUrl: URL) = baseUrl(baseUrl.toString())
+fun WebClient.Builder.baseUrl(baseUrl: Url) = baseUrl(baseUrl.toString())
 
 /**
  * Sets the default Content-Type header for the WebClient being built.
