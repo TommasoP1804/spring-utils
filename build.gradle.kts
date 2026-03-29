@@ -6,7 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.20"
     id("org.jetbrains.kotlin.plugin.spring") version "2.3.20"
     id("org.jetbrains.kotlin.plugin.jpa") version "2.3.20"
-    id("org.springframework.boot") version "4.0.0"
+    id("org.springframework.boot") version "4.0.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "9.1.0"
     id("io.freefair.aspectj.post-compile-weaving") version "9.1.0"
@@ -15,7 +15,7 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "3.1.0-BETA1"
+version = "3.1.0-BETA2"
 // Spring-Utils
 // Tommaso Pastorelli
 // Last update: Tommaso Pastorelli | 20260329T142634Z
@@ -101,7 +101,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "3.1.0-BETA1")
+    coordinates("dev.tommasop1804", "spring-utils", "3.1.0-BETA2")
 
     pom {
         name.set("Spring Utils")

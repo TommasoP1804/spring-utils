@@ -8,8 +8,8 @@ import dev.tommasop1804.kutils.classes.coding.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.servlet.*
+import dev.tommasop1804.springutils.servlet.security.*
 import org.springframework.web.client.RestClient
-import org.springframework.web.util.UriComponentsBuilder
 import kotlin.reflect.KClass
 
 @DslMarker
@@ -91,6 +91,16 @@ interface RequestRoute<T : Any> {
      * @since 3.1.0
      */
     val defaults: ReqSpec
+    /**
+     * Represents an optional authorization header derived from the request route's context.
+     * 
+     * This property is used to prepopulate or override authorization information in the HTTP headers
+     * for outgoing requests. It can be `null` if no specific authorization header is automatically provided.
+     * Typically, this header may be used to include credentials such as API keys or tokens while
+     * constructing requests for secured endpoints.
+     * @since 3.1.0
+     */
+    val autoAuthorizationHeader: String?
 
     /**
      * Executes the request route with an optional configuration block for the request specification.
@@ -124,6 +134,7 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
     override val pathTemplate: String,
     override val returnType: KClass<T>,
     override val defaults: ReqSpec,
+    override val autoAuthorizationHeader: String?
 ) : RequestRoute<T> {
     /**
      * Executes the HTTP request based on the provided [ReceiverConsumer] specification.
@@ -141,24 +152,22 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
         val execSpec = defaults.copy()
         spec?.invoke(execSpec)
 
-        val uri = buildUri(pathTemplate, execSpec)
-
         val request = when (method) {
-            HttpMethod.GET -> client.get().uri(uri).applyHeaders(execSpec).apply {
+            HttpMethod.GET -> client.get().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).apply {
                 if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
             }
-            HttpMethod.HEAD -> client.head().uri(uri).applyHeaders(execSpec).apply {
+            HttpMethod.HEAD -> client.head().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).apply {
                 if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
             }
-            HttpMethod.OPTIONS -> client.options().uri(uri).applyHeaders(execSpec).apply {
+            HttpMethod.OPTIONS -> client.options().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).apply {
                 if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
             }
-            HttpMethod.DELETE -> client.delete().uri(uri).applyHeaders(execSpec).apply {
+            HttpMethod.DELETE -> client.delete().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).apply {
                 if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
             }
-            HttpMethod.POST -> client.post().uri(uri).applyHeaders(execSpec).applyBody(execSpec)
-            HttpMethod.PUT -> client.put().uri(uri).applyHeaders(execSpec).applyBody(execSpec)
-            HttpMethod.PATCH -> client.patch().uri(uri).applyHeaders(execSpec).applyBody(execSpec)
+            HttpMethod.POST -> client.post().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).applyBody(execSpec)
+            HttpMethod.PUT -> client.put().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).applyBody(execSpec)
+            HttpMethod.PATCH -> client.patch().uri { buildUri(it, pathTemplate, execSpec) }.applyHeaders(execSpec, autoAuthorizationHeader).applyBody(execSpec)
             else -> throw ConfigurationException()
         }
 
@@ -187,6 +196,7 @@ class JsonRequestRoute @PublishedApi internal constructor(
     override val pathTemplate: String,
     override val returnType: KClass<Json> = Json::class,
     override val defaults: ReqSpec,
+    override val autoAuthorizationHeader: String?
 ) : RequestRoute<Json> {
     /**
      * Invokes the specified consumer to configure the request and returns the resulting JSON response.
@@ -197,7 +207,7 @@ class JsonRequestRoute @PublishedApi internal constructor(
      * @since 3.1.0
      */
     override operator fun invoke(spec: ReceiverConsumer<ReqSpec>?): JsonResponse =
-        TypedRequestRoute(client, method, pathTemplate, returnType, defaults)(spec)
+        TypedRequestRoute(client, method, pathTemplate, returnType, defaults, autoAuthorizationHeader)(spec)
 }
 
 /**
@@ -234,14 +244,16 @@ class RestClientDslScope(
      * This function is part of the DSL for defining HTTP client routes.
      *
      * @param path The endpoint path template for the `GET` request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional configuration block to customize the request, such as setting headers,
      *             query parameters, path variables, or request body.
      * @since 3.1.0
      */
     fun GET(
         path: String,
-        spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.GET, path, spec)
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
+        spec: ReceiverConsumer<ReqSpec>? = null
+    ) = buildJsonRoute(HttpMethod.GET, path, autoAuthorizationHeader, spec)
 
     /**
      * Defines an HTTP GET request for a specific path with an optional request specification.
@@ -249,38 +261,44 @@ class RestClientDslScope(
      *
      * @param T The expected type of the response body.
      * @param path The URL path for the GET request. This path may include placeholders for variables.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional lambda to configure request specifications, including headers, query parameters, and body.
      * @since 3.1.0
      */
     inline fun <reified T : Any> GET(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.GET, path, spec)
+    ) = buildRoute<T>(HttpMethod.GET, path, autoAuthorizationHeader, spec)
     
     /**
      * Defines an HTTP HEAD request for the specified path with an optional request specification.
      *
      * @param path The endpoint path for the HTTP HEAD request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional configuration block for specifying additional request parameters such as headers, query parameters, or path variables.
      * @since 3.1.0
      */
     fun HEAD(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.HEAD, path, spec)
+    ) = buildJsonRoute(HttpMethod.HEAD, path, autoAuthorizationHeader, spec)
 
     /**
      * Defines an HTTP OPTIONS request to the specified path with an optional request specification.
      *
      * @param path The URI path for the OPTIONS request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional lambda to configure the request, allowing customization of headers, query parameters,
      * and other request-specific settings.
      * @since 3.1.0
      */
     fun OPTIONS(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.OPTIONS, path, spec)
+    ) = buildJsonRoute(HttpMethod.OPTIONS, path, autoAuthorizationHeader, spec)
 
     /**
      * Defines a route for an HTTP OPTIONS request with a specified path and request specification.
@@ -288,13 +306,15 @@ class RestClientDslScope(
      *
      * @param T The expected type of the response body.
      * @param path The endpoint path for the OPTIONS request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional consumer for configuring request parameters, headers, or body.
      * @since 3.1.0
      */
     inline fun <reified T : Any> OPTIONS(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.OPTIONS, path, spec)
+    ) = buildRoute<T>(HttpMethod.OPTIONS, path, autoAuthorizationHeader, spec)
 
     /**
      * Defines a POST request route within the scope of the DSL client.
@@ -304,13 +324,15 @@ class RestClientDslScope(
      * configure query parameters, headers, and body for the request.
      *
      * @param path The relative path for the POST request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional lambda that allows customization of the request using the given [ReqSpec].
      * @since 3.1.0
      */
     fun POST(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.POST, path, spec)
+    ) = buildJsonRoute(HttpMethod.POST, path, autoAuthorizationHeader, spec)
 
     /**
      * Creates a POST HTTP route with the specified path and an optional request specification.
@@ -318,40 +340,46 @@ class RestClientDslScope(
      *
      * @param T The expected response type for the request.
      * @param path The URL path of the POST route. This should be a relative path combined with the client prefix.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional configuration block for specifying request-specific attributes (e.g., headers,
      *             query parameters, body, etc.). The block receives an instance of [ReqSpec] for customization.
      * @since 3.1.0
      */
     inline fun <reified T : Any> POST(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.POST, path, spec)
+    ) = buildRoute<T>(HttpMethod.POST, path, autoAuthorizationHeader, spec)
 
     /**
      * Defines a PUT request route.
      *
      * @param path The endpoint path for the PUT request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional consumer for configuring the request specification, such as headers, query parameters, and body.
      * @since 3.1.0
      */
     fun PUT(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.PUT, path, spec)
+    ) = buildJsonRoute(HttpMethod.PUT, path, autoAuthorizationHeader, spec)
 
     /**
      * Constructs a PUT HTTP request route with the given path and optional request specification.
      *
      * @param T The expected response type of the request.
      * @param path The endpoint path for the PUT request. This path can include path variables.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional lambda to configure the request specification, such as headers,
      *             query parameters, path variables, and request body.
      * @since 3.1.0
      */
     inline fun <reified T : Any> PUT(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.PUT, path, spec)
+    ) = buildRoute<T>(HttpMethod.PUT, path, autoAuthorizationHeader, spec)
 
     /**
      * Configures a PATCH HTTP request for the specified path with an optional request specification.
@@ -360,14 +388,16 @@ class RestClientDslScope(
      * It allows for customization of the request by modifying headers, query parameters, request body, and path variables.
      *
      * @param path The endpoint path for the PATCH request. It can contain path templates that will be resolved using the request specification.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional request specification used to customize various aspects of the request,
      * such as headers, query parameters, and body content.
      * @since 3.1.0
      */
     fun PATCH(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.PATCH, path, spec)
+    ) = buildJsonRoute(HttpMethod.PATCH, path, autoAuthorizationHeader, spec)
 
     /**
      * Defines a PATCH request with the ability to specify a path and an optional HTTP request specification.
@@ -376,6 +406,7 @@ class RestClientDslScope(
      * @param T The expected response type of the PATCH request.
      * @param path The endpoint path to which the PATCH request will be sent.
      *             This should be a relative path appended to the client's base URL.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional specification to configure various parts of the HTTP request,
      *             such as headers, query parameters, path variables, and body.
      *             The specification is represented as a consumer of [ReqSpec].
@@ -383,21 +414,24 @@ class RestClientDslScope(
      */
     inline fun <reified T : Any> PATCH(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.PATCH, path, spec)
+    ) = buildRoute<T>(HttpMethod.PATCH, path, autoAuthorizationHeader, spec)
 
     /**
      * Creates a DELETE HTTP request route with the specified path and optional request specification.
      *
      * @param path The URI path for the DELETE request.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param spec An optional receiver function to configure the request specification, such as
      *             headers, query parameters, and request body.
      * @since 3.1.0
      */
     fun DELETE(
         path: String,
+        autoAuthorizationHeader: String? = HttpHeader.AUTHORIZATION,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.DELETE, path, spec)
+    ) = buildJsonRoute(HttpMethod.DELETE, path, autoAuthorizationHeader, spec)
 
     // ── Internals ──
 
@@ -407,6 +441,7 @@ class RestClientDslScope(
      * @param T The type of the response that will be returned by the route.
      * @param method The HTTP method to be used for the route.
      * @param path The URI path template for the route.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param specInit An optional consumer to initialize or modify request specifications.
      * @return A typed request route configured for the given HTTP method, path, and request specifications.
      * @since 3.1.0
@@ -415,11 +450,12 @@ class RestClientDslScope(
     internal inline fun <reified T : Any> buildRoute(
         method: HttpMethod,
         path: String,
-        noinline specInit: ReceiverConsumer<ReqSpec>?,
+        autoAuthorizationHeader: String?,
+        noinline specInit: ReceiverConsumer<ReqSpec>?
     ): TypedRequestRoute<T> {
         val defaults = ReqSpec()
         specInit?.invoke(defaults)
-        return TypedRequestRoute(client, method, prefix + path, T::class, defaults)
+        return TypedRequestRoute(client, method, prefix + path, T::class, defaults, autoAuthorizationHeader)
     }
 
     /**
@@ -427,6 +463,7 @@ class RestClientDslScope(
      *
      * @param method the HTTP method to use for the route (e.g., GET, POST, etc.).
      * @param path the URL path template for the route.
+     * @param autoAuthorizationHeader The header name for automatic authorization, defaults to "Authorization". To disable, set the parameter to `null`.
      * @param specInit an optional consumer for configuring the request specification.
      * @return a `JsonRequestRoute` object representing the configured JSON route.
      * @since 3.1.0
@@ -435,11 +472,12 @@ class RestClientDslScope(
     internal fun buildJsonRoute(
         method: HttpMethod,
         path: String,
-        specInit: ReceiverConsumer<ReqSpec>?,
+        autoAuthorizationHeader: String?,
+        specInit: ReceiverConsumer<ReqSpec>?
     ): JsonRequestRoute {
         val defaults = ReqSpec()
         specInit?.invoke(defaults)
-        return JsonRequestRoute(client, method, prefix + path, defaults = defaults)
+        return JsonRequestRoute(client, method, prefix + path, defaults = defaults, autoAuthorizationHeader = autoAuthorizationHeader)
     }
 }
 
@@ -551,8 +589,8 @@ class ReqSpec {
      * @param value the value of the header
      * @since 3.1.0
      */
-    fun header(name: String, value: String) {
-        headers[name] = listOf(value)
+    fun header(name: String, vararg value: String) {
+        headers[name] = value.toList()
     }
 
     /**
@@ -636,6 +674,7 @@ fun routes(client: RestClient, init: ReceiverConsumer<RestClientDslScope>): Rest
  * Constructs a complete URI by expanding the provided path template with variables
  * and appending query parameters from the given specification.
  *
+ * @param builder The `UriBuilder` instance used to construct the URI.
  * @param pathTemplate The URI path template containing placeholders to be replaced
  *                     with the corresponding variables from the specification.
  * @param spec The request specification containing path variables and query parameters
@@ -643,21 +682,22 @@ fun routes(client: RestClient, init: ReceiverConsumer<RestClientDslScope>): Rest
  * @return A `URI` object representing the constructed URI with applied variables and query parameters.
  * @since 3.1.0
  */
-internal fun buildUri(pathTemplate: String, spec: ReqSpec): java.net.URI {
+internal fun buildUri(builder: org.springframework.web.util.UriBuilder, pathTemplate: String, spec: ReqSpec): java.net.URI {
     val expandedPath = spec.variables.entries.fold(pathTemplate) { acc, (key, value) ->
         acc.replace("{$key}", value.toString())
     }
 
-    val builder = UriComponentsBuilder.fromUriString(expandedPath)
+    builder.path(expandedPath)
+
     spec.queryParams.forEach { (key, value) ->
         when (value) {
-            is Collection<*> -> value.forEach { builder.queryParam(key, it) }
-            is Array<*> -> value.forEach { builder.queryParam(key, it) }
-            else -> builder.queryParam(key, value)
+            is Collection<*> -> value.forEach { if (it.isNotNull()) builder.queryParam(key, it) }
+            is Array<*> -> value.forEach { if (it.isNotNull()) builder.queryParam(key, it) }
+            else -> if (value.isNotNull()) builder.queryParam(key, value)
         }
     }
 
-    return builder.build().toUri()
+    return builder.build()
 }
 
 /**
@@ -667,9 +707,12 @@ internal fun buildUri(pathTemplate: String, spec: ReqSpec): java.net.URI {
  * @return The updated request specification with the applied headers.
  * @since 3.1.0
  */
-internal fun <S : RestClient.RequestHeadersSpec<S>> S.applyHeaders(spec: ReqSpec): S = apply {
+internal fun <S : RestClient.RequestHeadersSpec<S>> S.applyHeaders(spec: ReqSpec, autoAuthorizationHeader: String?): S = apply {
     spec.headers.forEach { [name, values] ->
         header(name, *values.toTypedArray())
+    }
+    if (autoAuthorizationHeader.isNotNull() && autoAuthorizationHeader !in spec.headers) {
+        header(autoAuthorizationHeader, token(autoAuthorizationHeader).toString(true))
     }
 }
 
