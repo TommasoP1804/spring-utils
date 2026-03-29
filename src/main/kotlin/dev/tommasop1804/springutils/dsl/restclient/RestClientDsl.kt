@@ -3,7 +3,6 @@
 package dev.tommasop1804.springutils.dsl.restclient
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.kutils.annotations.*
 import dev.tommasop1804.kutils.classes.coding.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
@@ -663,7 +662,6 @@ class ParamSpec {
  * @return A configured instance of `RestClientDslScope` for building and managing HTTP routes.
  * @since 3.1.0
  */
-@Beta(expectedStableVersion = "3.1.0")
 fun routes(client: RestClient, init: ReceiverConsumer<RestClientDslScope>): RestClientDslScope {
     val scope = RestClientDslScope(client)
     scope.init()
