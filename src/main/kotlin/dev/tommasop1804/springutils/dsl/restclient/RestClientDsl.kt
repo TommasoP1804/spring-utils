@@ -623,8 +623,26 @@ class ReqSpec {
      * @param value The value of the query parameter.
      * @since 3.1.0
      */
-    fun queryParam(name: String, value: Any) {
-        queryParams[name] = value
+    fun queryParam(name: String, vararg value: Any?) {
+        queryParams[name] = value.joinToString(String.COMMA)
+    }
+    /**
+     * Adds a query parameter to the request specification using a key-value pair.
+     * The key is the query parameter name, and the value can be a single value, an iterable,
+     * or `null`. The method processes the value and calls the appropriate `queryParam` method.
+     *
+     * @param pair A pair where the first element is the name of the query parameter
+     * and the second element is its value. If the value is `null`, the query parameter is added with `null`.
+     * If the value is an `Iterable`, its elements are added as multiple values for the parameter.
+     * Otherwise, the provided value is added directly as the query parameter value.
+     * @since 3.2.4
+     */
+    fun queryParam(pair: Pair<String, Any?>) {
+        when (val value = pair.second) {
+            null -> queryParam(pair.first, null)
+            is Iterable<*> -> queryParam(pair.first, *value.toList().toTypedArray())
+            else -> queryParam(pair.first, value)
+        }
     }
 
     /**
@@ -648,8 +666,25 @@ class ReqSpec {
      * @param value the value of the header
      * @since 3.1.0
      */
-    fun header(name: String, vararg value: String) {
-        headers[name] = value.toList()
+    fun header(name: String, vararg value: Any) {
+        headers[name] = value.toList().map { it.toString() }
+    }
+    /**
+     * Adds a header to the request specification from the provided pair. The pair's first
+     * component represents the header name, and the second component represents the header value.
+     * - If the value is `null`, the header will be added with the string "null".
+     * - If the value is an iterable, the elements will be converted to strings and added as multiple header values.
+     * - Otherwise, the value will be converted to a string and added as a single header value.
+     *
+     * @param pair A pair where the first element is the header name and the second element is the header value.
+     * @since 3.2.4
+     */
+    fun header(pair: Pair<String, Any?>) {
+        when (val value = pair.second) {
+            null -> header(pair.first, "null")
+            is Iterable<*> -> header(pair.first, *value.toList().map { it.toString() }.toTypedArray())
+            else -> header(pair.first, value.toString())
+        }
     }
 
     /**
@@ -661,6 +696,16 @@ class ReqSpec {
     fun headers(init: ReceiverConsumer<HttpHeaders>) {
         headers.init()
     }
+
+
+    /**
+     * Adds the supplied HTTP headers to the current request specification.
+     * Existing headers will be retained, while the new headers will be appended.
+     *
+     * @param headers The HTTP headers to be added to the request.
+     * @since 3.2.4
+     */
+    fun headers(headers: HttpHeaders) = headers.forEach { this.headers += it }
 
     /**
      * Configures the default behavior for HTTP status code validation in the request specification.

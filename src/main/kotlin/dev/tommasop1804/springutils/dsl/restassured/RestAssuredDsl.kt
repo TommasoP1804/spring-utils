@@ -47,9 +47,9 @@ class ExtendedTestResponse<T : Any>(
 
     /**
      * Extracts the response body as the specified type.
-     * @since 3.2.2
+     * @since 3.2.4
      */
-    fun body(): T = response.`as`(returnType.java)
+    val body: T get() = response.`as`(returnType.java)
 
     /**
      * Extracts a value from the response body at the given JSON path.
@@ -149,7 +149,7 @@ class TypedTestRoute<T : Any> @PublishedApi internal constructor(
         spec?.invoke(execSpec)
 
         val uri = buildUri(pathTemplate, execSpec)
-        val request = RestAssured.given().applySpec(execSpec)
+        val request = RestAssured.given().applySpec(execSpec).`when`()
 
         if (method in listOf(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.DELETE)
             && execSpec.body.isNotNull()
@@ -287,6 +287,16 @@ class TestReqSpec {
     fun pathVariable(name: String, value: Any) {
         variables[name] = value
     }
+    /**
+     * Sets a path variable using a pair of name and value.
+     *
+     * @param pair a pair where the first element represents the name of the variable
+     * and the second element represents the value to associate with the variable
+     * @since 3.2.4
+     */
+    fun pathVariable(pair: Pair<String, Any>) {
+        variables[pair.first] = pair.second
+    }
 
     /**
      * Configures path variables using a DSL block.
@@ -302,8 +312,26 @@ class TestReqSpec {
      * Adds a single query parameter.
      * @since 3.2.2
      */
-    fun queryParam(name: String, value: Any) {
-        queryParams[name] = value
+    fun queryParam(name: String, vararg value: Any?) {
+        queryParams[name] = value.joinToString(String.COMMA)
+    }
+    /**
+     * Adds a query parameter using the given name-value pair.
+     *
+     * If the value in the pair is an iterable, each element in the iterable is added as a separate query parameter
+     * using the same name. Otherwise, the value is directly added as a query parameter.
+     *
+     * @param pair a pair where the first element represents the name of the query parameter
+     * and the second element represents the value to associate with the parameter. If the second element
+     * is an iterable, each item in the iterable is added as a separate query parameter.
+     * @since 3.2.4
+     */
+    fun queryParam(pair: Pair<String, Any?>) {
+        when (val value = pair.second) {
+            null -> queryParam(pair.first, null)
+            is Iterable<*> -> queryParam(pair.first, *value.toList().toTypedArray())
+            else -> queryParam(pair.first, value)
+        }
     }
 
     /**
@@ -313,15 +341,33 @@ class TestReqSpec {
     fun queryParams(init: ReceiverConsumer<ParamSpec>) {
         val spec = ParamSpec()
         spec.init()
-        queryParams += spec.params
+        spec.params.forEach { queryParam(it.key to it.value) }
     }
 
     /**
      * Sets a header with the specified name and value(s).
      * @since 3.2.2
      */
-    fun header(name: String, vararg value: String) {
-        headers[name] = value.toList()
+    fun header(name: String, vararg value: Any) {
+        headers[name] = value.toList().map { it.toString() }
+    }
+    /**
+     * Adds a header using the given name-value pair.
+     *
+     * If the value in the pair is an iterable, each element in the iterable is added as a separate header
+     * entry using the same name. Otherwise, the value is directly added as a header.
+     *
+     * @param pair a pair where the first element represents the name of the header and the second
+     * element represents the value to associate with the header. If the second element is an iterable,
+     * each item in the iterable is added as a separate header entry.
+     * @since 3.2.4
+     */
+    fun header(pair: Pair<String, Any?>) {
+        when (val value = pair.second) {
+            null -> header(pair.first, "null")
+            is Iterable<*> -> header(pair.first, *value.toList().map { it.toString() }.toTypedArray())
+            else -> header(pair.first, value.toString())
+        }
     }
 
     /**
@@ -331,6 +377,15 @@ class TestReqSpec {
     fun headers(init: ReceiverConsumer<HttpHeaders>) {
         headers.init()
     }
+
+    /**
+     * Adds multiple headers to the existing set of headers. Each header from the provided [HttpHeaders]
+     * instance is appended to the current headers collection.
+     *
+     * @param headers a collection of HTTP headers to be added
+     * @since 3.2.4
+     */
+    fun headers(headers: HttpHeaders) = headers.forEach { this.headers += it }
 
     /**
      * Configures default status validation with an [ExternalServiceHttpException].
