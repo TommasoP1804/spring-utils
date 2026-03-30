@@ -11,7 +11,6 @@ import dev.tommasop1804.kutils.classes.coding.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
 import io.restassured.RestAssured
-import io.restassured.http.ContentType
 import io.restassured.response.ExtractableResponse
 import io.restassured.response.Response
 import io.restassured.response.ValidatableResponse
@@ -266,7 +265,7 @@ class TestReqSpec {
      * Optional content type override.
      * @since 3.2.2
      */
-    var contentType: ContentType? = null
+    var contentType: MediaType? = null
 
     /**
      * Optional port override for this specific request.
@@ -611,7 +610,7 @@ private fun buildUri(pathTemplate: String, spec: TestReqSpec): String {
  * @since 3.2.2
  */
 private fun RequestSpecification.applySpec(spec: TestReqSpec): RequestSpecification = apply {
-    spec.contentType?.let { contentType(it) }
+    spec.contentType?.let { contentType(it.toString()) }
     spec.port?.let { port(it) }
 
     spec.headers.forEach { [name, values] ->
@@ -619,7 +618,7 @@ private fun RequestSpecification.applySpec(spec: TestReqSpec): RequestSpecificat
     }
 
     spec.body?.let {
-        if (spec.contentType.isNull()) contentType(ContentType.JSON)
+        if (spec.contentType.isNull()) contentType(MediaType.APPLICATION_JSON.toString())
         body(it)
     }
 }
