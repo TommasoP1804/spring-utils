@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:Suppress("unused")
 
 package dev.tommasop1804.springutils.reactive.function.request

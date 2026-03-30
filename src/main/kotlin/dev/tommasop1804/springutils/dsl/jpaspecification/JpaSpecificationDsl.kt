@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:Suppress("unused", "kutils_null_check")
 @file:Since("3.1.0")
 

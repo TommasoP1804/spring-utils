@@ -1,9 +1,12 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 package dev.tommasop1804.springutils.exception
 
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
-import dev.tommasop1804.kutils.isNotNull
-import dev.tommasop1804.kutils.isNotNullOrEmpty
+import dev.tommasop1804.kutils.*
 import org.springframework.http.ProblemDetail
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext

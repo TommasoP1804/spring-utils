@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:Suppress("unused")
 
 package dev.tommasop1804.springutils.exception
@@ -48,7 +52,7 @@ open class RequiredPathVariableException : RequiredParameterException {
      * @param internalErrorCode An optional internal error code that is prefixed to the exception message, separated by " @@@ ".
      * @since 3.0.0
      */
-    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY} ${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", internalErrorCode)
+    constructor(name: String?, `class`: KClass<*>?, internalErrorCode: String? = null) : super("Path variable ${if (name.isNotNullOrBlank()) "`$name` " else String.EMPTY}${if (`class`.isNotNull()) "of type `${`class`.simpleName}` " else String.EMPTY}is required", internalErrorCode)
 }
 
 /**

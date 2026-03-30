@@ -1,6 +1,10 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 package dev.tommasop1804.springutils.config
 
-import dev.tommasop1804.kutils.classes.coding.Json
+import dev.tommasop1804.kutils.classes.coding.*
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.codec.ServerCodecConfigurer
 import org.springframework.http.codec.json.JacksonJsonDecoder

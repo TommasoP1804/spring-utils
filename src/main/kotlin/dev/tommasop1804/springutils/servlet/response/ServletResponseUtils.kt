@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:JvmName("ServletResponseUtilsKt")
 @file:Since("1.0.0")
 @file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST")

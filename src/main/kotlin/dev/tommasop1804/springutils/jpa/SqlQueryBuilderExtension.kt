@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:Suppress("unused", "kutils_tuple_declaration", "SqlNoDataSourceInspection")
 @file:OptIn(UnsafeUsage::class)
 

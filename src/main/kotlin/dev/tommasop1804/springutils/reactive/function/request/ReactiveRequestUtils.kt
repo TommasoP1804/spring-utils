@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:JvmName("ReactiveRequestUtilsKt")
 @file:Since("2.0.0")
 @file:Suppress("unused", "MoveLambdaOutsideParentheses")

@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 package dev.tommasop1804.springutils.servlet.log
 
 import dev.tommasop1804.kutils.*

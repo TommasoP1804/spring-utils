@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:Suppress("FunctionName", "unused")
 
 package dev.tommasop1804.springutils.dsl.restclient

@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:JvmName("UtilsKt")
 @file:Suppress("unused", "FunctionName", "UnusedReceiverParameter")
 

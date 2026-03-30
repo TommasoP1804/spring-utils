@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 @file:JvmName("JpaUtilsKt")
 @file:Since("3.0.5")
 @file:Suppress("unused", "FunctionName")

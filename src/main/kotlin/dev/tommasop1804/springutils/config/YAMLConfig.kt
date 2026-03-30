@@ -1,7 +1,11 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ */
+
 package dev.tommasop1804.springutils.config
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import dev.tommasop1804.kutils.isNotNull
+import dev.tommasop1804.kutils.*
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
