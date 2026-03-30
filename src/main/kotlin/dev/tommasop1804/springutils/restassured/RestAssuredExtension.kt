@@ -115,7 +115,7 @@ fun <T : ValidatableResponseOptions<T, R>, R> ValidatableResponseOptions<T, R>.c
  * @return An instance of the specified type, deserialized from the response body.
  * @since 3.2.1
  */
-inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body(`class`: KClass<T>): T = body().`as`(T::class.java)
+inline fun <reified T : Any> ExtractableResponse<*>.body(): T = body().`as`(T::class.java)
 /**
  * Extracts and deserializes the response body into an object of the specified type.
  *
@@ -124,7 +124,7 @@ inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body
  * @return The deserialized object of the specified type.
  * @since 3.2.1
  */
-inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body(`class`: KClass<T>, mapperType: ObjectMapperType): T = body().`as`(T::class.java, mapperType)
+inline fun <reified T : Any> ExtractableResponse<*>.body(`class`: KClass<T>, mapperType: ObjectMapperType): T = body().`as`(T::class.java, mapperType)
 /**
  * Extracts the response body and converts it to the specified type using the provided object mapper.
  *
@@ -133,7 +133,7 @@ inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body
  * @return The deserialized object of the specified type.
  * @since 3.2.1
  */
-inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body(`class`: KClass<T>, mapper: ObjectMapper): T = body().`as`(T::class.java, mapper)
+inline fun <reified T : Any> ExtractableResponse<*>.body(`class`: KClass<T>, mapper: ObjectMapper): T = body().`as`(T::class.java, mapper)
 /**
  * Provides the headers of the response as an instance of [HttpHeaders].
  *
