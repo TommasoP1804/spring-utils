@@ -21,6 +21,7 @@ import io.restassured.response.ResponseBody
 import io.restassured.response.ResponseOptions
 import io.restassured.response.ValidatableResponseOptions
 import io.restassured.specification.RequestSpecification
+import kotlin.reflect.KClass
 
 /**
  * Specifies the content type of the request using the provided media type.
@@ -108,35 +109,31 @@ fun <T : ValidatableResponseOptions<T, R>, R> ValidatableResponseOptions<T, R>.c
     contentType(mimeType.toString())
 
 /**
- * Extracts and deserializes the response body into the specified type.
+ * Extracts the response body and deserializes it into an object of the specified class type.
  *
- * This function uses reified generics to infer the target type for deserialization.
- * It fetches the response body as a string and converts it into an instance of the given type.
- *
- * @return The deserialized response body of type T.
- * @since 3.2.0
+ * @param class The KClass of the desired type into which the response body will be deserialized.
+ * @return An instance of the specified type, deserialized from the response body.
+ * @since 3.2.1
  */
-inline fun <reified T, R : ResponseOptions<R>> ExtractableResponse<R>.body(): T = body().`as`(T::class.java)
+inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body(`class`: KClass<T>): T = body().`as`(T::class.java)
 /**
- * Extracts and deserializes the response body to the specified type using the given ObjectMapperType.
+ * Extracts and deserializes the response body into an object of the specified type.
  *
- * @param T the type to which the response body will be deserialized.
- * @param R the response options type of which this ExtractableResponse is an instance.
- * @param mapperType the ObjectMapperType to use for deserialization.
- * @return the deserialized response body of type T.
- * @since 3.2.0
+ * @param class The KClass of the desired type to deserialize the response body into.
+ * @param mapperType The ObjectMapperType to use for deserialization.
+ * @return The deserialized object of the specified type.
+ * @since 3.2.1
  */
-inline fun <reified T, R : ResponseOptions<R>> ExtractableResponse<R>.body(mapperType: ObjectMapperType): T = body().`as`(T::class.java, mapperType)
+inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body(`class`: KClass<T>, mapperType: ObjectMapperType): T = body().`as`(T::class.java, mapperType)
 /**
- * Extracts and deserializes the body of the response into the specified type using the provided ObjectMapper.
+ * Extracts the response body and converts it to the specified type using the provided object mapper.
  *
- * @param T The type into which the response body will be deserialized.
- * @param R The type of the response options.
- * @param mapper The ObjectMapper instance used for deserialization.
- * @return The deserialized response body of type T.
- * @since 3.2.0
+ * @param class The KClass of the type to convert the response body into.
+ * @param mapper The ObjectMapper used to deserialize the response body.
+ * @return The deserialized object of the specified type.
+ * @since 3.2.1
  */
-inline fun <reified T, R : ResponseOptions<R>> ExtractableResponse<R>.body(mapper: ObjectMapper): T = body().`as`(T::class.java, mapper)
+inline fun <reified T : Any, R : ResponseOptions<R>> ExtractableResponse<R>.body(`class`: KClass<T>, mapper: ObjectMapper): T = body().`as`(T::class.java, mapper)
 /**
  * Provides the headers of the response as an instance of [HttpHeaders].
  *
