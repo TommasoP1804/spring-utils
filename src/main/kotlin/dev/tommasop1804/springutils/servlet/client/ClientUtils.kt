@@ -8,6 +8,7 @@ import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.dsl.restclient.*
 import io.micrometer.observation.ObservationRegistry
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatusCode
@@ -80,6 +81,67 @@ fun RestClient(
         if (statusHandler.isNotNull()) defaultStatusHandler(statusHandler.first, statusHandler.second)
         else defaultStatusHandler(HttpStatusCode::isError) { _, _ -> }
     }.build()
+
+/**
+ * Constructs a new `RestClient` instance with customizable configuration parameters.
+ *
+ * @param baseUrl A base `URL` for the client. If provided, the client will use this URL
+ * as the base for all HTTP requests. Defaults to `null`.
+ * @param clientName A name for the client, useful for logging and monitoring. Defaults to `null`.
+ * @param statusHandler A pair consisting of a `Predicate<HttpStatusCode>` to identify error statuses
+ * and an associated error handler. Defaults to a predicate identifying error statuses and a no-op handler.
+ * @param contentType The default `MediaType` for the `Content-Type` header in requests. Defaults to `MediaType.APPLICATION_JSON`.
+ * @param accept The default `MediaType` for the `Accept` header in requests. Defaults to `MediaType.APPLICATION_JSON`.
+ * @param fromService An optional string identifying the source service of the requests. Defaults to `null`.
+ * @param defaultHeaders Optional default HTTP headers to be included in every request. Defaults to `null`.
+ * @param defaultApiVersion An optional default version to be included in requests for API versioning. Defaults to `null`.
+ * @param defaultUriVariables A map of default URI variables to be used in URI templates. Defaults to an empty map.
+ * @param defaultCookies A map containing default cookies to be included in every request. Defaults to an empty map.
+ * @param defaultRequest A consumer to initialize or modify every request before execution. Defaults to `null`.
+ * @param requestInterceptors A consumer to configure the list of client request interceptors. Defaults to `null`.
+ * @param bufferContent A `BiPredicate` to determine whether content buffering is enabled for particular URIs and HTTP methods. Defaults to `null`.
+ * @param requestInizializers A consumer to configure the list of client request initializers. Defaults to `null`.
+ * @param messageConverters A consumer to configure the `HttpMessageConverters`. Defaults to `null`.
+ * @param observationRegistry An optional `ObservationRegistry` to manage observation and metrics. Defaults to `null`.
+ * @param observationConvention An optional `ClientRequestObservationConvention` for observation customization. Defaults to `null`.
+ * @since 3.1.1
+ */
+fun RestClient(
+    baseUrl: Url? = null,
+    clientName: String,
+    statusHandler: Pair<Predicate<HttpStatusCode>, RestClient.ResponseSpec.ErrorHandler>? = null,
+    contentType: MediaType = MediaType.APPLICATION_JSON,
+    accept: MediaType = MediaType.APPLICATION_JSON,
+    fromService: String? = null,
+    defaultHeaders: HttpHeaders? = null,
+    defaultApiVersion: Any? = null,
+    defaultUriVariables: Map<String, *>? = emptyMap<String, String>(),
+    defaultCookies: MultiMap<String, String> = emptyMap(),
+    defaultRequest: Consumer<RestClient.RequestHeadersSpec<*>>? = null,
+    requestInterceptors: Consumer<List<ClientHttpRequestInterceptor>>? = null,
+    bufferContent: BiPredicate<Uri, HttpMethod>? = null,
+    requestInizializers: Consumer<List<ClientHttpRequestInitializer>>? = null,
+    messageConverters: Consumer<HttpMessageConverters.ClientBuilder>? = null,
+    observationRegistry: ObservationRegistry? = null,
+    observationConvention: ClientRequestObservationConvention? = null
+) = ExtendedRestClient(RestClient(
+    baseUrl = baseUrl,
+    statusHandler = statusHandler,
+    contentType = contentType,
+    accept = accept,
+    fromService = fromService,
+    defaultHeaders = defaultHeaders,
+    defaultApiVersion = defaultApiVersion,
+    defaultUriVariables = defaultUriVariables,
+    defaultCookies = defaultCookies,
+    defaultRequest = defaultRequest,
+    requestInterceptors = requestInterceptors,
+    bufferContent = bufferContent,
+    requestInizializers = requestInizializers,
+    messageConverters = messageConverters,
+    observationRegistry = observationRegistry,
+    observationConvention = observationConvention
+), clientName)
 
 /**
  * Sets the base URL for the `RestClient.Builder`.
