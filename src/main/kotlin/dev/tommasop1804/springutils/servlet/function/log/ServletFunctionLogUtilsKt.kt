@@ -13,6 +13,7 @@ import dev.tommasop1804.kutils.annotations.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.servlet.function.request.*
 import dev.tommasop1804.springutils.servlet.log.*
 import dev.tommasop1804.springutils.servlet.log.LoggingAspect.Companion.checkExcludeOrInclude
@@ -45,7 +46,11 @@ class LogHandler(
             handler = value.handler
         }
 
-    fun logBefore(function: String? = null, featureCode: String? = null, logSettings: LogSettings? = null,) {
+    fun logBefore(
+        function: String? = null,
+        featureCode: String? = findCallerMethod()?.getAnnotation(Feature::class.java)?.code,
+        logSettings: LogSettings? = null
+    ) {
         (logSettings ?: settings).run {
             request.isNotNull() || throw RequiredParameterException(::logBefore, "logSettings")
             Logs.logStart(
@@ -82,7 +87,11 @@ class LogHandler(
         }
     }
 
-    fun logAfter(function: String? = null, featureCode: String? = null, logSettings: LogSettings? = null) {
+    fun logAfter(
+        function: String? = null,
+        featureCode: String? = findCallerMethod()?.getAnnotation(Feature::class.java)?.code,
+        logSettings: LogSettings? = null
+    ) {
         (logSettings ?: settings).run {
             request.isNotNull() || throw RequiredParameterException(::logBefore, "logSettings")
             Logs.logEnd(
@@ -119,7 +128,8 @@ class LogHandler(
     fun logAfterThrowing(
         exception: Throwable,
         basePackage: String? = null,
-        function: String? = null, featureCode: String? = null,
+        function: String? = null,
+        featureCode: String? = findCallerMethod()?.getAnnotation(Feature::class.java)?.code,
         logSettings: LogSettings? = null
     ) {
         (logSettings ?: settings).run {
