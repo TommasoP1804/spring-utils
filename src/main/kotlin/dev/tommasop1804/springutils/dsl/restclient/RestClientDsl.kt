@@ -603,6 +603,23 @@ class ReqSpec {
     fun pathVariable(name: String, value: Any) {
         variables[name] = value
     }
+    /**
+     * Sets a path variable using a key-value pair.
+     * If the value in the pair is an iterable, its elements are joined into a string
+     * separated by commas and set as the path variable value. Otherwise, the value
+     * is directly set as the path variable value.
+     *
+     * @param pair A pair where the first element is the name of the path variable
+     * and the second element is the value of the path variable. The value can be
+     * a single object or an iterable.
+     * @since 3.3.1
+     */
+    fun pathVariable(pair: Pair<String, Any>) {
+        when (val value = pair.second) {
+            is Iterable<*> -> pathVariable(pair.first, value.joinToString(Char.COMMA))
+            else -> pathVariable(pair.first, value)
+        }
+    }
 
     /**
      * Configures and adds path variables to the current context.
