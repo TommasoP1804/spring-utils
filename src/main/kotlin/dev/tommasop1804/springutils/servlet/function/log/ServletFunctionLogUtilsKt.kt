@@ -13,7 +13,6 @@ import dev.tommasop1804.kutils.annotations.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
-import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.servlet.function.request.*
 import dev.tommasop1804.springutils.servlet.log.*
 import dev.tommasop1804.springutils.servlet.log.LoggingAspect.Companion.checkExcludeOrInclude
@@ -48,7 +47,7 @@ class LogHandler(
 
     fun logBefore(
         function: String? = null,
-        featureCode: String? = findCallerMethod()?.getAnnotation(Feature::class.java)?.code,
+        featureCode: String? = null,
         logSettings: LogSettings? = null
     ) {
         (logSettings ?: settings).run {
@@ -89,7 +88,7 @@ class LogHandler(
 
     fun logAfter(
         function: String? = null,
-        featureCode: String? = findCallerMethod()?.getAnnotation(Feature::class.java)?.code,
+        featureCode: String? = null,
         logSettings: LogSettings? = null
     ) {
         (logSettings ?: settings).run {
@@ -129,7 +128,7 @@ class LogHandler(
         exception: Throwable,
         basePackage: String? = null,
         function: String? = null,
-        featureCode: String? = findCallerMethod()?.getAnnotation(Feature::class.java)?.code,
+        featureCode: String? = null,
         logSettings: LogSettings? = null
     ) {
         (logSettings ?: settings).run {

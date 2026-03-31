@@ -139,6 +139,32 @@ fun dev.tommasop1804.kutils.classes.web.MediaType.toSpringMediaType() = MediaTyp
  */
 fun dev.tommasop1804.kutils.classes.web.MimeType.toSpringMimeType() = MimeType(type, subtype)
 
+/**
+ * Converts the current instance of `HttpMethod` to its corresponding
+ * Spring Framework `HttpMethod` representation.
+ *
+ * @return The equivalent `org.springframework.http.HttpMethod` based on the name of the current `HttpMethod`.
+ * @throws NoSuchEntryException if no matching Spring HTTP method exists for the current `HttpMethod.name`.
+ * @since 3.3.0
+ */
+fun HttpMethod.toSpringHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpMethod::class, name) }) {
+    org.springframework.http.HttpMethod.valueOf(name)
+}
+
+/**
+ * Converts a Spring `HttpMethod` to its corresponding `HttpMethod` in the Kutils library.
+ *
+ * Maps the `name` of the Spring `HttpMethod` instance to a `HttpMethod` enum value in Kutils.
+ *
+ * @receiver The Spring `HttpMethod` instance to be converted.
+ * @return The corresponding `HttpMethod` enum value from the Kutils library.
+ * @throws NoSuchEntryException If the `name` of the Spring `HttpMethod` does not match any Kutils `HttpMethod` value.
+ * @since 3.3.0
+ */
+fun org.springframework.http.HttpMethod.toKutilsHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpMethod::class, name()) }) {
+    HttpMethod.valueOf(name())
+}
+
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
     is BadRequestException,
