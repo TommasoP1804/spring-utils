@@ -227,7 +227,8 @@ internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     ResourceLockedException::class,
     ResourceNotFoundException::class,
     ResourceNotAcceptableException::class,
-    ResourceInUseException::class
+    ResourceInUseException::class,
+    DatabaseOperationException::class
 )
 
 internal fun findCorrectException(e: Throwable) =
