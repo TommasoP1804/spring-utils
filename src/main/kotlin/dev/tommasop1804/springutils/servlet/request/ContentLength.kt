@@ -43,7 +43,7 @@ class ContentLengthArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): DataSize? = webRequest.getHeader("Content-Length")?.let { it.toInt() ofUnit MeasureUnit.DataSizeUnit.BYTE }
+    ): DataSize? = webRequest.getHeader("Content-Length")?.let { it.toInt() ofUnit MeasureUnit.DataSizeUnit.BYTES }
 }
 
 @AutoConfiguration

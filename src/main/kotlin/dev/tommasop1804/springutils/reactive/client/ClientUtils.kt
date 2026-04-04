@@ -62,6 +62,7 @@ class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
  * @param maxInMemorySize The maximum size of the in-memory buffer for decoding responses. Default is `null`.
  * @since 2.3.6
  */
+@OptIn(Beta::class)
 fun WebClient(
     baseUrl: Url? = null,
     statusHandler: Pair<Predicate<HttpStatusCode>, Transformer<ClientResponse, Mono<out Throwable>>> = HttpStatusCode::isError to { _ -> Mono.empty() },
@@ -94,7 +95,7 @@ fun WebClient(
                 addDeserializer(Json::class.java, Companion.Deserializer())
             })
             .build()!!
-        if (maxInMemorySize.isNotNull()) it.defaultCodecs().maxInMemorySize((maxInMemorySize convertTo MeasureUnit.DataSizeUnit.BYTE)().value.toInt())
+        if (maxInMemorySize.isNotNull()) it.defaultCodecs().maxInMemorySize((maxInMemorySize convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toInt())
         it.defaultCodecs().jacksonJsonEncoder(JacksonJsonEncoder(mapper))
         it.defaultCodecs().jacksonJsonDecoder(JacksonJsonDecoder(mapper))
         it.defaultCodecs().jacksonJsonDecoder(JsonSupportingDecoder(mapper))
