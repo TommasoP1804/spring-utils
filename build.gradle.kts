@@ -15,10 +15,10 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "3.3.3"
+version = "3.3.4"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260404T105056Z
+// Last update: Tommaso Pastorelli | 20260406T185315Z
 
 repositories {
     mavenCentral()
@@ -56,12 +56,14 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:3.4.0")
-    api("dev.tommasop1804:kotlin-utils:3.4.0")
+    aspect("dev.tommasop1804:kotlin-utils:3.5.0")
+    api("dev.tommasop1804:kotlin-utils:3.5.0")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")
     implementation("io.rest-assured:json-path:5.5.0")
+
+    implementation("org.keycloak:keycloak-admin-client:26.0.8")
 }
 
 kotlin {
@@ -105,7 +107,7 @@ tasks.withType<KotlinCompile> {
 }
 
 mavenPublishing {
-    coordinates("dev.tommasop1804", "spring-utils", "3.3.3")
+    coordinates("dev.tommasop1804", "spring-utils", "3.3.4")
 
     pom {
         name.set("Spring Utils")

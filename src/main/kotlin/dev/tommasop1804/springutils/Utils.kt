@@ -171,6 +171,7 @@ internal fun getStatus(e: Throwable) = when (e) {
     is RequiredPropertyException,
     is RequiredParameterException,
     is RequiredHeaderException,
+    is NumberSignException,
     is MalformedInputException -> HttpStatus.BAD_REQUEST
     is ContentTooLargeException -> HttpStatus.CONTENT_TOO_LARGE
     is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException, is ResourceInUseException -> HttpStatus.CONFLICT
@@ -219,6 +220,7 @@ internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     MalformedInputException::class,
     MalformedPropertyException::class,
     MalformedParameterException::class,
+    NumberSignException::class,
     ResourceUnaccessibleException::class,
     ResourceAlreadyExistsException::class,
     ResourceConflictException::class,
@@ -329,6 +331,50 @@ fun org.springframework.http.HttpHeaders.add(header: HttpHeader) {
 fun org.springframework.http.HttpHeaders.addAll(headers: HttpHeaders) {
     headers.forEach { [key, values] -> addAll(key, values) }
 }
+
+/**
+ * Adds the headers from a given `org.springframework.http.HttpHeaders` instance to the current `HttpHeaders` instance.
+ *
+ * @param headers The `org.springframework.http.HttpHeaders` instance whose headers are to be added to the current instance.
+ * @since 3.3.4
+ */
+operator fun HttpHeaders.plusAssign(headers: org.springframework.http.HttpHeaders) {
+    this += headers.toKutilsHttpHeaders()
+}
+/**
+ * Combines the current instance of `HttpHeaders` with another instance of
+ * `org.springframework.http.HttpHeaders` by converting the latter to a `HttpHeaders`
+ * object and merging their contents.
+ *
+ * The resulting `HttpHeaders` instance contains all the header entries from both
+ * the original `HttpHeaders` instance and the provided `org.springframework.http.HttpHeaders`
+ * instance. If duplicate keys exist, their values are combined.
+ *
+ * @param headers The `org.springframework.http.HttpHeaders` instance to be merged with
+ * the current instance.
+ * @return A new `HttpHeaders` instance containing the combined header entries.
+ * @since 3.3.4
+ */
+operator fun HttpHeaders.plus(headers: org.springframework.http.HttpHeaders) = this + headers.toKutilsHttpHeaders()
+/**
+ * Removes the headers specified in the given `org.springframework.http.HttpHeaders`
+ * instance from the current `HttpHeaders` instance.
+ *
+ * @param headers The `org.springframework.http.HttpHeaders` instance containing
+ * the headers to be removed. All key-value pairs in this instance will be
+ * removed from the current `HttpHeaders`.
+ * @since 3.3.4
+ */
+operator fun HttpHeaders.minusAssign(headers: org.springframework.http.HttpHeaders) {
+    this -= headers.toKutilsHttpHeaders()
+}
+/**
+ * Subtracts the headers from a provided `HttpHeaders` object from the current `HttpHeaders` instance.
+ *
+ * @param headers The `HttpHeaders` to be subtracted from the current instance.
+ * @since 3.3.4
+ */
+operator fun HttpHeaders.minus(headers: org.springframework.http.HttpHeaders) = this - headers.toKutilsHttpHeaders()
 
 /**
  * Converts the custom HttpStatus instance to a Spring Framework HttpStatus instance.
