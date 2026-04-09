@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
  */
 
 @file:Suppress("unused", "kutils_tuple_declaration", "SqlNoDataSourceInspection")

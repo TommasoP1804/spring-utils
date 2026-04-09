@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
+ */
+
 package dev.tommasop1804.springutils.servlet.function.request
 
 import dev.tommasop1804.kutils.classes.web.*

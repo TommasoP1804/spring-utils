@@ -1,5 +1,5 @@
 /*
- * Copyright © 2026 Tommaso Pastorelli | spring-utils
+ * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
  */
 
 @file:Suppress("FunctionName", "unused")
@@ -205,7 +205,7 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
             }.apply { method = HttpMethod.OPTIONS }
             HttpMethod.DELETE -> client.delete().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
                 if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
-            }
+            }.apply { method = HttpMethod.DELETE }
             HttpMethod.POST -> client.post().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.POST }
             HttpMethod.PUT -> client.put().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.PUT }
             HttpMethod.PATCH -> client.patch().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.PATCH }
