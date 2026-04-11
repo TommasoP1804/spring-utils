@@ -401,8 +401,8 @@ inline fun <reified T : Any> SqlQueryBuilder.onTable(): SqlQueryBuilder {
  *         in the `@Table` annotation, or the simple name of the class if not annotated.
  * @since 2.7.0
  */
-@UnsafeUsage
-fun convertName(clazz: KClass<*>): String {
+@PublishedApi
+internal fun convertName(clazz: KClass<*>): String {
     val annotation = clazz.findAnnotation<Table>()
     return (annotation?.schema?.ifEmpty { null }?.let { "$it." } ?: String.EMPTY) + (annotation?.name?.ifEmpty { null } ?: -clazz.simpleName!!)
 }
