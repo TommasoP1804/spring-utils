@@ -2,24 +2,14 @@
  * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
  */
 
-@file:Suppress("kutils_tuple_declaration", "unused", "SqlNoDataSourceInspection")
+@file:Suppress("kutils_tuple_declaration", "unused", "SqlNoDataSourceInspection", "DSL_MARKER_APPLIED_TO_WRONG_TARGET")
 
 package dev.tommasop1804.springutils.dsl.sql
 
-import dev.tommasop1804.kutils.EMPTY
-import dev.tommasop1804.kutils.classes.constants.SortDirection
-import dev.tommasop1804.kutils.dsl.sql.DropType
-import dev.tommasop1804.kutils.dsl.sql.JoinScope
-import dev.tommasop1804.kutils.dsl.sql.JoinType
-import dev.tommasop1804.kutils.dsl.sql.OrderByScope
-import dev.tommasop1804.kutils.dsl.sql.SqlDsl
-import dev.tommasop1804.kutils.dsl.sql.TriggerScope
-import dev.tommasop1804.kutils.dsl.sql.WhereScope
-import dev.tommasop1804.kutils.findAnnotationAnywhere
-import dev.tommasop1804.kutils.ownerClass
-import dev.tommasop1804.kutils.unaryMinus
-import dev.tommasop1804.kutils.validate
-import dev.tommasop1804.springutils.jpa.convertName
+import dev.tommasop1804.kutils.*
+import dev.tommasop1804.kutils.classes.constants.*
+import dev.tommasop1804.kutils.dsl.sql.*
+import dev.tommasop1804.springutils.jpa.*
 import jakarta.persistence.Column
 import org.intellij.lang.annotations.Language
 import kotlin.reflect.KClass
@@ -55,6 +45,7 @@ internal fun KProperty1<*, *>.toQualifiedColumnName(alias: String?): String =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.select(vararg columns: Pair<String?, KProperty1<*, *>>, distinct: Boolean = false) =
     select(
         *columns.map { [alias, prop] -> prop.toQualifiedColumnName(alias) }.toTypedArray(),
@@ -65,6 +56,7 @@ fun SqlDsl.select(vararg columns: Pair<String?, KProperty1<*, *>>, distinct: Boo
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.select(vararg columns: KProperty1<*, *>, distinct: Boolean = false) =
     select(
         *columns.map { it.toColumnName() }.toTypedArray(),
@@ -75,6 +67,7 @@ fun SqlDsl.select(vararg columns: KProperty1<*, *>, distinct: Boolean = false) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.select(tableAlias: String?, vararg columns: KProperty1<*, *>, distinct: Boolean = false) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     select(*columns.map { it.toQualifiedColumnName(alias) }.toTypedArray(), distinct = distinct)
@@ -92,6 +85,7 @@ fun SqlDsl.select(tableAlias: String?, vararg columns: KProperty1<*, *>, distinc
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.from(alias: String? = null) {
     val clazz = T::class
     from(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY))
@@ -108,6 +102,7 @@ inline fun <reified T : Any> SqlDsl.from(alias: String? = null) {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.from(vararg tables: Pair<KClass<*>, String>) {
     validate(tables.map(Pair<*, *>::second).distinct().size == tables.size) { "All aliases must be unique" }
     from(*tables.map { [clazz, alias] -> "${convertName(clazz)} $alias" }.toTypedArray())
@@ -118,6 +113,7 @@ fun SqlDsl.from(vararg tables: Pair<KClass<*>, String>) {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.join(alias: String? = null, @Language("sql") type: String, @Language("sql") on: String) {
     val clazz = T::class
     join(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY), type, on)
@@ -127,6 +123,7 @@ inline fun <reified T : Any> SqlDsl.join(alias: String? = null, @Language("sql")
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.join(alias: String? = null, type: JoinType, @Language("sql") on: String) {
     val clazz = T::class
     join(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY), type, on)
@@ -147,6 +144,7 @@ inline fun <reified T : Any> SqlDsl.join(alias: String? = null, type: JoinType, 
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> JoinScope.inner(alias: String? = null, @Language("sql") on: String) {
     join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.INNER, on)
 }
@@ -155,6 +153,7 @@ inline fun <reified T : Any> JoinScope.inner(alias: String? = null, @Language("s
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> JoinScope.left(alias: String? = null, @Language("sql") on: String) {
     join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.LEFT_OUTER, on)
 }
@@ -163,6 +162,7 @@ inline fun <reified T : Any> JoinScope.left(alias: String? = null, @Language("sq
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> JoinScope.right(alias: String? = null, @Language("sql") on: String) {
     join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.RIGHT_OUTER, on)
 }
@@ -171,6 +171,7 @@ inline fun <reified T : Any> JoinScope.right(alias: String? = null, @Language("s
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> JoinScope.full(alias: String? = null, @Language("sql") on: String) {
     join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.FULL_OUTER, on)
 }
@@ -179,6 +180,7 @@ inline fun <reified T : Any> JoinScope.full(alias: String? = null, @Language("sq
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> JoinScope.cross(alias: String? = null) {
     val name = convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY)
     cross(" CROSS JOIN $name")
@@ -188,6 +190,7 @@ inline fun <reified T : Any> JoinScope.cross(alias: String? = null) {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> JoinScope.natural(alias: String? = null) {
     val name = convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY)
     natural(" NATURAL JOIN $name")
@@ -204,6 +207,7 @@ inline fun <reified T : Any> JoinScope.natural(alias: String? = null) {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.eq(@Language("sql") value: Any) =
     "${toColumnName()} = $value"
 /**
@@ -217,6 +221,7 @@ infix fun KProperty1<*, *>.eq(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.eq(property: KProperty1<*, *>) =
     "${toColumnName()} = ${property.toColumnName()}"
 /**
@@ -230,6 +235,7 @@ infix fun KProperty1<*, *>.eq(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.eq(property: Pair<String, KProperty1<*, *>>) =
     "${toColumnName()} = ${property.first}.${property.second.toColumnName()}"
 /**
@@ -243,6 +249,7 @@ infix fun KProperty1<*, *>.eq(property: Pair<String, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.eq(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} = $value"
 /**
@@ -256,6 +263,7 @@ infix fun Pair<String, KProperty1<*, *>>.eq(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.eq(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} = ${property.toColumnName()}"
 /**
@@ -269,6 +277,7 @@ infix fun Pair<String, KProperty1<*, *>>.eq(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.eq(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} = ${property.first}.${property.second.toColumnName()}"
 /**
@@ -278,6 +287,7 @@ infix fun Pair<String, KProperty1<*, *>>.eq(property: Pair<String, KProperty1<*,
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.neq(@Language("sql") value: Any) =
     "${toColumnName()} != $value"
 /**
@@ -287,6 +297,7 @@ infix fun KProperty1<*, *>.neq(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.neq(property: KProperty1<*, *>) =
     "${toColumnName()} != ${property.toColumnName()}"
 /**
@@ -305,6 +316,7 @@ infix fun KProperty1<*, *>.neq(property: Pair<String, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.neq(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} != $value"
 /**
@@ -314,6 +326,7 @@ infix fun Pair<String, KProperty1<*, *>>.neq(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.neq(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} != ${property.toColumnName()}"
 /**
@@ -323,6 +336,7 @@ infix fun Pair<String, KProperty1<*, *>>.neq(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.neq(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} != ${property.first}.${property.second.toColumnName()}"
 /**
@@ -332,6 +346,7 @@ infix fun Pair<String, KProperty1<*, *>>.neq(property: Pair<String, KProperty1<*
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.gt(@Language("sql") value: Any) =
     "${toColumnName()} > $value"
 /**
@@ -341,6 +356,7 @@ infix fun KProperty1<*, *>.gt(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.gt(property: KProperty1<*, *>) =
     "${toColumnName()} > ${property.toColumnName()}"
 /**
@@ -350,6 +366,7 @@ infix fun KProperty1<*, *>.gt(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.gt(property: Pair<String, KProperty1<*, *>>) =
     "${toColumnName()} > ${property.first}.${property.second.toColumnName()}"
 /**
@@ -359,6 +376,7 @@ infix fun KProperty1<*, *>.gt(property: Pair<String, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.gt(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} > $value"
 /**
@@ -368,6 +386,7 @@ infix fun Pair<String, KProperty1<*, *>>.gt(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.gt(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} > ${property.toColumnName()}"
 /**
@@ -377,6 +396,7 @@ infix fun Pair<String, KProperty1<*, *>>.gt(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.gt(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} > ${property.first}.${property.second.toColumnName()}"
 /**
@@ -386,6 +406,7 @@ infix fun Pair<String, KProperty1<*, *>>.gt(property: Pair<String, KProperty1<*,
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.lt(@Language("sql") value: Any) =
     "${toColumnName()} < $value"
 /**
@@ -395,6 +416,7 @@ infix fun KProperty1<*, *>.lt(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.lt(property: KProperty1<*, *>) =
     "${toColumnName()} < ${property.toColumnName()}"
 /**
@@ -404,6 +426,7 @@ infix fun KProperty1<*, *>.lt(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.lt(property: Pair<String, KProperty1<*, *>>) =
     "${toColumnName()} < ${property.first}.${property.second.toColumnName()}"
 /**
@@ -413,6 +436,7 @@ infix fun KProperty1<*, *>.lt(property: Pair<String, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.lt(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} < $value"
 /**
@@ -422,6 +446,7 @@ infix fun Pair<String, KProperty1<*, *>>.lt(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.lt(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} < ${property.toColumnName()}"
 /**
@@ -431,6 +456,7 @@ infix fun Pair<String, KProperty1<*, *>>.lt(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.lt(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} < ${property.first}.${property.second.toColumnName()}"
 /**
@@ -440,6 +466,7 @@ infix fun Pair<String, KProperty1<*, *>>.lt(property: Pair<String, KProperty1<*,
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.gte(@Language("sql") value: Any) =
     "${toColumnName()} >= $value"
 /**
@@ -449,6 +476,7 @@ infix fun KProperty1<*, *>.gte(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.gte(property: KProperty1<*, *>) =
     "${toColumnName()} >= ${property.toColumnName()}"
 /**
@@ -458,6 +486,7 @@ infix fun KProperty1<*, *>.gte(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.gte(property: Pair<String, KProperty1<*, *>>) =
     "${toColumnName()} >= ${property.first}.${property.second.toColumnName()}"
 /**
@@ -467,6 +496,7 @@ infix fun KProperty1<*, *>.gte(property: Pair<String, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.gte(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} >= $value"
 /**
@@ -476,6 +506,7 @@ infix fun Pair<String, KProperty1<*, *>>.gte(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.gte(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} >= ${property.toColumnName()}"
 /**
@@ -485,6 +516,7 @@ infix fun Pair<String, KProperty1<*, *>>.gte(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.gte(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} >= ${property.first}.${property.second.toColumnName()}"
 /**
@@ -494,6 +526,7 @@ infix fun Pair<String, KProperty1<*, *>>.gte(property: Pair<String, KProperty1<*
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.lte(@Language("sql") value: Any) =
     "${toColumnName()} <= $value"
 /**
@@ -503,6 +536,7 @@ infix fun KProperty1<*, *>.lte(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.lte(property: KProperty1<*, *>) =
     "${toColumnName()} <= ${property.toColumnName()}"
 /**
@@ -512,6 +546,7 @@ infix fun KProperty1<*, *>.lte(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun KProperty1<*, *>.lte(property: Pair<String, KProperty1<*, *>>) =
     "${toColumnName()} <= ${property.first}.${property.second.toColumnName()}"
 /**
@@ -521,6 +556,7 @@ infix fun KProperty1<*, *>.lte(property: Pair<String, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.lte(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} <= $value"
 /**
@@ -530,6 +566,7 @@ infix fun Pair<String, KProperty1<*, *>>.lte(@Language("sql") value: Any) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.lte(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} <= ${property.toColumnName()}"
 /**
@@ -539,6 +576,7 @@ infix fun Pair<String, KProperty1<*, *>>.lte(property: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 infix fun Pair<String, KProperty1<*, *>>.lte(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} <= ${property.first}.${property.second.toColumnName()}"
 /**
@@ -546,12 +584,14 @@ infix fun Pair<String, KProperty1<*, *>>.lte(property: Pair<String, KProperty1<*
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun WhereScope.isNullValue(prop: KProperty1<*, *>) = isNullValue(prop.toColumnName())
 /**
  * Adds a condition using a [KProperty1] reference inside [WhereScope].
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun WhereScope.isNotNullValue(prop: KProperty1<*, *>) = isNotNullValue(prop.toColumnName())
 
 /**
@@ -559,6 +599,7 @@ fun WhereScope.isNotNullValue(prop: KProperty1<*, *>) = isNotNullValue(prop.toCo
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
     groupBy(*columns.map { [alias, prop] -> prop.toQualifiedColumnName(alias) }.toTypedArray())
 /**
@@ -566,6 +607,7 @@ fun SqlDsl.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.groupBy(vararg columns: KProperty1<*, *>) =
     groupBy(*columns.map { it.toColumnName() }.toTypedArray())
 /**
@@ -573,6 +615,7 @@ fun SqlDsl.groupBy(vararg columns: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.groupBy(tableAlias: String?, vararg columns: KProperty1<*, *>) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     groupBy(*columns.map { it.toQualifiedColumnName(alias) }.toTypedArray())
@@ -583,6 +626,7 @@ fun SqlDsl.groupBy(tableAlias: String?, vararg columns: KProperty1<*, *>) {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.insertInto() {
     val clazz = T::class
     insertInto(convertName(clazz))
@@ -592,6 +636,7 @@ inline fun <reified T : Any> SqlDsl.insertInto() {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.columns(vararg columns: KProperty1<*, *>) =
     columns(*columns.map { it.toColumnName() }.toTypedArray())
 
@@ -600,6 +645,7 @@ fun SqlDsl.columns(vararg columns: KProperty1<*, *>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.update() {
     val clazz = T::class
     update(convertName(clazz))
@@ -618,6 +664,7 @@ inline fun <reified T : Any> SqlDsl.update() {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.set(vararg expressions: Pair<KProperty1<*, *>, String>) =
     set(*expressions.map { [prop, `value`] -> "${prop.toColumnName()} = $value" }.toTypedArray())
 
@@ -626,6 +673,7 @@ fun SqlDsl.set(vararg expressions: Pair<KProperty1<*, *>, String>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.deleteFrom() {
     val clazz = T::class
     deleteFrom(convertName(clazz))
@@ -636,6 +684,7 @@ inline fun <reified T : Any> SqlDsl.deleteFrom() {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, SortDirection>) =
     orderBy(*columns.map { [alias, prop, dir] -> prop.toQualifiedColumnName(alias) to dir }.toTypedArray())
 /**
@@ -643,6 +692,7 @@ fun SqlDsl.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, SortDirecti
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
     orderBy(*columns.map { [prop, dir] -> prop.toColumnName() to dir }.toTypedArray())
 /**
@@ -650,6 +700,7 @@ fun SqlDsl.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     orderBy(*columns.map { it.toColumnName() to direction }.toTypedArray())
 /**
@@ -657,6 +708,7 @@ fun SqlDsl.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = 
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun SqlDsl.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     orderBy(*columns.map { it.toQualifiedColumnName(alias) to direction }.toTypedArray())
@@ -666,24 +718,30 @@ fun SqlDsl.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direct
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 fun OrderByScope.column(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     column(prop.toColumnName(), direction)
 
 /** @since 3.4.0 */
+@SqlDslMarker
 fun OrderByScope.column(alias: String?, prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     column(prop.toQualifiedColumnName(alias), direction)
 
 /** @since 3.4.0 */
+@SqlDslMarker
 fun OrderByScope.asc(prop: KProperty1<*, *>) = asc(prop.toColumnName())
 
 /** @since 3.4.0 */
+@SqlDslMarker
 fun OrderByScope.desc(prop: KProperty1<*, *>) = desc(prop.toColumnName())
 
 /** @since 3.4.0 */
+@SqlDslMarker
 fun OrderByScope.nullsFirst(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     nullsFirst(prop.toColumnName(), direction)
 
 /** @since 3.4.0 */
+@SqlDslMarker
 fun OrderByScope.nullsLast(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     nullsLast(prop.toColumnName(), direction)
 
@@ -692,6 +750,7 @@ fun OrderByScope.nullsLast(prop: KProperty1<*, *>, direction: SortDirection = So
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.truncate(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
     val clazz = T::class
     truncate(convertName(clazz), ifExists, dropType)
@@ -702,6 +761,7 @@ inline fun <reified T : Any> SqlDsl.truncate(ifExists: Boolean = false, dropType
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.createTable(@Language("sql") body: String) {
     val clazz = T::class
     createTable(convertName(clazz), body)
@@ -711,6 +771,7 @@ inline fun <reified T : Any> SqlDsl.createTable(@Language("sql") body: String) {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.alterTable(ifExists: Boolean = false, @Language("sql") alteration: String) {
     val clazz = T::class
     alterTable(convertName(clazz), ifExists, alteration)
@@ -721,6 +782,7 @@ inline fun <reified T : Any> SqlDsl.alterTable(ifExists: Boolean = false, @Langu
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.dropTable(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
     val clazz = T::class
     dropTable(convertName(clazz), ifExists, dropType)
@@ -731,6 +793,7 @@ inline fun <reified T : Any> SqlDsl.dropTable(ifExists: Boolean = false, dropTyp
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.createIndex(indexName: String, @Language("sql") columns: String, unique: Boolean = false) {
     val clazz = T::class
     createIndex(indexName, convertName(clazz), columns, unique)
@@ -741,6 +804,7 @@ inline fun <reified T : Any> SqlDsl.createIndex(indexName: String, @Language("sq
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.showTable() {
     val clazz = T::class
     showTable(convertName(clazz))
@@ -751,6 +815,7 @@ inline fun <reified T : Any> SqlDsl.showTable() {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.showColumnsFromTable() {
     val clazz = T::class
     showColumnsFromTable(convertName(clazz))
@@ -761,6 +826,7 @@ inline fun <reified T : Any> SqlDsl.showColumnsFromTable() {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> SqlDsl.showIndexFromTable() {
     val clazz = T::class
     showIndexFromTable(convertName(clazz))
@@ -771,6 +837,7 @@ inline fun <reified T : Any> SqlDsl.showIndexFromTable() {
  *
  * @since 3.4.0
  */
+@SqlDslMarker
 inline fun <reified T : Any> TriggerScope.onTable() {
     val clazz = T::class
     onTable(convertName(clazz))
