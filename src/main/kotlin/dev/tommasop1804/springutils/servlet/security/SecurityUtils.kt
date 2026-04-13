@@ -50,7 +50,7 @@ val username: String?
  * authentication object stored in the security context.
  * @since 1.0.0
  */
-val authorities: StringSet
+val authorities: Set<String>
     get() {
         val authentication = SecurityContextHolder.getContext().authentication
         return authentication?.authorities?.mapNotNull { obj: GrantedAuthority? -> obj?.authority }.orEmpty().toSet()

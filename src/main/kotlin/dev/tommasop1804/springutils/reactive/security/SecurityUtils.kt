@@ -7,7 +7,7 @@
 
 package dev.tommasop1804.springutils.reactive.security
 
-import dev.tommasop1804.kutils.StringSet
+import dev.tommasop1804.kutils.Set<String>
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority

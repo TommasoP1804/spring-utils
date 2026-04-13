@@ -4,7 +4,7 @@
 
 package dev.tommasop1804.springutils.servlet.request
 
-import dev.tommasop1804.kutils.MList
+import dev.tommasop1804.kutils.*
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -41,7 +41,7 @@ class OriginArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): String? = webRequest.getHeader("Origin")
+    ): Uri? = webRequest.getHeader("Origin")?.toUri()()
 }
 
 @AutoConfiguration

@@ -22,7 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  *
  * Returns `null` if the header is not present.
  *
- * The parameter type of the annotated method parameter must be [StringList].
+ * The parameter type of the annotated method parameter must be [List<String>].
  * @since 1.0.0
  * @author Tommaso Pastorelli
  */
@@ -41,7 +41,7 @@ class RangeArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): StringList? = webRequest.getHeader("Range")
+    ): List<String>? = webRequest.getHeader("Range")
         ?.let { it / Char.COMMA }
 }
 

@@ -41,7 +41,7 @@ class AcceptEncodingArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): StringList? = webRequest.getHeader("Accept-Encoding")
+    ): List<String>? = webRequest.getHeader("Accept-Encoding")
         ?.let { it / Char.COMMA }
 }
 

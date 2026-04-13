@@ -41,7 +41,7 @@ class AcceptRangesArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): StringList? = webRequest.getHeader("Accept-Ranges")
+    ): List<String>? = webRequest.getHeader("Accept-Ranges")
         ?.let { it / Char.COMMA }
 }
 

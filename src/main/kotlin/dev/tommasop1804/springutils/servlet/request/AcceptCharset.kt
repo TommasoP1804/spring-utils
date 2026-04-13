@@ -41,7 +41,7 @@ class AcceptCharsetArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): StringList? = webRequest.getHeader("Accept-Charset")
+    ): List<String>? = webRequest.getHeader("Accept-Charset")
         ?.let { it / Char.COMMA }
 }
 

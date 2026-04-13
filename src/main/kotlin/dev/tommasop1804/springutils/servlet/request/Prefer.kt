@@ -41,7 +41,7 @@ class PreferArgumentResolver : HandlerMethodArgumentResolver {
         mavContainer: ModelAndViewContainer?,
         webRequest: NativeWebRequest,
         binderFactory: WebDataBinderFactory?
-    ): StringList? = webRequest.getHeader("Prefer")
+    ): List<String>? = webRequest.getHeader("Prefer")
         ?.let { it / Char.COMMA }
 }
 

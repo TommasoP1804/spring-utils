@@ -56,7 +56,7 @@ import java.time.temporal.TemporalAccessor
  * @since 1.0.0
  */
 fun <T : Any> conditionalGet(
-    eTagNoneMatch: StringList? = null,
+    eTagNoneMatch: List<String>? = null,
     ifModifiedSince: OffsetDateTime? = null,
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
@@ -65,7 +65,7 @@ fun <T : Any> conditionalGet(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -129,7 +129,7 @@ fun <T : Any> conditionalGet(
  * @since 1.0.0
  */
 fun <T : Any> conditionalGet(
-    eTagNoneMatch: StringList? = null,
+    eTagNoneMatch: List<String>? = null,
     ifModifiedSince: OffsetDateTime? = null,
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
@@ -138,7 +138,7 @@ fun <T : Any> conditionalGet(
     featureCode: String,
     includeRequestId: Boolean = true,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -203,7 +203,7 @@ fun <T : Any> conditionalGet(
  */
 @JvmName("conditionalUpdateNewValue")
 fun <T : Any, R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -214,7 +214,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -279,7 +279,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateNewValue")
 fun <T : Any, R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -290,7 +290,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -352,7 +352,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateNewValue")
 fun <T : Any, R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -363,7 +363,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -428,7 +428,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateNewValue")
 fun <T : Any, R : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -439,7 +439,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -494,7 +494,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateAction")
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -504,7 +504,7 @@ fun <T : Any> conditionalUpdate(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -561,7 +561,7 @@ fun <T : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateAction")
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -571,7 +571,7 @@ fun <T : Any> conditionalUpdate(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -625,7 +625,7 @@ fun <T : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateAction")
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -635,7 +635,7 @@ fun <T : Any> conditionalUpdate(
     featureCode: String,
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -693,7 +693,7 @@ fun <T : Any> conditionalUpdate(
  */
 @JvmName("conditionalUpdateAction")
 fun <T : Any> conditionalUpdate(
-    eTagIfMatch: StringList? = null,
+    eTagIfMatch: List<String>? = null,
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
@@ -703,7 +703,7 @@ fun <T : Any> conditionalUpdate(
     featureCode: String,
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -758,7 +758,7 @@ fun EmptyResponse(
     includeRequestId: Boolean = true,
     eTag: String? = null,
     lastModified: OffsetDateTime? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -800,7 +800,7 @@ fun EmptyResponse(
     includeRequestId: Boolean = true,
     eTag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -845,7 +845,7 @@ fun <T : Any> OKResponse(
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -887,7 +887,7 @@ fun <T : Any> OKResponse(
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -935,7 +935,7 @@ fun <T : Any> CreatedResponse(
     lastModifiedDate: OffsetDateTime? = null,
     location: URI? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -982,7 +982,7 @@ fun <T : Any> CreatedResponse(
     lastModifiedDate: OffsetDateTime? = null,
     location: URI? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1031,7 +1031,7 @@ fun <T : Any> AcceptedResponse(
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1073,7 +1073,7 @@ fun <T : Any> AcceptedResponse(
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1116,7 +1116,7 @@ fun ResetContentResponse(
     eTag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1157,7 +1157,7 @@ fun ResetContentResponse(
     eTag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1203,7 +1203,7 @@ fun <T : Any> PartialContentResponse(
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1246,7 +1246,7 @@ fun <T : Any> PartialContentResponse(
     includeETag: Boolean = true,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1293,7 +1293,7 @@ fun MultiStatusResponse(
     resources: List<ResourceResult>,
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1335,7 +1335,7 @@ fun MultiStatusResponse(
     resources: List<ResourceResult>,
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1453,7 +1453,7 @@ fun <T : Any> IMUsedResponse(
     newETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1496,7 +1496,7 @@ fun <T : Any> IMUsedResponse(
     newETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -1538,7 +1538,7 @@ fun <T : Any> IMUsedResponse(
 fun SeeOtherResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1573,7 +1573,7 @@ fun SeeOtherResponse(
 fun SeeOtherResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1612,7 +1612,7 @@ fun SeeOtherResponse(
 fun SeeOtherResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
@@ -1647,7 +1647,7 @@ fun SeeOtherResponse(
 fun SeeOtherResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
@@ -1683,7 +1683,7 @@ fun SeeOtherResponse(
 fun FoundResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1718,7 +1718,7 @@ fun FoundResponse(
 fun FoundResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1754,7 +1754,7 @@ fun FoundResponse(
 fun FoundResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
@@ -1789,7 +1789,7 @@ fun FoundResponse(
 fun FoundResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
@@ -2097,7 +2097,7 @@ fun PermanentRedirectResponse(
 fun TemporaryRedirectResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -2132,7 +2132,7 @@ fun TemporaryRedirectResponse(
 fun TemporaryRedirectResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -2168,7 +2168,7 @@ fun TemporaryRedirectResponse(
 fun TemporaryRedirectResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
@@ -2203,7 +2203,7 @@ fun TemporaryRedirectResponse(
 fun TemporaryRedirectResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     retryAfter: TemporalAccessor,
     headers: HttpHeaders = HttpHeaders(),
@@ -2243,7 +2243,7 @@ fun NotModifiedResponse(
     includeRequestId: Boolean = true,
     eTag: String? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
@@ -2281,7 +2281,7 @@ fun NotModifiedResponse(
     includeRequestId: Boolean = true,
     eTag: String? = null,
     expires: TemporalAccessor? = null,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
@@ -2322,7 +2322,7 @@ fun NotModifiedResponse(
 fun NoContentResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
@@ -2357,7 +2357,7 @@ fun NoContentResponse(
 fun NoContentResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
-    preferenceApplied: StringList = emptyList(),
+    preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),

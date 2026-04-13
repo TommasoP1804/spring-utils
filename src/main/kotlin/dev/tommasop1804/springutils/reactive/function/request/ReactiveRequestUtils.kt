@@ -17,16 +17,19 @@ import dev.tommasop1804.kutils.classes.identifiers.Tsid.Companion.toTsid
 import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
 import dev.tommasop1804.kutils.classes.measure.*
 import dev.tommasop1804.kutils.classes.measure.RMeasurement.Companion.ofUnit
+import dev.tommasop1804.kutils.classes.security.Jwt
 import dev.tommasop1804.kutils.classes.security.Jwt.Companion.toJwt
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.headerDateToInstant
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.exception.*
+import dev.tommasop1804.springutils.servlet.function.request.header
 import dev.tommasop1804.springutils.servlet.request.*
 import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.queryParamOrNull
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import kotlin.reflect.KClass
@@ -207,7 +210,7 @@ fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorC
 fun ServerRequest.headerOrDefault(
     name: String,
     defaultValue: Supplier<Any>
-): StringList = headers().header(name).ifEmpty { defaultValue().toString().asSingleList() }
+): List<String> = headers().header(name).ifEmpty { defaultValue().toString().asSingleList() }
 /**
  * Retrieves the values of the specified header from the server request.
  *
@@ -215,21 +218,21 @@ fun ServerRequest.headerOrDefault(
  * @return a list of values associated with the specified header, or an empty list if the header is not present.
  * @since 3.0.0
  */
-fun ServerRequest.header(name: String): StringList = tryOrNull { headers().header(name) }.orEmpty()
+fun ServerRequest.header(name: String): List<String> = tryOrNull { headers().header(name) }.orEmpty()
 
 /**
  * Retrieves the specified header from the server request, ensuring it contains only a single value,
  * or throws an exception if the header is not found, its value is empty, or it contains multiple elements.
  *
  * @param name the name of the header to retrieve.
- * @param class the expected type of the header's value. Defaults to `StringList::class`.
+ * @param class the expected type of the header's value. Defaults to `List<String>::class`.
  * @param lazyException a lambda function that supplies the exception to be thrown if the header
  * is missing, its value is empty, or it contains multiple elements. Defaults to producing a `RequiredHeaderException`
  * with the header name and expected type.
  * @return the single value of the header as a `String`.
  * @since 3.0.2
  */
-fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = StringList::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): String =
+fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = List::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): String =
     headerOrThrow(name, `class`, lazyException).onlyElement()
 /**
  * Retrieves the value of a specific header from the server request and ensures that it contains
@@ -283,13 +286,59 @@ fun ServerRequest.ifNoneMatch() = header(HttpHeaders.IF_NONE_MATCH)
 fun ServerRequest.ifRange() = header(HttpHeaders.IF_RANGE)
 fun ServerRequest.ifUnmodifiedSince() = header(HttpHeaders.IF_UNMODIFIED_SINCE).firstOrNull()?.headerDateToInstant()
 fun ServerRequest.jwtToken(headerName: String = HttpHeaders.AUTHORIZATION) = header(headerName).firstOrNull()?.toJwt()?.getOrThrow()
-fun ServerRequest.origin() = header(HttpHeaders.ORIGIN)
+fun ServerRequest.origin() = header(HttpHeaders.ORIGIN).firstOrNull()?.toUri()?.getOrThrow { MalformedHeaderException(name = HttpHeaders.ORIGIN, Uri::class) }
 fun ServerRequest.prefer() = header("Prefer")
 fun ServerRequest.priority() = header("Priority")
 fun ServerRequest.range() = header(HttpHeaders.RANGE)
 fun ServerRequest.referer() = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow()
 
-fun ServerRequest.queryParamOrThrowAsStringList(name: String) = queryParamOrThrow(name, StringList::class).splitAndTrim(Char.COMMA)
+fun ServerRequest.acceptOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.ACCEPT).ifEmpty(default)
+fun ServerRequest.acceptCharsetOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.ACCEPT_CHARSET).ifEmpty(default)
+fun ServerRequest.acceptEncodingOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.ACCEPT_ENCODING).ifEmpty(default)
+fun ServerRequest.acceptLanguageOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.ACCEPT_LANGUAGE).ifEmpty(default)
+fun ServerRequest.acceptRangesOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.ACCEPT_RANGES).ifEmpty(default)
+fun ServerRequest.connectionOrDefault(default: Supplier<ConnectionBehaviour>) = header(HttpHeaders.CONNECTION).firstOrNull()?.let(ConnectionBehaviour::of) ?: default()
+fun ServerRequest.contentLengthOrDefault(default: Supplier<DataSize>): DataSize = header(HttpHeaders.CONTENT_LENGTH).firstOrNull()?.let { it.toInt() ofUnit MeasureUnit.DataSizeUnit.BYTES } ?: default()
+fun ServerRequest.contentTypeOrDefault(default: Supplier<MediaType>) = header(HttpHeaders.CONTENT_TYPE).firstOrNull()?.let { MediaType.parse(it)() } ?: default()
+fun ServerRequest.expectOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.EXPECT).ifEmpty(default)
+fun ServerRequest.fromServiceOrDefault(default: Supplier<String>) = header("From-Service").firstOrNull() ?: default()
+fun ServerRequest.hostOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.HOST).ifEmpty(default)
+fun ServerRequest.ifMatchOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.IF_MATCH).ifEmpty(default)
+fun ServerRequest.ifModifiedSinceOrDefault(default: Supplier<Instant>) = header(HttpHeaders.IF_MODIFIED_SINCE).firstOrNull()?.headerDateToInstant() ?: default()
+fun ServerRequest.ifNoneMatchOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.IF_NONE_MATCH).ifEmpty(default)
+fun ServerRequest.ifRangeOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.IF_RANGE).ifEmpty(default)
+fun ServerRequest.ifUnmodifiedSinceOrDefault(default: Supplier<Instant>) = header(HttpHeaders.IF_UNMODIFIED_SINCE).firstOrNull()?.headerDateToInstant() ?: default()
+fun ServerRequest.jwtTokenOrDefault(headerName: String = HttpHeaders.AUTHORIZATION, default: Supplier<Jwt>) = header(headerName).firstOrNull()?.toJwt()?.getOrThrow() ?: default()
+fun ServerRequest.originOrDefault(default: Supplier<Uri>) = header(HttpHeaders.ORIGIN).firstOrNull()?.toUri()?.getOrThrow { MalformedHeaderException(name = HttpHeaders.ORIGIN, Uri::class) } ?: default()
+fun ServerRequest.preferOrDefault(default: Supplier<List<String>>) = header("Prefer").ifEmpty(default)
+fun ServerRequest.priorityOrDefault(default: Supplier<List<String>>) = header("Priority").ifEmpty(default)
+fun ServerRequest.rangeOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.RANGE).ifEmpty(default)
+fun ServerRequest.refererOrDefault(default: Supplier<Url>) = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow() ?: default()
+
+fun ServerRequest.acceptOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT, List::class) }) = header(HttpHeaders.ACCEPT).ifEmpty { throw lazyException() }
+fun ServerRequest.acceptCharsetOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_CHARSET, List::class) }) = header(HttpHeaders.ACCEPT_CHARSET).ifEmpty { throw lazyException() }
+fun ServerRequest.acceptEncodingOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_ENCODING, List::class) }) = header(HttpHeaders.ACCEPT_ENCODING).ifEmpty { throw lazyException() }
+fun ServerRequest.acceptLanguageOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_LANGUAGE, List::class) }) = header(HttpHeaders.ACCEPT_LANGUAGE).ifEmpty { throw lazyException() }
+fun ServerRequest.acceptRangesOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_RANGES, List::class) }) = header(HttpHeaders.ACCEPT_RANGES).ifEmpty { throw lazyException() }
+fun ServerRequest.connectionOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.CONNECTION, ConnectionBehaviour::class) }) = header(HttpHeaders.CONNECTION).firstOrNull()?.let(ConnectionBehaviour::of) ?: throw lazyException()
+fun ServerRequest.contentLengthOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.CONTENT_LENGTH, DataSize::class) }): DataSize = header(HttpHeaders.CONTENT_LENGTH).firstOrNull()?.let { it.toInt() ofUnit MeasureUnit.DataSizeUnit.BYTES } ?: throw lazyException()
+fun ServerRequest.contentTypeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.CONTENT_TYPE, MediaType::class) }) = header(HttpHeaders.CONTENT_TYPE).firstOrNull()?.let { MediaType.parse(it)() } ?: throw lazyException()
+fun ServerRequest.expectOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.EXPECT, List::class) }) = header(HttpHeaders.EXPECT).ifEmpty { throw lazyException() }
+fun ServerRequest.fromServiceOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException("From-Service", String::class) }) = header("From-Service").firstOrNull() ?: throw lazyException()
+fun ServerRequest.hostOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.HOST, List::class) }) = header(HttpHeaders.HOST).ifEmpty { throw lazyException() }
+fun ServerRequest.ifMatchOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_MATCH, List::class) }) = header(HttpHeaders.IF_MATCH).ifEmpty { throw lazyException() }
+fun ServerRequest.ifModifiedSinceOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_MODIFIED_SINCE, Instant::class) }) = header(HttpHeaders.IF_MODIFIED_SINCE).firstOrNull()?.headerDateToInstant() ?: throw lazyException()
+fun ServerRequest.ifNoneMatchOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_NONE_MATCH, List::class) }) = header(HttpHeaders.IF_NONE_MATCH).ifEmpty { throw lazyException() }
+fun ServerRequest.ifRangeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_RANGE, List::class) }) = header(HttpHeaders.IF_RANGE).ifEmpty { throw lazyException() }
+fun ServerRequest.ifUnmodifiedSinceOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_UNMODIFIED_SINCE, Instant::class) }) = header(HttpHeaders.IF_UNMODIFIED_SINCE).firstOrNull()?.headerDateToInstant() ?: throw lazyException()
+fun ServerRequest.jwtTokenOrThrow(headerName: String = HttpHeaders.AUTHORIZATION, lazyException: ThrowableSupplier = { RequiredHeaderException(headerName, Jwt::class) }) = header(headerName).firstOrNull()?.toJwt()?.getOrThrow() ?: throw lazyException()
+fun ServerRequest.originOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ORIGIN, Uri::class) }) = header(HttpHeaders.ORIGIN).firstOrNull()?.toUri()?.getOrThrow { MalformedHeaderException(name = HttpHeaders.ORIGIN, Uri::class) } ?: throw lazyException()
+fun ServerRequest.preferOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException("Prefer", List::class) }) = header("Prefer").ifEmpty { throw lazyException() }
+fun ServerRequest.priorityOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException("Priority", List::class) }) = header("Priority").ifEmpty { throw lazyException() }
+fun ServerRequest.rangeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.RANGE, List::class) }) = header(HttpHeaders.RANGE).ifEmpty { throw lazyException() }
+fun ServerRequest.refererOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.REFERER, Url::class) }) = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow() ?: throw lazyException()
+
+fun ServerRequest.queryParamOrThrowAsStringList(name: String) = queryParamOrThrow(name, List::class).splitAndTrim(Char.COMMA)
 fun ServerRequest.queryParamOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Int::class).toInt() }
 fun ServerRequest.queryParamOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Long::class).toLong() }
 fun ServerRequest.queryParamOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Double::class).toDouble() }
@@ -317,7 +366,7 @@ fun ServerRequest.queryParamOrNullAsDate(name: String) = queryParamOrNull(name)?
 fun ServerRequest.queryParamOrNullAsDateTime(name: String) = queryParamOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }) { queryParamOrNull(name)?.toEnumConst<T>() }
 
-fun ServerRequest.queryParamOrDefaultAsStringList(name: String, defaultValue: Supplier<StringList>) = queryParamOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
+fun ServerRequest.queryParamOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = queryParamOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
 fun ServerRequest.queryParamOrDefaultAsInt(name: String, defaultValue: Supplier<Int>) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false) { queryParamOrNull(name)?.toInt() ?: defaultValue() }
 fun ServerRequest.queryParamOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false) { queryParamOrNull(name)?.toLong() ?: defaultValue() }
 fun ServerRequest.queryParamOrDefaultAsDouble(name: String, defaultValue: Supplier<Double>) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false) { queryParamOrNull(name)?.toDouble() ?: defaultValue() }
@@ -331,7 +380,7 @@ fun ServerRequest.queryParamOrDefaultAsDate(name: String, defaultValue: Supplier
 fun ServerRequest.queryParamOrDefaultAsDateTime(name: String, defaultValue: Supplier<OffsetDateTime>) = queryParamOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) } ?: defaultValue()
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrDefaultAsEnum(name: String, crossinline defaultValue: () -> T) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false) { queryParamOrNull(name)?.toEnumConst<T>() ?: defaultValue() }
 
-fun ServerRequest.pathVariableOrThrowAsStringList(name: String) = pathVariableOrThrow(name, StringList::class).splitAndTrim(Char.COMMA)
+fun ServerRequest.pathVariableOrThrowAsStringList(name: String) = pathVariableOrThrow(name, List::class).splitAndTrim(Char.COMMA)
 fun ServerRequest.pathVariableOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Int::class).toInt() }
 fun ServerRequest.pathVariableOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Long::class).toLong() }
 fun ServerRequest.pathVariableOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Double::class).toDouble() }
@@ -359,7 +408,7 @@ fun ServerRequest.pathVariableOrNullAsDate(name: String) = pathVariableOrNull(na
 fun ServerRequest.pathVariableOrNullAsDateTime(name: String) = pathVariableOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedPathVariableException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }) { pathVariableOrNull(name)?.toEnumConst<T>() }
 
-fun ServerRequest.pathVariableOrDefaultAsStringList(name: String, defaultValue: Supplier<StringList>) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
+fun ServerRequest.pathVariableOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
 fun ServerRequest.pathVariableOrDefaultAsInt(name: String, defaultValue: Supplier<Int>) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false) { pathVariableOrNull(name)?.toInt() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false) { pathVariableOrNull(name)?.toLong() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsDouble(name: String, defaultValue: Supplier<Double>) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false) { pathVariableOrNull(name)?.toDouble() ?: defaultValue() }
