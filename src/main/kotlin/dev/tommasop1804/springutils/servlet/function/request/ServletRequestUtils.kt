@@ -17,7 +17,7 @@ import dev.tommasop1804.kutils.classes.identifiers.Tsid.Companion.toTsid
 import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
 import dev.tommasop1804.kutils.classes.measure.*
 import dev.tommasop1804.kutils.classes.measure.RMeasurement.Companion.ofUnit
-import dev.tommasop1804.kutils.classes.security.Jwt
+import dev.tommasop1804.kutils.classes.security.*
 import dev.tommasop1804.kutils.classes.security.Jwt.Companion.toJwt
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.headerDateToInstant
@@ -31,7 +31,6 @@ import org.springframework.web.servlet.function.paramOrNull
 import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
-import java.time.temporal.Temporal
 import kotlin.reflect.KClass
 
 /**
@@ -411,7 +410,7 @@ fun ServerRequest.pathVariableOrNullAsDate(name: String) = pathVariableOrNull(na
 fun ServerRequest.pathVariableOrNullAsDateTime(name: String) = pathVariableOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedPathVariableException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }) { pathVariableOrNull(name)?.toEnumConst<T>() }
 
-fun ServerRequest.pathVariableOrDefaultAsDytinhList(name: String, defaultValue: Supplier<List<String>>) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
+fun ServerRequest.pathVariableOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
 fun ServerRequest.pathVariableOrDefaultAsInt(name: String, defaultValue: Supplier<Int>) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false) { pathVariableOrNull(name)?.toInt() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false) { pathVariableOrNull(name)?.toLong() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsDouble(name: String, defaultValue: Supplier<Double>) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false) { pathVariableOrNull(name)?.toDouble() ?: defaultValue() }
