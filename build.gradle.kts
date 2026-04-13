@@ -20,7 +20,7 @@ plugins {
     id("maven-publish")
     signing
 }
-group = "com.sigeosrl"
+group = "dev.tommasop1804"
 version = "3.4.2"
 // Spring-Utils
 // Tommaso Pastorelli
@@ -29,7 +29,6 @@ version = "3.4.2"
 repositories {
     mavenCentral()
     mavenLocal()
-    maven("https://gitlab.com/api/v4/projects/81186029/packages/maven")
 }
 
 
