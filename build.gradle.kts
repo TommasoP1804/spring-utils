@@ -62,8 +62,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("com.sigeosrl:kotlin-utils-fork:3.6.3")
-    api("com.sigeosrl:kotlin-utils-fork:3.6.3")
+    aspect("dev.tommasop1804:kotlin-utils:3.6.3")
+    api("dev.tommasop1804:kotlin-utils:3.6.3")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")

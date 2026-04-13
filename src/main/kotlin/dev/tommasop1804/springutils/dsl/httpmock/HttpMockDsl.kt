@@ -1297,7 +1297,7 @@ object WireMockAdapter {
         // Request
         appendLine("      \"request\": {")
         val req = stub.request
-        val parts: StringMList = emptyMList()
+        val parts: MList<String> = emptyMList()
         req.method?.let { parts += "        \"method\": \"${it.name}\"" }
 
         val resolvedPath = req.path?.let { path ->
@@ -1334,7 +1334,7 @@ object WireMockAdapter {
         // Response (first only for WireMock basic)
         val resp = stub.responses.first()
         appendLine("      \"response\": {")
-        val rParts: StringMList = emptyMList()
+        val rParts: MList<String> = emptyMList()
         rParts += "        \"status\": ${resp.status.value}"
         if (resp.headers.isNotEmpty()) {
             val hdr = resp.headers.entries.joinToString(",\n") { [k, v] ->

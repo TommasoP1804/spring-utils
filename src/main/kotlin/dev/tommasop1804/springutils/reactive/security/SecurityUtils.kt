@@ -7,12 +7,9 @@
 
 package dev.tommasop1804.springutils.reactive.security
 
-import dev.tommasop1804.kutils.Set<String>
 import kotlinx.coroutines.reactor.awaitSingleOrNull
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.context.SecurityContextHolder
 
 /**
  * Retrieves the current authentication object from the reactive security context.
