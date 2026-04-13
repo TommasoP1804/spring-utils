@@ -5,7 +5,8 @@
 
 @file:Suppress("AvoidDuplicateDependencies")
 
-import kotlin.jvm.java
+import io.freefair.gradle.plugins.aspectj.AspectjCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.20"
@@ -19,7 +20,7 @@ plugins {
     id("maven-publish")
     signing
 }
-group = "dev.tommasop1804"
+group = "com.sigeosrl"
 version = "3.4.2"
 // Spring-Utils
 // Tommaso Pastorelli
@@ -28,7 +29,9 @@ version = "3.4.2"
 repositories {
     mavenCentral()
     mavenLocal()
+    maven("https://gitlab.com/api/v4/projects/81186029/packages/maven")
 }
+
 
 dependencies {
     // Spring Boot starter dependency
@@ -59,8 +62,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:3.6.3")
-    api("dev.tommasop1804:kotlin-utils:3.6.3")
+    aspect("com.sigeosrl:kotlin-utils-fork:3.6.3")
+    api("com.sigeosrl:kotlin-utils-fork:3.6.3")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")
