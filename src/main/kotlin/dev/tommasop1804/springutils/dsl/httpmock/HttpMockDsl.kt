@@ -1238,6 +1238,20 @@ class MockApiBuilder {
 fun buildMockApi(block: MockApiBuilder.() -> Unit): MockApiDefinition =
     MockApiBuilder().apply(block).build()
 
+/**
+ * Initializes a mock API by applying the provided configuration block.
+ * The configuration block allows the definition of stubs and verification
+ * criteria for testing and mocking HTTP API interactions.
+ *
+ * @param block A configuration block executed in the context of a
+ * [MockApiBuilder]. The block allows users to define stubs and verifications
+ * for the mock API.
+ * @since 3.4.3
+ */
+@Beta
+fun initMockApi(block: MockApiBuilder.() -> Unit) =
+    MockApiBuilder().apply(block)
+
 // --- WIREMOCK ADAPTER (GENERATES WIREMOCK STUBS) ---
 
 /**

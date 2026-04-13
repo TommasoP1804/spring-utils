@@ -46,7 +46,7 @@ internal fun KProperty1<*, *>.toQualifiedColumnName(alias: String?): String =
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.select(vararg columns: Pair<String?, KProperty1<*, *>>, distinct: Boolean = false) =
+fun SqlBuilder.select(vararg columns: Pair<String?, KProperty1<*, *>>, distinct: Boolean = false) =
     select(
         *columns.map { [alias, prop] -> prop.toQualifiedColumnName(alias) }.toTypedArray(),
         distinct = distinct
@@ -57,7 +57,7 @@ fun SqlDsl.select(vararg columns: Pair<String?, KProperty1<*, *>>, distinct: Boo
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.select(vararg columns: KProperty1<*, *>, distinct: Boolean = false) =
+fun SqlBuilder.select(vararg columns: KProperty1<*, *>, distinct: Boolean = false) =
     select(
         *columns.map { it.toColumnName() }.toTypedArray(),
         distinct = distinct
@@ -68,7 +68,7 @@ fun SqlDsl.select(vararg columns: KProperty1<*, *>, distinct: Boolean = false) =
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.select(tableAlias: String?, vararg columns: KProperty1<*, *>, distinct: Boolean = false) {
+fun SqlBuilder.select(tableAlias: String?, vararg columns: KProperty1<*, *>, distinct: Boolean = false) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     select(*columns.map { it.toQualifiedColumnName(alias) }.toTypedArray(), distinct = distinct)
 }
@@ -86,7 +86,7 @@ fun SqlDsl.select(tableAlias: String?, vararg columns: KProperty1<*, *>, distinc
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.from(alias: String? = null) {
+inline fun <reified T : Any> SqlBuilder.from(alias: String? = null) {
     val clazz = T::class
     from(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY))
 }
@@ -103,7 +103,7 @@ inline fun <reified T : Any> SqlDsl.from(alias: String? = null) {
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.from(vararg tables: Pair<KClass<*>, String>) {
+fun SqlBuilder.from(vararg tables: Pair<KClass<*>, String>) {
     validate(tables.map(Pair<*, *>::second).distinct().size == tables.size) { "All aliases must be unique" }
     from(*tables.map { [clazz, alias] -> "${convertName(clazz)} $alias" }.toTypedArray())
 }
@@ -114,7 +114,7 @@ fun SqlDsl.from(vararg tables: Pair<KClass<*>, String>) {
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.join(alias: String? = null, @Language("sql") type: String, @Language("sql") on: String) {
+inline fun <reified T : Any> SqlBuilder.join(alias: String? = null, @Language("sql") type: String, @Language("sql") on: String) {
     val clazz = T::class
     join(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY), type, on)
 }
@@ -124,7 +124,7 @@ inline fun <reified T : Any> SqlDsl.join(alias: String? = null, @Language("sql")
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.join(alias: String? = null, type: JoinType, @Language("sql") on: String) {
+inline fun <reified T : Any> SqlBuilder.join(alias: String? = null, type: JoinType, @Language("sql") on: String) {
     val clazz = T::class
     join(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY), type, on)
 }
@@ -600,7 +600,7 @@ fun WhereScope.isNotNullValue(prop: KProperty1<*, *>) = isNotNullValue(prop.toCo
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
+fun SqlBuilder.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
     groupBy(*columns.map { [alias, prop] -> prop.toQualifiedColumnName(alias) }.toTypedArray())
 /**
  * GROUP BY with `KProperty1` columns, no alias.
@@ -608,7 +608,7 @@ fun SqlDsl.groupBy(vararg columns: Pair<String?, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.groupBy(vararg columns: KProperty1<*, *>) =
+fun SqlBuilder.groupBy(vararg columns: KProperty1<*, *>) =
     groupBy(*columns.map { it.toColumnName() }.toTypedArray())
 /**
  * GROUP BY with `KProperty1` columns, all under the same table alias.
@@ -616,7 +616,7 @@ fun SqlDsl.groupBy(vararg columns: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.groupBy(tableAlias: String?, vararg columns: KProperty1<*, *>) {
+fun SqlBuilder.groupBy(tableAlias: String?, vararg columns: KProperty1<*, *>) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     groupBy(*columns.map { it.toQualifiedColumnName(alias) }.toTypedArray())
 }
@@ -627,7 +627,7 @@ fun SqlDsl.groupBy(tableAlias: String?, vararg columns: KProperty1<*, *>) {
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.insertInto() {
+inline fun <reified T : Any> SqlBuilder.insertInto() {
     val clazz = T::class
     insertInto(convertName(clazz))
 }
@@ -637,7 +637,7 @@ inline fun <reified T : Any> SqlDsl.insertInto() {
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.columns(vararg columns: KProperty1<*, *>) =
+fun SqlBuilder.columns(vararg columns: KProperty1<*, *>) =
     columns(*columns.map { it.toColumnName() }.toTypedArray())
 
 /**
@@ -646,7 +646,7 @@ fun SqlDsl.columns(vararg columns: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.update() {
+inline fun <reified T : Any> SqlBuilder.update() {
     val clazz = T::class
     update(convertName(clazz))
 }
@@ -665,7 +665,7 @@ inline fun <reified T : Any> SqlDsl.update() {
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.set(vararg expressions: Pair<KProperty1<*, *>, String>) =
+fun SqlBuilder.set(vararg expressions: Pair<KProperty1<*, *>, String>) =
     set(*expressions.map { [prop, `value`] -> "${prop.toColumnName()} = $value" }.toTypedArray())
 
 /**
@@ -674,7 +674,7 @@ fun SqlDsl.set(vararg expressions: Pair<KProperty1<*, *>, String>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.deleteFrom() {
+inline fun <reified T : Any> SqlBuilder.deleteFrom() {
     val clazz = T::class
     deleteFrom(convertName(clazz))
 }
@@ -685,7 +685,7 @@ inline fun <reified T : Any> SqlDsl.deleteFrom() {
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, SortDirection>) =
+fun SqlBuilder.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, SortDirection>) =
     orderBy(*columns.map { [alias, prop, dir] -> prop.toQualifiedColumnName(alias) to dir }.toTypedArray())
 /**
  * ORDER BY with `Pair<KProperty1, SortDirection>`.
@@ -693,7 +693,7 @@ fun SqlDsl.orderBy(vararg columns: Triple<String?, KProperty1<*, *>, SortDirecti
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
+fun SqlBuilder.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
     orderBy(*columns.map { [prop, dir] -> prop.toColumnName() to dir }.toTypedArray())
 /**
  * ORDER BY with `KProperty1` columns, all with a shared direction.
@@ -701,7 +701,7 @@ fun SqlDsl.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+fun SqlBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
     orderBy(*columns.map { it.toColumnName() to direction }.toTypedArray())
 /**
  * ORDER BY with `KProperty1` columns under a shared table alias and direction.
@@ -709,7 +709,7 @@ fun SqlDsl.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = 
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlDsl.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) {
+fun SqlBuilder.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     orderBy(*columns.map { it.toQualifiedColumnName(alias) to direction }.toTypedArray())
 }
@@ -751,7 +751,7 @@ fun OrderByScope.nullsLast(prop: KProperty1<*, *>, direction: SortDirection = So
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.truncate(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
+inline fun <reified T : Any> SqlBuilder.truncate(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
     val clazz = T::class
     truncate(convertName(clazz), ifExists, dropType)
 }
@@ -762,7 +762,7 @@ inline fun <reified T : Any> SqlDsl.truncate(ifExists: Boolean = false, dropType
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.createTable(@Language("sql") body: String) {
+inline fun <reified T : Any> SqlBuilder.createTable(@Language("sql") body: String) {
     val clazz = T::class
     createTable(convertName(clazz), body)
 }
@@ -772,7 +772,7 @@ inline fun <reified T : Any> SqlDsl.createTable(@Language("sql") body: String) {
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.alterTable(ifExists: Boolean = false, @Language("sql") alteration: String) {
+inline fun <reified T : Any> SqlBuilder.alterTable(ifExists: Boolean = false, @Language("sql") alteration: String) {
     val clazz = T::class
     alterTable(convertName(clazz), ifExists, alteration)
 }
@@ -783,7 +783,7 @@ inline fun <reified T : Any> SqlDsl.alterTable(ifExists: Boolean = false, @Langu
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.dropTable(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
+inline fun <reified T : Any> SqlBuilder.dropTable(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
     val clazz = T::class
     dropTable(convertName(clazz), ifExists, dropType)
 }
@@ -794,7 +794,7 @@ inline fun <reified T : Any> SqlDsl.dropTable(ifExists: Boolean = false, dropTyp
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.createIndex(indexName: String, @Language("sql") columns: String, unique: Boolean = false) {
+inline fun <reified T : Any> SqlBuilder.createIndex(indexName: String, @Language("sql") columns: String, unique: Boolean = false) {
     val clazz = T::class
     createIndex(indexName, convertName(clazz), columns, unique)
 }
@@ -805,7 +805,7 @@ inline fun <reified T : Any> SqlDsl.createIndex(indexName: String, @Language("sq
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.showTable() {
+inline fun <reified T : Any> SqlBuilder.showTable() {
     val clazz = T::class
     showTable(convertName(clazz))
 }
@@ -816,7 +816,7 @@ inline fun <reified T : Any> SqlDsl.showTable() {
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.showColumnsFromTable() {
+inline fun <reified T : Any> SqlBuilder.showColumnsFromTable() {
     val clazz = T::class
     showColumnsFromTable(convertName(clazz))
 }
@@ -827,7 +827,7 @@ inline fun <reified T : Any> SqlDsl.showColumnsFromTable() {
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlDsl.showIndexFromTable() {
+inline fun <reified T : Any> SqlBuilder.showIndexFromTable() {
     val clazz = T::class
     showIndexFromTable(convertName(clazz))
 }

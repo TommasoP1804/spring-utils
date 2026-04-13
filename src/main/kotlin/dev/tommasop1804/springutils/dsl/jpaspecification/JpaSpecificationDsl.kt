@@ -959,6 +959,21 @@ class SpecificationBuilder<T : Any> {
 inline fun <reified T : Any> buildSpecification(block: ReceiverConsumer<SpecificationBuilder<T>>): Specification<T> =
     SpecificationBuilder<T>().apply(block).build()
 
+/**
+ * Initializes a new instance of [SpecificationBuilder] for the specified entity type [T]
+ * and applies the given configuration block to it.
+ *
+ * @param T The entity type for which the specification is being built.
+ * @param block A lambda with receiver used to configure the [SpecificationBuilder].
+ * This provides a DSL for defining query specifications, including conditions, fetch strategies,
+ * and distinct options.
+ * @return A configured instance of [SpecificationBuilder] ready to build JPA specifications.
+ * @since 3.4.3
+ */
+@Beta
+inline fun <reified T : Any> initSpecification(block: SpecificationBuilder<T>.() -> Unit): SpecificationBuilder<T> =
+    SpecificationBuilder<T>().apply(block)
+
 // --- OPERATOR OVERLOADS FOR COMBINING SPECS ---
 
 /**
