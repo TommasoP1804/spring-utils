@@ -2,7 +2,7 @@
  * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
  */
 
-@file:Suppress("unused", "kutils_tuple_declaration", "SqlNoDataSourceInspection")
+@file:Suppress("unused", "kutils_tuple_declaration", "SqlNoDataSourceInspection", "DEPRECATION")
 @file:OptIn(UnsafeUsage::class)
 
 package dev.tommasop1804.springutils.jpa
