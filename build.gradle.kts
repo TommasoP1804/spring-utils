@@ -24,7 +24,7 @@ group = "dev.tommasop1804"
 version = "3.5.0"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260415T094415Z
+// Last update: Tommaso Pastorelli | 20260415T100349Z
 
 repositories {
     mavenCentral()
