@@ -637,11 +637,11 @@ class ReqSpec {
      * Adds a query parameter to the request specification.
      *
      * @param name The name of the query parameter.
-     * @param value The value of the query parameter.
+     * @param values The value of the query parameter.
      * @since 3.1.0
      */
-    fun queryParam(name: String, vararg value: Any?) {
-        queryParams[name] = value.joinToString(String.COMMA)
+    fun queryParam(name: String, vararg values: Any?) {
+        queryParams[name] = values.joinToString(String.COMMA)
     }
     /**
      * Adds a query parameter to the request specification using a key-value pair.
@@ -680,11 +680,11 @@ class ReqSpec {
      * Sets a header with the specified name and value, replacing any existing headers with the same name.
      *
      * @param name the name of the header
-     * @param value the value of the header
+     * @param values the value of the header
      * @since 3.1.0
      */
-    fun header(name: String, vararg value: Any) {
-        headers[name] = value.toList().map { it.toString() }
+    fun header(name: String, vararg values: Any) {
+        headers[name] = values.toList().map { it.toString() }
     }
     /**
      * Adds a header to the request specification from the provided pair. The pair's first
@@ -703,6 +703,13 @@ class ReqSpec {
             else -> header(pair.first, value.toString())
         }
     }
+    /**
+     * Sets a header with the specified [HttpHeader], replacing any existing headers with the same name.
+     *
+     * @param header the HTTP header key wrapped in a [HttpHeader] instance
+     * @since 3.5.1
+     */
+    fun header(header: HttpHeader) = header(header.name, *header.values.toTypedArray())
 
     /**
      * Configures and initializes HTTP headers using the provided receiver consumer.
@@ -713,8 +720,6 @@ class ReqSpec {
     fun headers(init: ReceiverConsumer<HttpHeaders>) {
         headers.init()
     }
-
-
     /**
      * Adds the supplied HTTP headers to the current request specification.
      * Existing headers will be retained, while the new headers will be appended.
@@ -863,12 +868,12 @@ internal fun buildUri(builder: org.springframework.web.util.UriBuilder, pathTemp
  * @since 3.1.0
  */
 internal fun <S : RestClient.RequestHeadersSpec<S>> S.applyHeaders(spec: ReqSpec): S = apply {
-    spec.headers.forEach { [name, values] ->
-        header(name, *values.toTypedArray())
-    }
     val autoAuthorizationHeader = spec.autoAuthorizationHeader
     if (autoAuthorizationHeader.isNotNull() && autoAuthorizationHeader !in spec.headers) {
         header(autoAuthorizationHeader, token(autoAuthorizationHeader).toString(true))
+    }
+    spec.headers.forEach { [name, values] ->
+        header(name, *values.toTypedArray())
     }
 }
 
