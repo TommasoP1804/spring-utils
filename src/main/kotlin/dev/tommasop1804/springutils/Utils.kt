@@ -13,6 +13,7 @@ import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.request.*
+import org.springframework.core.env.PropertyResolver
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ProblemDetail
@@ -398,3 +399,163 @@ fun dev.tommasop1804.kutils.classes.web.HttpStatus.toSpringHttpStatus() = tryOrT
  * @since 2.3.1
  */
 fun HttpStatus.toKutilsHttpStatus() = dev.tommasop1804.kutils.classes.web.HttpStatus.of(value()) ?: throw NoSuchEntryException("No entry found with value ${value()}")
+
+/**
+ * Retrieves the property value associated with the specified key.
+ *
+ * @param key The key used to look up the desired property value.
+ * @return The property value corresponding to the given key, or null if the key is not found.
+ */
+operator fun PropertyResolver.get(key: String) = getProperty(key)
+
+/**
+ * Retrieves a property value identified by the specified key and casts it to the required type.
+ *
+ * @param T The expected type of the property value.
+ * @param key The key identifying the property to retrieve.
+ * @return The property value cast to the specified type, or null if the property is not found or cannot be cast.
+ */
+inline fun <reified T : Any> PropertyResolver.getProperty(key: String) = getProperty(key, T::class.java)
+/**
+ * Retrieves the property value associated with the given key.
+ * If the property is not found, the value provided by the defaultValue supplier is returned.
+ *
+ * @param key the key of the property to retrieve
+ * @param defaultValue a supplier that provides a default value to return when the property is not found
+ * @return the property value associated with the key, or the value from the defaultValue supplier if the key is not present
+ */
+fun PropertyResolver.getPropertyOrDefault(key: String, defaultValue: Supplier<String>) = getProperty(key) ?: defaultValue()
+/**
+ * Retrieves the property associated with the given key as the specified type, or returns the default value
+ * provided by the supplier if the property is not found or cannot be cast to the specified type.
+ *
+ * @param T the type of the property to be retrieved
+ * @param key the key of the property to retrieve
+ * @param defaultValue a supplier providing the default value to return if the property is unavailable
+ * @return the property value cast to the specified type, or the default value provided by the supplier
+ */
+inline fun <reified T : Any> PropertyResolver.getPropertyOrDefault(key: String, defaultValue: Supplier<T>) = getProperty(key, T::class.java) ?: defaultValue()
+/**
+ * Retrieves the property value associated with the given key.
+ * If the property is not found, the provided exception supplier is invoked to throw an exception.
+ *
+ * @param key The key associated with the property to retrieve.
+ * @param lazyException A supplier that provides the exception to throw when the property is not found. Defaults to throwing `NoSuchEnvPropertyException`.
+ * @throws Throwable The exception provided by the `lazyException` supplier if the property is not found.
+ * @return The value of the property associated with the specified key.
+ */
+fun PropertyResolver.getPropertyOrThrow(key: String, lazyException: ThrowableSupplier = { NoSuchEnvPropertyException(propertyName = key) }) =
+    getProperty(key) ?: lazyException()
+/**
+ * Retrieves the property value associated with the specified key or throws an exception if the property is not found.
+ *
+ * @param key the name of the property to retrieve.
+ * @param internalErrorCode an optional internal error code to pass to the exception if the property is not found.
+ * @throws NoSuchEnvPropertyException if the specified property is not available.
+ */
+fun PropertyResolver.getPropertyOrThrow(key: String, internalErrorCode: String?) =
+    getProperty(key) ?: throw NoSuchEnvPropertyException(propertyName = key, internalErrorCode = internalErrorCode)
+/**
+ * Retrieves the value of a property with the specified key or throws an exception if the property is not found.
+ *
+ * @param key The key of the property to retrieve.
+ * @param lazyMessage A supplier that provides the exception message in case the property is not found.
+ * @throws NoSuchEnvPropertyException If the property with the specified key does not exist.
+ */
+fun PropertyResolver.getPropertyOrThrow(key: String, lazyMessage: Supplier<String>) =
+    getProperty(key) ?: throw NoSuchEnvPropertyException(propertyName = key, message = lazyMessage())
+/**
+ * Retrieves the property corresponding to the given key from the PropertyResolver.
+ * If the property is not found, throws a NoSuchEnvPropertyException with the provided error code and message.
+ *
+ * @param key The key of the property to retrieve.
+ * @param internalErrorCode An optional error code to include in the exception if the property is not found.
+ * @param lazyMessage A supplier function that provides a detailed error message when the property is missing.
+ * @throws NoSuchEnvPropertyException If the property with the specified key is not found.
+ */
+fun PropertyResolver.getPropertyOrThrow(key: String, internalErrorCode: String?, lazyMessage: Supplier<String>) =
+    getProperty(key) ?: throw NoSuchEnvPropertyException(propertyName = key, internalErrorCode = internalErrorCode, message = lazyMessage())
+/**
+ * Retrieves a property from the PropertyResolver and casts it to the specified type.
+ * If the property is not found, an exception is thrown, created by the provided lazyException supplier.
+ *
+ * @param key The name of the property to retrieve.
+ * @param lazyException A supplier that provides a Throwable to be thrown if the property is not found. Defaults to throwing NoSuchEnvPropertyException.
+ * @return The property value cast to the specified type.
+ * @throws Throwable If the property is not found in the PropertyResolver.
+ */
+inline fun <reified T : Any> PropertyResolver.getPropertyOrThrow(key: String, lazyException: ThrowableSupplier = { NoSuchEnvPropertyException(propertyName = key) }) =
+    getProperty(key, T::class.java) ?: lazyException()
+/**
+ * Retrieves a property value of the specified type associated with the provided key.
+ * If the property is not found, this method throws a NoSuchEnvPropertyException.
+ *
+ * @param key The key of the property to retrieve.
+ * @param internalErrorCode An optional error code to include in the exception if the property is not found.
+ * @throws NoSuchEnvPropertyException if the property with the specified key is not found.
+ */
+inline fun <reified T : Any> PropertyResolver.getPropertyOrThrow(key: String, internalErrorCode: String?) =
+    getProperty(key, T::class.java) ?: throw NoSuchEnvPropertyException(propertyName = key, internalErrorCode = internalErrorCode)
+/**
+ * Retrieves a property value associated with the specified key and casts it to the expected type.
+ * Throws a [NoSuchEnvPropertyException] if the property is not found.
+ *
+ * @param key The key to retrieve the property value for.
+ * @param lazyMessage A lambda supplier that provides the exception message if the property is not found.
+ * @return The property value cast to the expected type [T].
+ * @throws NoSuchEnvPropertyException if the property is not found for the specified key.
+ */
+inline fun <reified T : Any> PropertyResolver.getPropertyOrThrow(key: String, lazyMessage: Supplier<String>) =
+    getProperty(key, T::class.java) ?: throw NoSuchEnvPropertyException(propertyName = key, message = lazyMessage())
+/**
+ * Retrieves a property value of the specified type associated with the given key from the PropertyResolver.
+ * If the property is not found, a NoSuchEnvPropertyException is thrown with the provided error code and
+ * message.
+ *
+ * @param T The type of the property value to retrieve.
+ * @param key The key of the property to retrieve.
+ * @param internalErrorCode An optional error code to include in the exception if the property is not found.
+ * @param lazyMessage A supplier function that provides a detailed error message for the exception.
+ * @throws NoSuchEnvPropertyException if the property is not found.
+ */
+inline fun <reified T : Any> PropertyResolver.getPropertyOrThrow(key: String, internalErrorCode: String?, lazyMessage: Supplier<String>) =
+    getProperty(key, T::class.java) ?: throw NoSuchEnvPropertyException(propertyName = key, internalErrorCode = internalErrorCode, message = lazyMessage())
+
+/**
+ * Checks if the specified property key exists in the resolver.
+ *
+ * @param key The property key to check for existence.
+ * @return `true` if the property key exists, `false` otherwise.
+ */
+operator fun PropertyResolver.contains(key: String) = containsProperty(key)
+
+/**
+ * Resolves placeholder values within the string using the provided context of `PropertyResolver`.
+ *
+ * This function parses the string for placeholder syntax and replaces them with corresponding
+ * values resolved from the supplied `PropertyResolver` context. Placeholders are typically
+ * denoted in a recognized format, and their values are fetched or substituted based on the
+ * configuration and logic defined in the resolver.
+ *
+ * The function operates in the context of `PropertyResolver`, allowing the resolution process
+ * to access any necessary properties, variables, or other data managed by the resolver implementation.
+ *
+ * @receiver The string in which placeholders are to be resolved.
+ * @return A new string with all placeholders replaced by their resolved values.
+ * @throws IllegalArgumentException If a placeholder cannot be resolved or is malformed.
+ */
+context(resolver: PropertyResolver)
+fun String.resolvePlaceholders() = resolver.resolvePlaceholders(this)
+/**
+ * Resolves all placeholders in this string using the provided PropertyResolver context.
+ * If any placeholders cannot be resolved, the specified exception supplier is used to
+ * throw an exception.
+ *
+ * @param lazyException A supplier that returns the exception to be thrown if a placeholder
+ * cannot be resolved. Defaults to providing a NoSuchEnvPropertyException.
+ */
+context(resolver: PropertyResolver)
+fun String.resolvePlaceholdersOrThrow(lazyException: ThrowableSupplier = { NoSuchEnvPropertyException() }) = tryOrThrow(
+    lazyException = lazyException,
+    overwriteOnly = IllegalArgumentException::class
+) { resolver.resolveRequiredPlaceholders(this) }
