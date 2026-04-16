@@ -912,7 +912,7 @@ infix fun Pair<String, KProperty1<*, CharSequence>>.like(@Language("sql") value:
  */
 @SqlDslMarker
 context(_: SqlBuilder)
-infix fun Pair<String, KProperty1<*, CharSequence>>.lte(property: KProperty1<*, CharSequence>) =
+infix fun Pair<String, KProperty1<*, CharSequence>>.like(property: KProperty1<*, CharSequence>) =
     "$first.${second.toColumnName()} LIKE '${property.toColumnName()}'"
 /**
  * Typed `like` condition.
