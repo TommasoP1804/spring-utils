@@ -208,6 +208,7 @@ inline fun <reified T : Any> JoinScope.natural(alias: String? = null) {
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun KProperty1<*, *>.eq(@Language("sql") value: Any) =
     "${toColumnName()} = $value"
 /**
@@ -219,9 +220,25 @@ infix fun KProperty1<*, *>.eq(@Language("sql") value: Any) =
  * }
  * ```
  *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.eq(@Language("sql") value: Any) =
+    "$this = $value"
+/**
+ * Typed `=` condition.
+ *
+ * ```kotlin
+ * where {
+ *     condition(User::status eq "'ACTIVE'")
+ * }
+ * ```
+ *
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun KProperty1<*, *>.eq(property: KProperty1<*, *>) =
     "${toColumnName()} = ${property.toColumnName()}"
 /**
@@ -233,11 +250,12 @@ infix fun KProperty1<*, *>.eq(property: KProperty1<*, *>) =
  * }
  * ```
  *
- * @since 3.4.0
+ * @since 3.5.2
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.eq(property: Pair<String, KProperty1<*, *>>) =
-    "${toColumnName()} = ${property.first}.${property.second.toColumnName()}"
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.eq(property: KProperty1<*, *>) =
+    "$this = ${property.toColumnName()}"
 /**
  * Typed `=` condition.
  *
@@ -250,6 +268,37 @@ infix fun KProperty1<*, *>.eq(property: Pair<String, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, *>.eq(property: Pair<String, KProperty1<*, *>>) =
+    "${toColumnName()} = ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `=` condition.
+ *
+ * ```kotlin
+ * where {
+ *     condition(User::status eq "'ACTIVE'")
+ * }
+ * ```
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.eq(property: Pair<String, KProperty1<*, *>>) =
+    "$this = ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `=` condition.
+ *
+ * ```kotlin
+ * where {
+ *     condition(User::status eq "'ACTIVE'")
+ * }
+ * ```
+ *
+ * @since 3.4.0
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
 infix fun Pair<String, KProperty1<*, *>>.eq(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} = $value"
 /**
@@ -264,6 +313,7 @@ infix fun Pair<String, KProperty1<*, *>>.eq(@Language("sql") value: Any) =
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun Pair<String, KProperty1<*, *>>.eq(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} = ${property.toColumnName()}"
 /**
@@ -278,6 +328,7 @@ infix fun Pair<String, KProperty1<*, *>>.eq(property: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun Pair<String, KProperty1<*, *>>.eq(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} = ${property.first}.${property.second.toColumnName()}"
 /**
@@ -288,6 +339,7 @@ infix fun Pair<String, KProperty1<*, *>>.eq(property: Pair<String, KProperty1<*,
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun KProperty1<*, *>.neq(@Language("sql") value: Any) =
     "${toColumnName()} != $value"
 /**
@@ -295,9 +347,21 @@ infix fun KProperty1<*, *>.neq(@Language("sql") value: Any) =
  *
  * Use it in a condition/and/or.
  *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.neq(@Language("sql") value: Any) =
+    "$this != $value"
+/**
+ * Typed `!=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun KProperty1<*, *>.neq(property: KProperty1<*, *>) =
     "${toColumnName()} != ${property.toColumnName()}"
 /**
@@ -305,10 +369,12 @@ infix fun KProperty1<*, *>.neq(property: KProperty1<*, *>) =
  *
  * Use it in a condition/and/or.
  *
- * @since 3.4.0
+ * @since 3.5.2
  */
-infix fun KProperty1<*, *>.neq(property: Pair<String, KProperty1<*, *>>) =
-    "${toColumnName()} != ${property.first}.${property.second.toColumnName()}"
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.neq(property: KProperty1<*, *>) =
+    "$this != ${property.toColumnName()}"
 /**
  * Typed `!=` condition.
  *
@@ -317,6 +383,29 @@ infix fun KProperty1<*, *>.neq(property: Pair<String, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, *>.neq(property: Pair<String, KProperty1<*, *>>) =
+    "${toColumnName()} != ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `!=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.neq(property: Pair<String, KProperty1<*, *>>) =
+    "$this != ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `!=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.4.0
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
 infix fun Pair<String, KProperty1<*, *>>.neq(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} != $value"
 /**
@@ -327,6 +416,7 @@ infix fun Pair<String, KProperty1<*, *>>.neq(@Language("sql") value: Any) =
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun Pair<String, KProperty1<*, *>>.neq(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} != ${property.toColumnName()}"
 /**
@@ -337,6 +427,7 @@ infix fun Pair<String, KProperty1<*, *>>.neq(property: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
+context(_: SqlBuilder)
 infix fun Pair<String, KProperty1<*, *>>.neq(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} != ${property.first}.${property.second.toColumnName()}"
 /**
@@ -347,28 +438,42 @@ infix fun Pair<String, KProperty1<*, *>>.neq(property: Pair<String, KProperty1<*
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.gt(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.gt(@Language("sql") value: Any) =
     "${toColumnName()} > $value"
 /**
  * Typed `>` condition.
  *
  * Use it in a condition/and/or.
  *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.gt(@Language("sql") value: Any) =
+    "$this > $value"
+/**
+ * Typed `>` condition.
+ *
+ * Use it in a condition/and/or.
+ *
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.gt(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.gt(property: KProperty1<*, Comparable<*>>) =
     "${toColumnName()} > ${property.toColumnName()}"
 /**
  * Typed `>` condition.
  *
  * Use it in a condition/and/or.
  *
- * @since 3.4.0
+ * @since 3.5.2
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.gt(property: Pair<String, KProperty1<*, *>>) =
-    "${toColumnName()} > ${property.first}.${property.second.toColumnName()}"
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.gt(property: KProperty1<*, Comparable<*>>) =
+    "$this > ${property.toColumnName()}"
 /**
  * Typed `>` condition.
  *
@@ -377,7 +482,30 @@ infix fun KProperty1<*, *>.gt(property: Pair<String, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.gt(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.gt(property: Pair<String, KProperty1<*, Comparable<*>>>) =
+    "${toColumnName()} > ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `>` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.gt(property: Pair<String, KProperty1<*, Comparable<*>>>) =
+    "$this > ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `>` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.4.0
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.gt(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} > $value"
 /**
  * Typed `>` condition.
@@ -387,7 +515,8 @@ infix fun Pair<String, KProperty1<*, *>>.gt(@Language("sql") value: Any) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.gt(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.gt(property: KProperty1<*, Comparable<*>>) =
     "$first.${second.toColumnName()} > ${property.toColumnName()}"
 /**
  * Typed `>` condition.
@@ -397,7 +526,8 @@ infix fun Pair<String, KProperty1<*, *>>.gt(property: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.gt(property: Pair<String, KProperty1<*, *>>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.gt(property: Pair<String, KProperty1<*, Comparable<*>>>) =
     "$first.${second.toColumnName()} > ${property.first}.${property.second.toColumnName()}"
 /**
  * Typed `<` condition.
@@ -407,28 +537,42 @@ infix fun Pair<String, KProperty1<*, *>>.gt(property: Pair<String, KProperty1<*,
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.lt(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.lt(@Language("sql") value: Any) =
     "${toColumnName()} < $value"
 /**
  * Typed `<` condition.
  *
  * Use it in a condition/and/or.
  *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.lt(@Language("sql") value: Any) =
+    "$this < $value"
+/**
+ * Typed `<` condition.
+ *
+ * Use it in a condition/and/or.
+ *
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.lt(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.lt(property: KProperty1<*, Comparable<*>>) =
     "${toColumnName()} < ${property.toColumnName()}"
 /**
  * Typed `<` condition.
  *
  * Use it in a condition/and/or.
  *
- * @since 3.4.0
+ * @since 3.5.2
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.lt(property: Pair<String, KProperty1<*, *>>) =
-    "${toColumnName()} < ${property.first}.${property.second.toColumnName()}"
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.lt(property: KProperty1<*, Comparable<*>>) =
+    "$this < ${property.toColumnName()}"
 /**
  * Typed `<` condition.
  *
@@ -437,7 +581,30 @@ infix fun KProperty1<*, *>.lt(property: Pair<String, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.lt(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.lt(property: Pair<String, KProperty1<*, Comparable<*>>>) =
+    "${toColumnName()} < ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `<` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.lt(property: Pair<String, KProperty1<*, Comparable<*>>>) =
+    "$this < ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `<` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.4.0
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.lt(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} < $value"
 /**
  * Typed `<` condition.
@@ -447,7 +614,8 @@ infix fun Pair<String, KProperty1<*, *>>.lt(@Language("sql") value: Any) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.lt(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.lt(property: KProperty1<*, Comparable<*>>) =
     "$first.${second.toColumnName()} < ${property.toColumnName()}"
 /**
  * Typed `<` condition.
@@ -457,7 +625,8 @@ infix fun Pair<String, KProperty1<*, *>>.lt(property: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.lt(property: Pair<String, KProperty1<*, *>>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.lt(property: Pair<String, KProperty1<*, Comparable<*>>>) =
     "$first.${second.toColumnName()} < ${property.first}.${property.second.toColumnName()}"
 /**
  * Typed `>=` condition.
@@ -467,28 +636,42 @@ infix fun Pair<String, KProperty1<*, *>>.lt(property: Pair<String, KProperty1<*,
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.gte(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.gte(@Language("sql") value: Any) =
     "${toColumnName()} >= $value"
 /**
  * Typed `>=` condition.
  *
  * Use it in a condition/and/or.
  *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.gte(@Language("sql") value: Any) =
+    "$this >= $value"
+/**
+ * Typed `>=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.gte(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.gte(property: KProperty1<*, Comparable<*>>) =
     "${toColumnName()} >= ${property.toColumnName()}"
 /**
  * Typed `>=` condition.
  *
  * Use it in a condition/and/or.
  *
- * @since 3.4.0
+ * @since 3.5.2
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.gte(property: Pair<String, KProperty1<*, *>>) =
-    "${toColumnName()} >= ${property.first}.${property.second.toColumnName()}"
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.gte(property: KProperty1<*, Comparable<*>>) =
+    "$this >= ${property.toColumnName()}"
 /**
  * Typed `>=` condition.
  *
@@ -497,7 +680,30 @@ infix fun KProperty1<*, *>.gte(property: Pair<String, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.gte(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.gte(property: Pair<String, KProperty1<*, *>>) =
+    "${toColumnName()} >= ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `>=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.gte(property: Pair<String, KProperty1<*, *>>) =
+    "$this >= ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `>=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.4.0
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.gte(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} >= $value"
 /**
  * Typed `>=` condition.
@@ -507,7 +713,8 @@ infix fun Pair<String, KProperty1<*, *>>.gte(@Language("sql") value: Any) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.gte(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.gte(property: KProperty1<*, Comparable<*>>) =
     "$first.${second.toColumnName()} >= ${property.toColumnName()}"
 /**
  * Typed `>=` condition.
@@ -517,7 +724,8 @@ infix fun Pair<String, KProperty1<*, *>>.gte(property: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.gte(property: Pair<String, KProperty1<*, *>>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.gte(property: Pair<String, KProperty1<*, Comparable<*>>>) =
     "$first.${second.toColumnName()} >= ${property.first}.${property.second.toColumnName()}"
 /**
  * Typed `<=` condition.
@@ -527,28 +735,42 @@ infix fun Pair<String, KProperty1<*, *>>.gte(property: Pair<String, KProperty1<*
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.lte(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.lte(@Language("sql") value: Any) =
     "${toColumnName()} <= $value"
 /**
  * Typed `<=` condition.
  *
  * Use it in a condition/and/or.
  *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.lte(@Language("sql") value: Any) =
+    "$this <= $value"
+/**
+ * Typed `<=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.lte(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.lte(property: KProperty1<*, Comparable<*>>) =
     "${toColumnName()} <= ${property.toColumnName()}"
 /**
  * Typed `<=` condition.
  *
  * Use it in a condition/and/or.
  *
- * @since 3.4.0
+ * @since 3.5.2
  */
 @SqlDslMarker
-infix fun KProperty1<*, *>.lte(property: Pair<String, KProperty1<*, *>>) =
-    "${toColumnName()} <= ${property.first}.${property.second.toColumnName()}"
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.lte(property: KProperty1<*, Comparable<*>>) =
+    "$this <= ${property.toColumnName()}"
 /**
  * Typed `<=` condition.
  *
@@ -557,7 +779,30 @@ infix fun KProperty1<*, *>.lte(property: Pair<String, KProperty1<*, *>>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.lte(@Language("sql") value: Any) =
+context(_: SqlBuilder)
+infix fun KProperty1<*, Comparable<*>>.lte(property: Pair<String, KProperty1<*, Comparable<*>>>) =
+    "${toColumnName()} <= ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `<=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.lte(property: Pair<String, KProperty1<*, Comparable<*>>>) =
+    "$this <= ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `<=` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.4.0
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.lte(@Language("sql") value: Any) =
     "$first.${second.toColumnName()} <= $value"
 /**
  * Typed `<=` condition.
@@ -567,7 +812,8 @@ infix fun Pair<String, KProperty1<*, *>>.lte(@Language("sql") value: Any) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.lte(property: KProperty1<*, *>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.lte(property: KProperty1<*, *>) =
     "$first.${second.toColumnName()} <= ${property.toColumnName()}"
 /**
  * Typed `<=` condition.
@@ -577,8 +823,208 @@ infix fun Pair<String, KProperty1<*, *>>.lte(property: KProperty1<*, *>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-infix fun Pair<String, KProperty1<*, *>>.lte(property: Pair<String, KProperty1<*, *>>) =
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, Comparable<*>>>.lte(property: Pair<String, KProperty1<*, *>>) =
     "$first.${second.toColumnName()} <= ${property.first}.${property.second.toColumnName()}"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, CharSequence>.like(@Language("sql") value: Any) =
+    "${toColumnName()} LIKE '$value'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.like(@Language("sql") value: Any) =
+    "$this LIKE '$value'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, CharSequence>.like(property: KProperty1<*, CharSequence>) =
+    "${toColumnName()} LIKE '${property.toColumnName()}'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.like(property: KProperty1<*, CharSequence>) =
+    "$this LIKE '${property.toColumnName()}'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, CharSequence>.like(property: Pair<String, KProperty1<*, CharSequence>>) =
+    "${toColumnName()} LIKE '${property.first}.${property.second.toColumnName()}'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.like(property: Pair<String, KProperty1<*, CharSequence>>) =
+    "$this LIKE '${property.first}.${property.second.toColumnName()}'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, CharSequence>>.like(@Language("sql") value: Any) =
+    "$first.${second.toColumnName()} LIKE '$value'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, CharSequence>>.lte(property: KProperty1<*, CharSequence>) =
+    "$first.${second.toColumnName()} LIKE '${property.toColumnName()}'"
+/**
+ * Typed `like` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, CharSequence>>.like(property: Pair<String, KProperty1<*, CharSequence>>) =
+    "$first.${second.toColumnName()} LIKE '${property.first}.${property.second.toColumnName()}'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, CharSequence>.ilike(@Language("sql") value: Any) =
+    "${toColumnName()} ILIKE '$value'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.ilike(@Language("sql") value: Any) =
+    "$this ILIKE '$value'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, CharSequence>.ilike(property: KProperty1<*, CharSequence>) =
+    "${toColumnName()} ILIKE '${property.toColumnName()}'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.ilike(property: KProperty1<*, CharSequence>) =
+    "$this ILIKE '${property.toColumnName()}'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun KProperty1<*, CharSequence>.ilike(property: Pair<String, KProperty1<*, CharSequence>>) =
+    "${toColumnName()} ILIKE '${property.first}.${property.second.toColumnName()}'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun @receiver:Language("sql") String.ilike(property: Pair<String, KProperty1<*, CharSequence>>) =
+    "$this ILIKE '${property.first}.${property.second.toColumnName()}'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, CharSequence>>.ilike(@Language("sql") value: Any) =
+    "$first.${second.toColumnName()} ILIKE '$value'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, CharSequence>>.ilike(property: KProperty1<*, CharSequence>) =
+    "$first.${second.toColumnName()} ILIKE '${property.toColumnName()}'"
+/**
+ * Typed `ilike` condition.
+ *
+ * Use it in a condition/and/or.
+ *
+ * @since 3.5.2
+ */
+@SqlDslMarker
+context(_: SqlBuilder)
+infix fun Pair<String, KProperty1<*, CharSequence>>.ilike(property: Pair<String, KProperty1<*, CharSequence>>) =
+    "$first.${second.toColumnName()} ILIKE '${property.first}.${property.second.toColumnName()}'"
+
 /**
  * Adds a condition using a [KProperty1] reference inside [WhereScope].
  *
