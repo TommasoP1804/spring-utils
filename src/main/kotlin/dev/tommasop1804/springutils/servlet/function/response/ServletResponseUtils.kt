@@ -10,6 +10,7 @@ package dev.tommasop1804.springutils.servlet.function.response
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.*
+import dev.tommasop1804.kutils.classes.measure.*
 import dev.tommasop1804.kutils.classes.time.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.eTag
@@ -25,7 +26,6 @@ import dev.tommasop1804.springutils.servlet.function.*
 import dev.tommasop1804.springutils.servlet.function.request.*
 import dev.tommasop1804.springutils.servlet.request.*
 import dev.tommasop1804.springutils.servlet.response.*
-import org.springframework.http.MediaType
 import org.springframework.web.servlet.function.ServerResponse
 import org.springframework.web.servlet.function.bodyWithType
 import java.net.URL
@@ -48,7 +48,7 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTy
 ): Response {
     val accepted = request.headers().accept()
     val yamlType = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { yaml.equalsTypeAndSubtype(it) } }
-    contentType(yamlType ?: MediaType.APPLICATION_JSON)
+    contentType(yamlType ?: org.springframework.http.MediaType.APPLICATION_JSON)
     return bodyWithType(body)
 }
 
@@ -1206,10 +1206,16 @@ fun ResetContentResponse(
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
  * @param headers Custom headers to include in the response. Can be null or empty. Defaults to null.
+ * @param contentType The content type of the response body. Defaults to `MediaType.APPLICATION_OCTET_STREAM`.
+ * @param contentLength The content length of the response body.
+ * @param contentRange The content range of the response body.
+ * @param contentDisposition The content disposition header value. Can be null. Defaults to null.
+ * @param includeAcceptRanges A flag to determine whether to include the "Accept-Ranges" header in the response. Defaults to true.
  * @param body A supplier that provides the body content of the response. Can be null. Defaults to null.
  * @return A `Response` object of type `T` with the specified properties and HTTP status 206.
  * @since 3.0.0
  */
+@OptIn(Beta::class)
 context(request: Request)
 inline fun <reified T : Any> PartialContentResponse(
     includeFeatureCode: Boolean = true,
@@ -1220,6 +1226,11 @@ inline fun <reified T : Any> PartialContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
+    contentLength: DataSize,
+    contentRange: Pair<LongRange, DataSize?>,
+    contentDisposition: String? = null,
+    includeAcceptRanges: Boolean = true,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1234,6 +1245,11 @@ inline fun <reified T : Any> PartialContentResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    re.contentType(contentType)
+    re.contentLength((contentLength convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toLong())
+    re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
+    if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
+    if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
     if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
     return re.build()
 }
@@ -1249,11 +1265,17 @@ inline fun <reified T : Any> PartialContentResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type of the response body. Defaults to `MediaType.APPLICATION_OCTET_STREAM`.
+ * @param contentLength The content length of the response body.
+ * @param contentRange The content range of the response body.
+ * @param contentDisposition The content disposition header value. Can be null. Defaults to null.
+ * @param includeAcceptRanges A flag to determine whether to include the "Accept-Ranges" header in the response. Defaults to true.
  * @param headers Additional HTTP headers to be included in the response, if specified.
  * @param body A supplier function providing the body content for the response, if specified.
  * @return A built response object containing the given metadata and body content.
  * @since 3.0.0
  */
+@OptIn(Beta::class)
 context(request: Request)
 inline fun <reified T : Any> PartialContentResponse(
     featureCode: String,
@@ -1264,6 +1286,11 @@ inline fun <reified T : Any> PartialContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
+    contentLength: DataSize,
+    contentRange: Pair<LongRange, DataSize?>,
+    contentDisposition: String? = null,
+    includeAcceptRanges: Boolean = true,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1278,6 +1305,11 @@ inline fun <reified T : Any> PartialContentResponse(
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    re.contentType(contentType)
+    re.contentLength((contentLength convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toLong())
+    re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
+    if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
+    if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
     if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
     return re.build()
 }
@@ -2430,6 +2462,28 @@ fun ServerResponse.BodyBuilder.featureCode(code: String): ServerResponse.BodyBui
 fun ServerResponse.BodyBuilder.featureCode(): ServerResponse.BodyBuilder = header("Feature-Code",
     findCallerMethod()?.getAnnotation(Feature::class.java)?.code ?: String.EMPTY
 )
+
+/**
+ * Sets the `Content-Type` header of the HTTP response to the specified media type.
+ *
+ * This method converts the provided custom `MediaType` instance to its corresponding
+ * Spring `MediaType` equivalent before setting it as the content type of the response.
+ *
+ * @param mediaType The custom media type to be set as the content type of the response.
+ *                  Must be an instance of `MediaType` from the `kutils.classes.web` package.
+ * @since 3.6.1
+ */
+fun ServerResponse.BodyBuilder.contentType(mediaType: MediaType) = contentType(mediaType.toSpringMediaType())
+/**
+ * Sets the `Content-Type` header of the HTTP response to the specified media type.
+ *
+ * Converts the provided custom `MimeType` instance to its corresponding
+ * Spring Framework `MediaType` equivalent before setting it as the response's content type.
+ *
+ * @param mediaType The custom MIME type to be set as the content type of the response.
+ * @since 3.6.1
+ */
+fun ServerResponse.BodyBuilder.contentType(mediaType: MimeType) = contentType(mediaType.toMediaType())
 
 /**
  * Adds an `Expires` header to the HTTP response with the specified expiration time.
