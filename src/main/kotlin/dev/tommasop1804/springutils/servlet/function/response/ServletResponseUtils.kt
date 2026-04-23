@@ -47,8 +47,9 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTy
     body: T
 ): Response {
     val accepted = request.headers().accept()
-    val yamlType = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { yaml.equalsTypeAndSubtype(it) } }
-    contentType(yamlType ?: org.springframework.http.MediaType.APPLICATION_JSON)
+    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { it.isCompatibleWith(yaml) } }
+        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accepted.any { it.isCompatibleWith(xml) } }
+    contentType(negotiated ?: org.springframework.http.MediaType.APPLICATION_JSON)
     return bodyWithType(body)
 }
 
