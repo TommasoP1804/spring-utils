@@ -173,6 +173,7 @@ internal fun getStatus(e: Throwable) = when (e) {
     is RequiredParameterException,
     is RequiredHeaderException,
     is NumberSignException,
+    is JsonSchemaValidationException,
     is MalformedInputException -> HttpStatus.BAD_REQUEST
     is ContentTooLargeException -> HttpStatus.CONTENT_TOO_LARGE
     is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException, is ResourceInUseException -> HttpStatus.CONFLICT
@@ -231,7 +232,8 @@ internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     ResourceNotFoundException::class,
     ResourceNotAcceptableException::class,
     ResourceInUseException::class,
-    DatabaseOperationException::class
+    DatabaseOperationException::class,
+    JsonSchemaValidationException::class
 )
 
 internal fun findCorrectException(e: Throwable) =
