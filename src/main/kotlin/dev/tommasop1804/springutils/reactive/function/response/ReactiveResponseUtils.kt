@@ -49,8 +49,8 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyVal
     body: T
 ): ServerResponse {
     val accepted = request.headers().accept()
-    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { it.isCompatibleWith(yaml) } }
-        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accepted.any { it.isCompatibleWith(xml) } }
+    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { it.equalsTypeAndSubtype(yaml) } }
+        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accepted.any { it.equalsTypeAndSubtype(xml) } }
     contentType(negotiated ?: MediaType.APPLICATION_JSON)
     return bodyValueWithTypeAndAwait(body)
 }

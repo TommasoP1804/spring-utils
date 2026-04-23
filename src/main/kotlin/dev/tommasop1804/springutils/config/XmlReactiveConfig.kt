@@ -77,7 +77,13 @@ class XmlReactiveAutoConfiguration {
 val XML_MEDIA_TYPES = listOf(
     MediaType.APPLICATION_XML,
     MediaType.TEXT_XML,
-    MediaType("application", "*+xml")
+    MediaType("application", "problem+xml"),
+    MediaType("application", "xhtml+xml"),
+    MediaType("application", "rss+xml"),
+    MediaType("application", "atom+xml"),
+    MediaType("application", "mathml+xml"),
+    MediaType("application", "svg+xml"),
+    MediaType("application", "xslt+xml"),
 )
 
 class XmlHttpMessageReader(private val xmlMapper: XmlMapper) : HttpMessageReader<Any> {

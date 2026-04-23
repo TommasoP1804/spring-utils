@@ -56,7 +56,14 @@ class XmlServletAutoConfiguration {
 
 class XmlHttpMessageConverter : AbstractHttpMessageConverter<Any>(
     MediaType.APPLICATION_XML,
-    MediaType.TEXT_XML
+    MediaType.TEXT_XML,
+    MediaType("application", "problem+xml"),
+    MediaType("application", "xhtml+xml"),
+    MediaType("application", "rss+xml"),
+    MediaType("application", "atom+xml"),
+    MediaType("application", "mathml+xml"),
+    MediaType("application", "svg+xml"),
+    MediaType("application", "xslt+xml")
 ) {
     private val xmlMapper = XmlMapper.builder()
         .addModule(KotlinModule.Builder().build())
