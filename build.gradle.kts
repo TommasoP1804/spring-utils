@@ -21,7 +21,7 @@ plugins {
     signing
 }
 group = "dev.tommasop1804"
-version = "3.7.0-BETA2"
+version = "3.7.0"
 // Spring-Utils
 // Tommaso Pastorelli
 // Last update: Tommaso Pastorelli | 20260423T211414Z
