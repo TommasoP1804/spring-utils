@@ -93,22 +93,6 @@ fun SqlQueryBuilder.from(vararg tables: Pair<KClass<*>, String>): SqlQueryBuilde
 }
 
 /**
- * Adds a SQL join clause to the query builder using the specified alias, join type, and join condition.
- *
- * @param T The type of the entity to join. The table name is inferred from the class annotation
- *          or simple name of the class.
- * @param alias An optional alias for the table being joined. Defaults to `null` if not provided.
- * @param joinType The SQL keyword representing the type of join (e.g., "INNER", "LEFT").
- * @param onCondition The SQL condition for the join, typically specifying the relationship
- *                      between columns of the tables being joined.
- * @return The modified instance of the SqlQueryBuilder with the join clause added.
- * @since 2.7.0
- */
-inline fun <reified T : Any> SqlQueryBuilder.join(alias: String? = null, @Language("sql") joinType: String, @Language("sql") onCondition: String): SqlQueryBuilder {
-    val clazz = T::class
-    return join(convertName(clazz) + alias?.let { " $it" }, joinType, onCondition)
-}
-/**
  * Adds a join clause to the SQL query being built.
  *
  * @param T The type representing the table being joined.
@@ -118,7 +102,7 @@ inline fun <reified T : Any> SqlQueryBuilder.join(alias: String? = null, @Langua
  * @return The updated [SqlQueryBuilder] instance with the join clause added.
  * @since 2.7.0
  */
-inline fun <reified T : Any> SqlQueryBuilder.join(alias: String? = null, joinType: SqlQueryBuilder.JoinType, @Language("sql") onCondition: String): SqlQueryBuilder {
+inline fun <reified T : Any> SqlQueryBuilder.join(alias: String? = null, joinType: SqlQueryBuilder.JoinType, @Language("sql") onCondition: String? = null): SqlQueryBuilder {
     val clazz = T::class
     return join(convertName(clazz) + alias?.let { " $it" }, joinType, onCondition)
 }

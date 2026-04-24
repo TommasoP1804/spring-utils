@@ -109,22 +109,12 @@ fun SqlBuilder.from(vararg tables: Pair<KClass<*>, String>) {
 }
 
 /**
- * JOIN with a reified entity class and raw join type string.
- *
- * @since 3.4.0
- */
-@SqlDslMarker
-inline fun <reified T : Any> SqlBuilder.join(alias: String? = null, @Language("sql") type: String, @Language("sql") on: String) {
-    val clazz = T::class
-    join(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY), type, on)
-}
-/**
  * JOIN with a reified entity class and [JoinType].
  *
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlBuilder.join(alias: String? = null, type: JoinType, @Language("sql") on: String) {
+inline fun <reified T : Any> SqlBuilder.join(alias: String? = null, type: JoinType, @Language("sql") on: String? = null) {
     val clazz = T::class
     join(convertName(clazz) + (alias?.let { " $it" } ?: String.EMPTY), type, on)
 }
@@ -182,8 +172,7 @@ inline fun <reified T : Any> JoinScope.full(alias: String? = null, @Language("sq
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.cross(alias: String? = null) {
-    val name = convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY)
-    cross(" CROSS JOIN $name")
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.CROSS)
 }
 /**
  * NATURAL JOIN on reified entity.
@@ -192,8 +181,7 @@ inline fun <reified T : Any> JoinScope.cross(alias: String? = null) {
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.natural(alias: String? = null) {
-    val name = convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY)
-    natural(" NATURAL JOIN $name")
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.NATURAL)
 }
 
 /**
