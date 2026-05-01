@@ -21,6 +21,7 @@ import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.request.*
+import dev.tommasop1804.springutils.response.*
 import dev.tommasop1804.springutils.servlet.*
 import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.servlet.request.*
@@ -1298,13 +1299,6 @@ fun <T : Any> PartialContentResponse(
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
     if (result.isNotNull()) return re.body(result)
     return re.build()
-}
-
-enum class MultiStatusResponseType {
-    WEBDAV_XML,
-    MAP,
-    GROUPED_BY_STATUS_MAP,
-    GROUPED_BY_SUCCESS_AND_FAILURE_MAP,
 }
 
 /**

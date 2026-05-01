@@ -17,14 +17,13 @@ import dev.tommasop1804.kutils.classes.identifiers.Tsid.Companion.toTsid
 import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
 import dev.tommasop1804.kutils.classes.measure.*
 import dev.tommasop1804.kutils.classes.measure.RMeasurement.Companion.ofUnit
-import dev.tommasop1804.kutils.classes.security.Jwt
+import dev.tommasop1804.kutils.classes.security.*
 import dev.tommasop1804.kutils.classes.security.Jwt.Companion.toJwt
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpHeader.Companion.headerDateToInstant
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.exception.*
-import dev.tommasop1804.springutils.servlet.function.request.header
 import dev.tommasop1804.springutils.servlet.request.*
 import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -196,7 +195,7 @@ fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException:
  * @param internalErrorCode the internal error code to associate with the exception if the header is missing or invalid
  * @since 3.0.0
  */
-fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String) =
+fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String): List<String> =
     tryOrThrow({ -> RequiredHeaderException(name, `class`, internalErrorCode) }, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
 /**
  * Retrieves the header values associated with the given header name from the request. If no values are found,
@@ -232,7 +231,7 @@ fun ServerRequest.header(name: String): List<String> = tryOrNull { headers().hea
  * @return the single value of the header as a `String`.
  * @since 3.0.2
  */
-fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = List::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): String =
+fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = String::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): String =
     headerOrThrow(name, `class`, lazyException).onlyElement()
 /**
  * Retrieves the value of a specific header from the server request and ensures that it contains

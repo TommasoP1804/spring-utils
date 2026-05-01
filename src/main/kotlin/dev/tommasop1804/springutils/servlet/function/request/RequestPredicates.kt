@@ -21,7 +21,7 @@ import org.springframework.web.servlet.function.RequestPredicates as SpringPred
 object RequestPredicates {
     /**
      * Creates a Spring predicate for the given HTTP method by converting it to the corresponding
-     * Spring Framework HTTP method.
+     * HTTP method.
      *
      * @param method The `HttpMethod` to be converted and used for the predicate creation.
      * @return A Spring predicate based on the converted `HttpMethod`.
@@ -30,7 +30,7 @@ object RequestPredicates {
     fun method(method: HttpMethod) = SpringPred.method(method.toSpringHttpMethod())
     /**
      * Creates a Spring HTTP method-based predicate by converting the given `HttpMethod` values
-     * to their corresponding Spring Framework `HttpMethod` representations.
+     * to their corresponding `HttpMethod` representations.
      *
      * @param methods A vararg of `HttpMethod` instances that represent the HTTP methods to include
      *                in the resulting Spring predicate.

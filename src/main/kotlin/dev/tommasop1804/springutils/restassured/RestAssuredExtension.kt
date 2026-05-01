@@ -21,7 +21,6 @@ import io.restassured.response.ResponseBody
 import io.restassured.response.ResponseOptions
 import io.restassured.response.ValidatableResponseOptions
 import io.restassured.specification.RequestSpecification
-import kotlin.reflect.KClass
 
 /**
  * Specifies the content type of the request using the provided media type.
@@ -72,7 +71,7 @@ fun RequestSpecification.headers(headers: HttpHeaders): RequestSpecification = h
 fun <T : ValidatableResponseOptions<T, R>, R> ValidatableResponseOptions<T, R>.status(status: HttpStatus): T where R : ResponseBody<R>, R : ResponseOptions<R> =
     statusCode(status.value)
 /**
- * Adds the provided headers to the request.
+ * Adds the provided headers to the response options.
  *
  * @param headers The HTTP headers to add, represented as an instance of HttpHeaders.
  * @return The updated instance of ValidatableResponseOptions with the added headers.
@@ -111,7 +110,6 @@ fun <T : ValidatableResponseOptions<T, R>, R> ValidatableResponseOptions<T, R>.c
 /**
  * Extracts the response body and deserializes it into an object of the specified class type.
  *
- * @param class The KClass of the desired type into which the response body will be deserialized.
  * @return An instance of the specified type, deserialized from the response body.
  * @since 3.2.1
  */
@@ -119,21 +117,20 @@ inline fun <reified T : Any> ExtractableResponse<*>.body(): T = body().`as`(T::c
 /**
  * Extracts and deserializes the response body into an object of the specified type.
  *
- * @param class The KClass of the desired type to deserialize the response body into.
  * @param mapperType The ObjectMapperType to use for deserialization.
  * @return The deserialized object of the specified type.
- * @since 3.2.1
+ * @since 3.7.2
  */
-inline fun <reified T : Any> ExtractableResponse<*>.body(`class`: KClass<T>, mapperType: ObjectMapperType): T = body().`as`(T::class.java, mapperType)
+inline fun <reified T : Any> ExtractableResponse<*>.body(mapperType: ObjectMapperType): T = body().`as`(T::class.java, mapperType)
 /**
  * Extracts the response body and converts it to the specified type using the provided object mapper.
  *
- * @param class The KClass of the type to convert the response body into.
  * @param mapper The ObjectMapper used to deserialize the response body.
  * @return The deserialized object of the specified type.
- * @since 3.2.1
+ * @since 3.7.2
  */
-inline fun <reified T : Any> ExtractableResponse<*>.body(`class`: KClass<T>, mapper: ObjectMapper): T = body().`as`(T::class.java, mapper)
+inline fun <reified T : Any> ExtractableResponse<*>.body(mapper: ObjectMapper): T = body().`as`(T::class.java, mapper)
+
 /**
  * Provides the headers of the response as an instance of [HttpHeaders].
  *
@@ -156,10 +153,10 @@ val <R : ResponseOptions<R>> ExtractableResponse<R>.headers get(): HttpHeaders {
  */
 val <R : ResponseOptions<R>> ExtractableResponse<R>.status get() = statusCode().toHttpStatus()
 /**
- * Retrieves the time duration in milliseconds taken for the response to be received.
+ * Retrieves the time duration taken for the response to be received.
  *
  * The property provides access to the time information of the corresponding response
- * and converts it to the duration in milliseconds for easier inspection or usage.
+ * and converts it to the duration for easier inspection or usage.
  * @since 3.2.0
  */
 val <R : ResponseOptions<R>> ExtractableResponse<R>.time get() = time().asMillisOfDuration()

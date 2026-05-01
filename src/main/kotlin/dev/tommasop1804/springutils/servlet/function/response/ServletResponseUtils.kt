@@ -22,10 +22,10 @@ import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.config.*
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.request.*
+import dev.tommasop1804.springutils.response.*
 import dev.tommasop1804.springutils.servlet.function.*
 import dev.tommasop1804.springutils.servlet.function.request.*
 import dev.tommasop1804.springutils.servlet.request.*
-import dev.tommasop1804.springutils.servlet.response.*
 import org.springframework.web.servlet.function.ServerResponse
 import org.springframework.web.servlet.function.bodyWithType
 import java.net.URL

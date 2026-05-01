@@ -22,6 +22,7 @@ import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
 import org.springframework.http.codec.json.JacksonJsonDecoder
 import org.springframework.http.codec.json.JacksonJsonEncoder
+import org.springframework.web.client.ApiVersionInserter
 import org.springframework.web.reactive.function.client.*
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
@@ -48,6 +49,7 @@ class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
  * @param accept The `Accept` header indicating the media type expected in the response. Default is `MediaType.APPLICATION_JSON`.
  * @param fromService Identifies the service making the request for inclusion in the "From-Service" header. Default is `null`.
  * @param defaultHeaders The `HttpHeaders` to be included in every request. Default is `null`.
+ * @param apiVersionInserter The API version inserter to be used for all requests. Default is `null`.
  * @param defaultApiVersion The API version to be used for all requests. Default is `null`.
  * @param defaultUriVariables The URI variables to pre-configure all default URIs. Default is an empty map.
  * @param defaultFilters A list of `ExchangeFilterFunction` objects applied to every request. Default is an empty list.
@@ -70,10 +72,11 @@ fun WebClient(
     accept: MediaType = MediaType.APPLICATION_JSON,
     fromService: String? = null,
     defaultHeaders: HttpHeaders? = null,
+    apiVersionInserter: ApiVersionInserter? = null,
     defaultApiVersion: Any? = null,
-    defaultUriVariables: Map<String, *>? = emptyMap<String, String>(),
+    defaultUriVariables: DataMap = emptyMap(),
     defaultFilters: List<ExchangeFilterFunction> = emptyList(),
-    defaultCookies: MultiMap<String, String> = emptyMap(),
+    defaultCookies: MultiStringMap = emptyMap(),
     defaultRequest: Consumer<WebClient.RequestHeadersSpec<*>>? = null,
     clientConnector: ClientHttpConnector? = null,
     codecs: Consumer<ClientCodecConfigurer>? = null,
@@ -102,8 +105,9 @@ fun WebClient(
     }.also { builder ->
         if (fromService.isNotNull()) builder.fromService(fromService)
         if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
+        if (apiVersionInserter.isNotNull()) builder.apiVersionInserter(apiVersionInserter)
         if (defaultApiVersion.isNotNull()) builder.defaultApiVersion(defaultApiVersion)
-        if (defaultUriVariables.isNotNull()) builder.defaultUriVariables(defaultUriVariables)
+        if (defaultUriVariables.isNotEmpty()) builder.defaultUriVariables(defaultUriVariables)
         if (defaultFilters.isNotEmpty()) builder.filters { it.addAll(defaultFilters) }
         if (defaultCookies.isNotEmpty()) builder.defaultCookies { it.addAll(defaultCookies.toMultiValueMap()) }
         if (defaultRequest.isNotNull()) builder.defaultRequest(defaultRequest)

@@ -20,6 +20,7 @@ import org.springframework.http.client.ClientHttpRequestInitializer
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.observation.ClientRequestObservationConvention
 import org.springframework.http.converter.HttpMessageConverters
+import org.springframework.web.client.ApiVersionInserter
 import org.springframework.web.client.RestClient
 
 /**
@@ -33,6 +34,7 @@ import org.springframework.web.client.RestClient
  * @param accept The default `MediaType` for the `Accept` header in requests. Defaults to `MediaType.APPLICATION_JSON`.
  * @param fromService An optional string identifying the source service of the requests. Defaults to `null`.
  * @param defaultHeaders Optional default HTTP headers to be included in every request. Defaults to `null`.
+ * @param apiVersionInserter An optional `ApiVersionInserter` for API versioning. Defaults to `null`.
  * @param defaultApiVersion An optional default version to be included in requests for API versioning. Defaults to `null`.
  * @param defaultUriVariables A map of default URI variables to be used in URI templates. Defaults to an empty map.
  * @param defaultCookies A map containing default cookies to be included in every request. Defaults to an empty map.
@@ -52,9 +54,10 @@ fun RestClient(
     accept: MediaType = MediaType.APPLICATION_JSON,
     fromService: String? = null,
     defaultHeaders: HttpHeaders? = null,
+    apiVersionInserter: ApiVersionInserter? = null,
     defaultApiVersion: Any? = null,
-    defaultUriVariables: Map<String, *>? = emptyMap<String, String>(),
-    defaultCookies: MultiMap<String, String> = emptyMap(),
+    defaultUriVariables: DataMap = emptyMap(),
+    defaultCookies: MultiStringMap = emptyMap(),
     defaultRequest: Consumer<RestClient.RequestHeadersSpec<*>>? = null,
     requestInterceptors: Consumer<List<ClientHttpRequestInterceptor>>? = null,
     bufferContent: BiPredicate<Uri, HttpMethod>? = null,
@@ -63,16 +66,15 @@ fun RestClient(
     observationRegistry: ObservationRegistry? = null,
     observationConvention: ClientRequestObservationConvention? = null
 ) = RestClient.builder()
-    .also {
-        if (baseUrl.isNotNull()) it.baseUrl(baseUrl)
-    }
+    .also { if (baseUrl.isNotNull()) it.baseUrl(baseUrl) }
     .contentType(contentType)
     .accept(accept)
     .also { builder ->
         if (fromService.isNotNull()) builder.fromService(fromService)
         if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
+        if (apiVersionInserter.isNotNull()) builder.apiVersionInserter(apiVersionInserter)
         if (defaultApiVersion.isNotNull()) builder.defaultApiVersion(defaultApiVersion)
-        if (defaultUriVariables.isNotNull()) builder.defaultUriVariables(defaultUriVariables)
+        if (defaultUriVariables.isNotEmpty()) builder.defaultUriVariables(defaultUriVariables)
         if (defaultCookies.isNotEmpty()) builder.defaultCookies { it.addAll(defaultCookies.toMultiValueMap()) }
         if (defaultRequest.isNotNull()) builder.defaultRequest(defaultRequest)
         if (requestInterceptors.isNotNull()) builder.requestInterceptors(requestInterceptors)
@@ -98,6 +100,7 @@ fun RestClient(
  * @param accept The default `MediaType` for the `Accept` header in requests. Defaults to `MediaType.APPLICATION_JSON`.
  * @param fromService An optional string identifying the source service of the requests. Defaults to `null`.
  * @param defaultHeaders Optional default HTTP headers to be included in every request. Defaults to `null`.
+ * @param apiVersionInserter An optional `ApiVersionInserter` for API versioning. Defaults to `null`.
  * @param defaultApiVersion An optional default version to be included in requests for API versioning. Defaults to `null`.
  * @param defaultUriVariables A map of default URI variables to be used in URI templates. Defaults to an empty map.
  * @param defaultCookies A map containing default cookies to be included in every request. Defaults to an empty map.
@@ -118,9 +121,10 @@ fun RestClient(
     accept: MediaType = MediaType.APPLICATION_JSON,
     fromService: String? = null,
     defaultHeaders: HttpHeaders? = null,
+    apiVersionInserter: ApiVersionInserter? = null,
     defaultApiVersion: Any? = null,
-    defaultUriVariables: Map<String, *>? = emptyMap<String, String>(),
-    defaultCookies: MultiMap<String, String> = emptyMap(),
+    defaultUriVariables: DataMap = emptyMap(),
+    defaultCookies: MultiStringMap = emptyMap(),
     defaultRequest: Consumer<RestClient.RequestHeadersSpec<*>>? = null,
     requestInterceptors: Consumer<List<ClientHttpRequestInterceptor>>? = null,
     bufferContent: BiPredicate<Uri, HttpMethod>? = null,
@@ -135,6 +139,7 @@ fun RestClient(
     accept = accept,
     fromService = fromService,
     defaultHeaders = defaultHeaders,
+    apiVersionInserter = apiVersionInserter,
     defaultApiVersion = defaultApiVersion,
     defaultUriVariables = defaultUriVariables,
     defaultCookies = defaultCookies,
@@ -180,12 +185,12 @@ fun RestClient.Builder.contentType(contentType: MimeType) = defaultHeader(HttpHe
  * Configures the `Accept` header for the `RestClient.Builder` with the specified media types.
  *
  * This method sets the `Accept` header to indicate the media types that the client can handle as a response.
- * The provided `contentType` parameters are converted to their string representations and added as header values.
+ * The provided `accept` parameters are converted to their string representations and added as header values.
  *
- * @param contentType A vararg of `MediaType` values representing the media types to be added to the `Accept` header.
- * @since 3.1.0
+ * @param accept A vararg of `MediaType` values representing the media types to be added to the `Accept` header.
+ * @since 3.7.2
  */
-fun RestClient.Builder.accept(vararg contentType: MediaType) = defaultHeader(HttpHeader.ACCEPT, *contentType.map { it.toString() }.toTypedArray())
+fun RestClient.Builder.accept(vararg accept: MediaType) = defaultHeader(HttpHeader.ACCEPT, *accept.map { it.toString() }.toTypedArray())
 
 /**
  * Adds a `FROM_SERVICE` header to the request with the specified service name.

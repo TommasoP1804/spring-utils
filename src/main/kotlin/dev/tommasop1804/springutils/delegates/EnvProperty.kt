@@ -37,7 +37,7 @@ class EnvProperty<T : Any>(
      * @return the value of the property, either from the environment or a default value
      * @since 3.6.0
      */
-    fun getValue(thisRef: Any?, property: KProperty<*>): T =
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T =
         tryOr({ (defaultValue ?: throw NoSuchEnvPropertyException("Property $property not found"))() }) {
             environment.getRequiredProperty(key, type.java)
         }
@@ -72,7 +72,7 @@ class NullableEnvProperty<T : Any>(
      *         Returns null if the value cannot be retrieved and no default value is provided.
      * @since 3.6.0
      */
-    fun getValue(thisRef: Any?, property: KProperty<*>): T? =
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T? =
         tryOr({ (defaultValue ?: throw NoSuchEnvPropertyException("Property $property not found"))() }) {
             environment.getRequiredProperty(key, type.java)
         }

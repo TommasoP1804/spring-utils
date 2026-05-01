@@ -24,8 +24,8 @@ import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.reactive.function.*
 import dev.tommasop1804.springutils.reactive.function.request.*
 import dev.tommasop1804.springutils.request.*
+import dev.tommasop1804.springutils.response.*
 import dev.tommasop1804.springutils.servlet.EmptyResponse
-import dev.tommasop1804.springutils.servlet.response.*
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait

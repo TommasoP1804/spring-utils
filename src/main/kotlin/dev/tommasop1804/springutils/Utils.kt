@@ -22,14 +22,28 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MimeType
 import org.springframework.util.MultiValueMap
 import java.lang.reflect.Method
-import java.net.URI
 
+/**
+ * Constructs an instance of `ExtendedProblemDetail` by populating its fields based on the provided
+ * arguments and additional extensions.
+ *
+ * @param title The title of the problem. Defaults to `null`.
+ * @param status The HTTP status associated with the problem.
+ * @param type A URI reference that identifies the problem type. Defaults to `null`.
+ * @param detail A detailed message explaining the problem. Defaults to `null`.
+ * @param instance A URI reference to identify the specific occurrence of the problem. Defaults to `null`.
+ * @param internalErrorCode An optional internal error code for the problem. Defaults to `null`.
+ * @param exception An optional string representation of the associated exception. Defaults to `null`.
+ * @param extensions A map of additional properties to include in the problem detail. Defaults to an empty map.
+ * @return An instance of `ExtendedProblemDetail` populated with the given data.
+ * @since 1.2.0
+ */
 fun ProblemDetail(
     title: String? = null,
     status: HttpStatus,
-    type: URI? = null,
+    type: Uri? = null,
     detail: String? = null,
-    instance: URI? = null,
+    instance: Uri? = null,
     internalErrorCode: String? = null,
     exception: String? = null,
     extensions: DataMapNN = emptyMap()
@@ -42,12 +56,26 @@ fun ProblemDetail(
     for ((key, value) in extensions) result.setProperty(key, value)
     return ExtendedProblemDetail(result, internalErrorCode, exception)
 }
+/**
+ * Creates an instance of [ExtendedProblemDetail] with the provided parameters and extensions.
+ *
+ * @param title Optional title describing the problem.
+ * @param status HTTP status code representing the problem. Must not be null.
+ * @param type Optional URI reference that identifies the problem type.
+ * @param detail Optional detailed message providing additional information about the problem.
+ * @param instance Optional URI that identifies the specific occurrence of the problem.
+ * @param internalErrorCode Optional internal error code for additional context.
+ * @param exception Optional exception message or identifier related to the problem.
+ * @param extensions Additional properties to be included in the problem detail.
+ * @return An instance of [ExtendedProblemDetail] containing the provided and extended properties.
+ * @since 1.2.0
+ */
 fun ProblemDetail(
     title: String? = null,
     status: Int,
-    type: URI? = null,
+    type: Uri? = null,
     detail: String? = null,
-    instance: URI? = null,
+    instance: Uri? = null,
     internalErrorCode: String? = null,
     exception: String? = null,
     extensions: DataMapNN = emptyMap()
@@ -94,6 +122,18 @@ internal fun findCallerMethod(): Method? = tryOrNull {
  */
 fun <K : Any, V : Any> MultiMap<K, V>.toMultiValueMap(): MultiValueMap<K, V> = LinkedMultiValueMap<K, V>().also { it.putAll(this) }
 /**
+ * Converts the current `SetMap` instance into a `MultiValueMap`.
+ *
+ * This method transforms the values of the `SetMap`, which are sets, into lists,
+ * and places them into a new `MultiValueMap` instance.
+ *
+ * @return a `MultiValueMap` containing the same key-value mappings as the `SetMap`,
+ *         but with the sets of values converted to lists.
+ * @since 3.7.2
+ */
+@JvmName("toMultiValueMapSetMap")
+fun <K : Any, V : Any> SetMap<K, V>.toMultiValueMap(): MultiValueMap<K, V> = LinkedMultiValueMap<K, V>().also { newMap -> newMap.putAll(mapValues { it.value.toList() }) }
+/**
  * Converts a `MultiValueMap` to a `MultiMap`.
  *
  * The resulting `MultiMap` preserves the key-value pairs of the `MultiValueMap`,
@@ -113,7 +153,7 @@ fun <K : Any, V : Any> MultiValueMap<K, V>.toMultiMap(): MultiMap<K, V> = Linked
  */
 fun MediaType.toKutilsMediaType() = MediaType(type, subtype, parameters)
 /**
- * Converts the current MimeType instance to a new MimeType object with the same type and subtype.
+ * Converts the current [MimeType] instance to a new [dev.tommasop1804.kutils.classes.web.MimeType] object with the same type and subtype.
  *
  * @receiver The MimeType instance to be converted.
  * @return A new MimeType instance containing the type and subtype of the original MimeType.
@@ -159,12 +199,35 @@ fun HttpMethod.toSpringHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpM
  *
  * @receiver The Spring `HttpMethod` instance to be converted.
  * @return The corresponding `HttpMethod` enum value from the Kutils library.
- * @throws NoSuchEntryException If the `name` of the Spring `HttpMethod` does not match any Kutils `HttpMethod` value.
+ * @throws NoSuchEntryException NoSuchEntryException → if no matching HTTP method exists for the current HttpMethod in the enum.
  * @since 3.3.0
  */
 fun org.springframework.http.HttpMethod.toKutilsHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpMethod::class, name()) }) {
     HttpMethod.valueOf(name())
 }
+
+/**
+ * Converts the custom HttpStatus instance to a Spring Framework HttpStatus instance.
+ *
+ * Maps the `value` property of the custom HttpStatus to the corresponding
+ * Spring HttpStatus using the `HttpStatus.valueOf` method.
+ *
+ * @return The corresponding Spring HttpStatus enum constant.
+ * @throws NoSuchEntryException If the value does not map to a valid Spring HttpStatus.
+ * @since 2.3.1
+ */
+fun dev.tommasop1804.kutils.classes.web.HttpStatus.toSpringHttpStatus() = tryOrThrow({ -> NoSuchEntryException("No entry found with value $value") }, includeCause = false) {
+    HttpStatus.valueOf(value)
+}
+/**
+ * Converts an instance of `HttpStatus` to a corresponding `dev.tommasop1804.kutils.classes.web.HttpStatus`.
+ *
+ * @receiver The `HttpStatus` to be converted.
+ * @return The matching `dev.tommasop1804.kutils.classes.web.HttpStatus`.
+ * @throws NoSuchEntryException If no matching entry is found for the value of the `HttpStatus`.
+ * @since 2.3.1
+ */
+fun HttpStatus.toKutilsHttpStatus() = dev.tommasop1804.kutils.classes.web.HttpStatus.of(value()) ?: throw NoSuchEntryException("No entry found with value ${value()}")
 
 internal fun getStatus(e: Throwable) = when (e) {
     is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
@@ -378,29 +441,6 @@ operator fun HttpHeaders.minusAssign(headers: org.springframework.http.HttpHeade
  * @since 3.3.4
  */
 operator fun HttpHeaders.minus(headers: org.springframework.http.HttpHeaders) = this - headers.toKutilsHttpHeaders()
-
-/**
- * Converts the custom HttpStatus instance to a Spring Framework HttpStatus instance.
- *
- * Maps the `value` property of the custom HttpStatus to the corresponding
- * Spring HttpStatus using the `HttpStatus.valueOf` method.
- *
- * @return The corresponding Spring HttpStatus enum constant.
- * @throws NoSuchEntryException If the value does not map to a valid Spring HttpStatus.
- * @since 2.3.1
- */
-fun dev.tommasop1804.kutils.classes.web.HttpStatus.toSpringHttpStatus() = tryOrThrow({ -> NoSuchEntryException("No entry found with value $value") }, includeCause = false) {
-    HttpStatus.valueOf(value)
-}
-/**
- * Converts an instance of `HttpStatus` to a corresponding `dev.tommasop1804.kutils.classes.web.HttpStatus`.
- *
- * @receiver The `HttpStatus` to be converted.
- * @return The matching `dev.tommasop1804.kutils.classes.web.HttpStatus`.
- * @throws NoSuchEntryException If no matching entry is found for the value of the `HttpStatus`.
- * @since 2.3.1
- */
-fun HttpStatus.toKutilsHttpStatus() = dev.tommasop1804.kutils.classes.web.HttpStatus.of(value()) ?: throw NoSuchEntryException("No entry found with value ${value()}")
 
 /**
  * Retrieves the property value associated with the specified key.
