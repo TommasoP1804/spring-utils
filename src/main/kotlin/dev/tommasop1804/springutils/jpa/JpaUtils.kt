@@ -677,11 +677,11 @@ fun <T : Any> Page<T>.toChunkedObj(limit: Int? = null, appliedFilters: List<Filt
 fun <T : Any> Chunked<T>.toJpaPage() = PageImpl(
     data.orEmpty(),
     PageRequest(
-        pageIndex,
+        pageIndex.requiredProperty(::pageIndex, "chunked"),
         limit.requiredProperty(::limit, "chunked"),
         sort.toJpaSort()
     ),
-    totalElements.toLong()
+    totalElements.requiredProperty(::totalElements, "chunked").toLong()
 )
 
 internal fun Sort.toSortOption(): List<SortOption> = toList().map { SortOption(it.property, when (it.direction) {

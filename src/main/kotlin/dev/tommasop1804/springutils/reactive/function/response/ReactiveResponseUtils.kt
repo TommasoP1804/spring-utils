@@ -26,7 +26,6 @@ import dev.tommasop1804.springutils.reactive.function.request.*
 import dev.tommasop1804.springutils.request.*
 import dev.tommasop1804.springutils.response.*
 import dev.tommasop1804.springutils.servlet.EmptyResponse
-import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
@@ -39,19 +38,18 @@ import java.time.temporal.TemporalAccessor
  * If a compatible YAML media type is found, the response content type is set to that media type.
  * Finally, the response body is set using the provided body object.
  *
- * @param request The server request containing headers including the `Accept` header to negotiate content type.
+ * @param accept The server request `Accept` header to negotiate content type.
  * @param body The body object to be set in the response.
  * @return The `ServerResponse` with the negotiated content type and provided body.
- * @since 3.0.0
+ * @since 3.7.3
  */
 suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTypeAndAwait(
-    request: Request,
+    accept: Collection<org.springframework.http.MediaType>,
     body: T
 ): ServerResponse {
-    val accepted = request.headers().accept()
-    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { it.equalsTypeAndSubtype(yaml) } }
-        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accepted.any { it.equalsTypeAndSubtype(xml) } }
-    contentType(negotiated ?: MediaType.APPLICATION_JSON)
+    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accept.any { it.equalsTypeAndSubtype(yaml) } }
+        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accept.any { it.equalsTypeAndSubtype(xml) } }
+    contentType(negotiated ?: accept.firstOr { org.springframework.http.MediaType.APPLICATION_JSON })
     return bodyValueWithTypeAndAwait(body)
 }
 
@@ -89,6 +87,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
@@ -119,7 +118,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.buildAndAwait()
-    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(request, body ?: body())
+    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
 }
 /**
  * Processes conditional GET requests based on the provided HTTP headers and configuration,
@@ -159,6 +158,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
@@ -189,7 +189,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.buildAndAwait()
-    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(request, body ?: body())
+    return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
 }
 
 /**
@@ -234,6 +234,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
@@ -265,7 +266,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Attempts to conditionally update a resource based on ETag or If-Unmodified-Since headers.
@@ -309,6 +310,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     noinline body: Supplier<R>
@@ -336,7 +338,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -380,6 +382,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
@@ -411,7 +414,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -454,6 +457,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     noinline body: Supplier<R>
@@ -481,7 +485,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithTypeAndAwait(request, body)
+    return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
@@ -859,6 +863,7 @@ suspend inline fun <reified T : Any> OKResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -873,7 +878,7 @@ suspend inline fun <reified T : Any> OKResponse(
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -902,6 +907,7 @@ suspend inline fun <reified T : Any> OKResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -916,7 +922,7 @@ suspend inline fun <reified T : Any> OKResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -951,6 +957,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
@@ -967,7 +974,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -999,6 +1006,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
@@ -1015,7 +1023,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -1049,6 +1057,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1063,7 +1072,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1092,6 +1101,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1106,7 +1116,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -1135,6 +1145,7 @@ suspend fun ResetContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
@@ -1176,6 +1187,7 @@ suspend fun ResetContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
@@ -1229,7 +1241,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    contentType: dev.tommasop1804.kutils.classes.web.MediaType = dev.tommasop1804.kutils.classes.web.MediaType.APPLICATION_OCTET_STREAM,
+    contentType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
     contentLength: DataSize,
     contentRange: Pair<LongRange, DataSize?>,
     contentDisposition: String? = null,
@@ -1253,7 +1265,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
     if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType.toSpringMediaType().asSingleList(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1289,7 +1301,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    contentType: dev.tommasop1804.kutils.classes.web.MediaType = dev.tommasop1804.kutils.classes.web.MediaType.APPLICATION_OCTET_STREAM,
+    contentType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
     contentLength: DataSize,
     contentRange: Pair<LongRange, DataSize?>,
     contentDisposition: String? = null,
@@ -1313,7 +1325,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
     if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType.toSpringMediaType().asSingleList(), result)
     return re.buildAndAwait()
 }
 
@@ -1340,6 +1352,7 @@ suspend fun MultiStatusResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
@@ -1353,7 +1366,7 @@ suspend fun MultiStatusResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
+    return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
@@ -1383,6 +1396,7 @@ suspend fun MultiStatusResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
@@ -1394,7 +1408,7 @@ suspend fun MultiStatusResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.negotiateBodyValueWithTypeAndAwait(request, when(responseType) {
+    return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
@@ -1502,6 +1516,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1516,7 +1531,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1546,6 +1561,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1560,7 +1576,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 

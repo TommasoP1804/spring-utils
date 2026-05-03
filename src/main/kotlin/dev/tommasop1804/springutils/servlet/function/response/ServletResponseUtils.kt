@@ -37,19 +37,18 @@ import java.time.temporal.TemporalAccessor
  * If a compatible YAML media type is found, the response content type is set to that media type.
  * Finally, the response body is set using the provided body object.
  *
- * @param request The server request containing headers including the `Accept` header to negotiate content type.
+ * @param accept The server request containing headers including the `Accept` header to negotiate content type.
  * @param body The body object to be set in the response.
  * @return The `ServerResponse` with the negotiated content type and provided body.
- * @since 3.0.0
+ * @since 3.7.3
  */
 inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithType(
-    request: Request,
+    accept: Collection<org.springframework.http.MediaType>,
     body: T
 ): Response {
-    val accepted = request.headers().accept()
-    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accepted.any { it.equalsTypeAndSubtype(yaml) } }
-        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accepted.any { it.equalsTypeAndSubtype(xml) } }
-    contentType(negotiated ?: org.springframework.http.MediaType.APPLICATION_JSON)
+    val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accept.any { it.equalsTypeAndSubtype(yaml) } }
+        ?: XML_MEDIA_TYPES.firstOrNull { xml -> accept.any { it.equalsTypeAndSubtype(xml) } }
+    contentType(negotiated  ?: accept.firstOr { org.springframework.http.MediaType.APPLICATION_JSON })
     return bodyWithType(body)
 }
 
@@ -68,6 +67,7 @@ inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyValueWithTy
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional headers to include in the response, if provided. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param lazyExceptionIfNotPresent A supplier for the exception to throw if validation preconditions are not present (if required).
  * @param body A supplier for the body of the response. The resource body is only included in the response when the
@@ -87,6 +87,7 @@ inline fun <reified T : Any> conditionalGet(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
@@ -117,7 +118,7 @@ inline fun <reified T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.build()
-    return response.eTag(eTag).negotiateBodyValueWithType(request, body ?: body())
+    return response.eTag(eTag).negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
 }
 /**
  * Processes conditional GET requests based on the provided HTTP headers and configuration,
@@ -137,6 +138,7 @@ inline fun <reified T : Any> conditionalGet(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Any additional HTTP headers to be included in the response.  HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param lazyExceptionIfNotPresent A lazy supplier for an exception to throw when validators are required
  * but not provided. By default, a PreconditionRequiredException is thrown.
@@ -157,6 +159,7 @@ inline fun <reified T : Any> conditionalGet(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
     noinline body: Supplier<T>
@@ -187,7 +190,7 @@ inline fun <reified T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NOT_MODIFIED) return response.build()
-    return response.eTag(eTag).negotiateBodyValueWithType(request, body ?: body())
+    return response.eTag(eTag).negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
 }
 
 /**
@@ -209,6 +212,7 @@ inline fun <reified T : Any> conditionalGet(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue A supplier callback used to retrieve the previous state of the resource, if available.
  * @param body A supplier callback used to compute or generate the new value for the resource.
@@ -232,6 +236,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
@@ -263,7 +268,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithType(request, body)
+    return response.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Attempts to conditionally update a resource based on ETag or If-Unmodified-Since headers.
@@ -284,6 +289,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param body A supplier callback used to compute or generate the new value for the resource.
@@ -307,6 +313,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     noinline body: Supplier<R>
@@ -334,7 +341,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithType(request, body)
+    return response.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -354,6 +361,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue Supplier for the previous value of the resource to validate against the
  *        `eTagIfMatch` parameter.
@@ -378,6 +386,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline previousValue: Supplier<T?>?,
     noinline body: Supplier<R>
@@ -409,7 +418,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithType(request, body)
+    return response.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Conditionally updates a resource based on specified validators such as ETag or last modified date.
@@ -429,6 +438,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param body Supplier for the new body of the resource, to be used in the response if conditions are met.
@@ -452,6 +462,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
     noinline body: Supplier<R>
@@ -479,7 +490,7 @@ inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
-    return response.negotiateBodyValueWithType(request, body)
+    return response.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
 }
 /**
  * Executes a conditional update operation based on the provided parameters and validators such as ETag and
@@ -841,6 +852,7 @@ fun EmptyResponse(
  * @param lastModifiedDate The optional last modified date to include in the response headers.
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
  * @param refresh Optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to. Defaults to `null`.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. Defaults to null if no extra headers are needed.
  * @param body A supplier function that provides the response body content. Defaults to null.
@@ -857,6 +869,7 @@ inline fun <reified T : Any> OKResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -871,7 +884,7 @@ inline fun <reified T : Any> OKResponse(
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 /**
@@ -885,6 +898,7 @@ inline fun <reified T : Any> OKResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers additional headers to include in the response, defaults to null
  * @param body a supplier for the response body content, which can be null
  * @return a Response instance of type T encapsulating the provided configurations
@@ -900,6 +914,7 @@ inline fun <reified T : Any> OKResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -914,7 +929,7 @@ inline fun <reified T : Any> OKResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 
@@ -932,6 +947,7 @@ inline fun <reified T : Any> OKResponse(
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
  * @param refresh Optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to. Defaults to `null`.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional headers to include in the response, if specified. Defaults to null.
  * @param includeBody Whether to include the response body. Defaults to `true` if `location` is null.
  * @param body A supplier for the response body. Defaults to null if no body is required.
@@ -949,6 +965,7 @@ inline fun <reified T : Any> CreatedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
@@ -965,7 +982,7 @@ inline fun <reified T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 /**
@@ -980,6 +997,7 @@ inline fun <reified T : Any> CreatedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers additional headers to be included in the response
  * @param includeBody a boolean indicating whether to include the body in the response, defaults to true if `location` is null
  * @param body a supplier providing the body of the response, invoked if a body is to be included
@@ -997,6 +1015,7 @@ inline fun <reified T : Any> CreatedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
     noinline body: Supplier<T>? = null
@@ -1013,7 +1032,7 @@ inline fun <reified T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 
@@ -1032,6 +1051,7 @@ inline fun <reified T : Any> CreatedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. Can be null if no additional headers are needed.
  * @param body A supplier function that provides the response body content. Can be null if no body content is needed.
  * @return The constructed Response object containing the specified HTTP status, headers, and body.
@@ -1047,6 +1067,7 @@ inline fun <reified T : Any> AcceptedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1061,7 +1082,7 @@ inline fun <reified T : Any> AcceptedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 /**
@@ -1075,6 +1096,7 @@ inline fun <reified T : Any> AcceptedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers optional additional headers to include in the response
  * @param body optional supplier for the response body content
  * @return a Response object containing the HTTP status, headers, and optionally body content
@@ -1090,6 +1112,7 @@ inline fun <reified T : Any> AcceptedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1104,7 +1127,7 @@ inline fun <reified T : Any> AcceptedResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 
@@ -1119,6 +1142,7 @@ inline fun <reified T : Any> AcceptedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional headers to include in the response.
  * @param action An optional action to execute before building the response. Defaults to `null`.
  * @return A `Response` object with the specified settings and content.
@@ -1133,6 +1157,7 @@ fun ResetContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
@@ -1160,6 +1185,7 @@ fun ResetContentResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional headers to include in the response.
  * @param action an optional action to execute; can be null
  * @return A `Response` object with the specified settings and content.
@@ -1174,6 +1200,7 @@ fun ResetContentResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
@@ -1206,6 +1233,7 @@ fun ResetContentResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Custom headers to include in the response. Can be null or empty. Defaults to null.
  * @param contentType The content type of the response body. Defaults to `MediaType.APPLICATION_OCTET_STREAM`.
  * @param contentLength The content length of the response body.
@@ -1251,7 +1279,7 @@ inline fun <reified T : Any> PartialContentResponse(
     re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
     if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType.toSpringMediaType().asSingleList(), result)
     return re.build()
 }
 /**
@@ -1271,6 +1299,7 @@ inline fun <reified T : Any> PartialContentResponse(
  * @param contentRange The content range of the response body.
  * @param contentDisposition The content disposition header value. Can be null. Defaults to null.
  * @param includeAcceptRanges A flag to determine whether to include the "Accept-Ranges" header in the response. Defaults to true.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to be included in the response, if specified.
  * @param body A supplier function providing the body content for the response, if specified.
  * @return A built response object containing the given metadata and body content.
@@ -1311,7 +1340,7 @@ inline fun <reified T : Any> PartialContentResponse(
     re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
     if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType.toSpringMediaType().asSingleList(), result)
     return re.build()
 }
 
@@ -1321,6 +1350,7 @@ inline fun <reified T : Any> PartialContentResponse(
  * @param includeFeatureCode Flag indicating whether to include the "Feature-Code" header in the response. Defaults to true.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. Can be null or empty.
  * @param responseType The format or structure of the response body. Defaults to MultiStatusResponseType.WEBDAV_XML.
  * @param httpVersion The HTTP version to use when formatting the response status. Defaults to "HTTP/1.1".
@@ -1338,6 +1368,7 @@ fun MultiStatusResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
@@ -1351,7 +1382,7 @@ fun MultiStatusResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.negotiateBodyValueWithType(request, when(responseType) {
+    return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
@@ -1364,6 +1395,7 @@ fun MultiStatusResponse(
  * @param featureCode A string representing the feature code to be included in the HTTP header.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional HTTP headers to be included in the response. Defaults to null.
  * @param responseType The type of the multi-status response content. Defaults to `MultiStatusResponseType.WEBDAV_XML`.
  * @param httpVersion The HTTP version string to be used in the response. Defaults to "HTTP/1.1".
@@ -1381,6 +1413,7 @@ fun MultiStatusResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
     httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
@@ -1392,7 +1425,7 @@ fun MultiStatusResponse(
     if (includeRequestId) RequestIdProvider.requestId.ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    return re.negotiateBodyValueWithType(request, when(responseType) {
+    return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), when(responseType) {
         MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
         MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
         MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
@@ -1485,6 +1518,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional headers to include in the response, if provided. Defaults to null.
  * @param body A supplier for generating the response body, if needed. Defaults to null.
  * @return A `Response` instance with the configured attributes.
@@ -1500,6 +1534,7 @@ inline fun <reified T : Any> IMUsedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1514,7 +1549,7 @@ inline fun <reified T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 /**
@@ -1529,6 +1564,7 @@ inline fun <reified T : Any> IMUsedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional HTTP headers to be included in the response.
  * @param body An optional supplier for generating the body of the response.
  * @return A `Response` instance representing the constructed HTTP response.
@@ -1544,6 +1580,7 @@ inline fun <reified T : Any> IMUsedResponse(
     preferenceApplied: List<String> = emptyList(),
     refresh: Pair<Duration, URL?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
     noinline body: Supplier<T>? = null
 ): Response {
@@ -1558,7 +1595,7 @@ inline fun <reified T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithType(request, result)
+    if (result.isNotNull()) return re.negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.build()
 }
 

@@ -18,6 +18,7 @@ import dev.tommasop1804.springutils.servlet.log.*
 import dev.tommasop1804.springutils.servlet.log.LoggingAspect.Companion.checkExcludeOrInclude
 import dev.tommasop1804.springutils.servlet.request.*
 import dev.tommasop1804.springutils.servlet.security.*
+import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
@@ -34,7 +35,8 @@ data class LogSettings(
 
 @Component
 class LogHandler(
-    private val requestIdProvider: RequestIdProvider
+    private val requestIdProvider: RequestIdProvider,
+    private val environment: Environment
 ) {
     var settings: LogSettings = LogSettings()
         set(value) = field.run {
@@ -144,7 +146,7 @@ class LogHandler(
                 featureCode,
                 RequestIdProvider.requestId!!,
                 exception,
-                basePackage,
+                basePackage ?: environment.getProperty("spring-utils.base-package"),
                 compute {
                     val customs = emptyMList<String2>()
                     customMessages.forEach { cm ->
