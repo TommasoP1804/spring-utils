@@ -49,7 +49,7 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyVal
 ): ServerResponse {
     val negotiated = YAML_MEDIA_TYPES.firstOrNull { yaml -> accept.any { it.equalsTypeAndSubtype(yaml) } }
         ?: XML_MEDIA_TYPES.firstOrNull { xml -> accept.any { it.equalsTypeAndSubtype(xml) } }
-    contentType(negotiated ?: accept.firstOr { org.springframework.http.MediaType.APPLICATION_JSON })
+    contentType(negotiated ?: accept.find { !it.isWildcardType && !it.isWildcardSubtype } ?: org.springframework.http.MediaType.APPLICATION_JSON)
     return bodyValueWithTypeAndAwait(body)
 }
 
