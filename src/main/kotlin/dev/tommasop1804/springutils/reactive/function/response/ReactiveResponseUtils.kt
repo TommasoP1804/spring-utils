@@ -32,6 +32,7 @@ import org.springframework.web.reactive.function.server.buildAndAwait
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
+import kotlin.text.set
 
 /**
  * Negotiates the response content type based on the `Accept` header from the client request and sets it accordingly.
@@ -1422,7 +1423,7 @@ internal fun generateMultiStatusMap(results: List<ResourceResult>, httpVersion: 
         val map: DataMMap = emptyMMap()
         map["reference"] = result.reference
         map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value + Char.SPACE + result.statusCode.reasonPhrase
-        if (result.description.isNotNullOrBlank()) map["description"] = result.description
+        if (result.properties.isNotNullOrEmpty()) map["properties"] = result.properties
         list += map
     }
     return list
@@ -1434,7 +1435,7 @@ internal fun generateMultiStatusGroupedMap(results: List<ResourceResult>, httpVe
             val map: DataMMap = emptyMMap()
             map["reference"] = result.reference
             map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value + Char.SPACE + result.statusCode.reasonPhrase
-            if (result.description.isNotNullOrBlank()) map["description"] = result.description
+            if (result.properties.isNotNullOrEmpty()) map["properties"] = result.properties
             map
         }
     }
@@ -1468,17 +1469,14 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
     for (item in results) {
         append("  <d:response>\n")
         append("    <d:href>${item.reference.escapeXml()}</d:href>\n")
-
         append("    <d:propstat>\n")
-        append("      <d:prop/>\n")
-
+        append("      <d:prop>\n")
+        item.properties?.forEach { (key, value) ->
+            append("        <d:$key>$value</d:$key>\n")
+        }
+        append("      <d:prop>\n")
         append("      <d:status>HTTP/${httpVersion.substringAfter("HTTP/")} ${item.statusCode.value} ${item.statusCode.reasonPhrase}</d:status>\n")
         append("    </d:propstat>\n")
-
-        if (item.description.isNotNull()) {
-            append("    <d:responsedescription>${item.description.escapeXml()}</d:responsedescription>\n")
-        }
-
         append("  </d:response>\n")
     }
 
