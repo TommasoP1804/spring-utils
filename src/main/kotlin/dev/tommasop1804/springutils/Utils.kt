@@ -229,46 +229,36 @@ fun dev.tommasop1804.kutils.classes.web.HttpStatus.toSpringHttpStatus() = tryOrT
  */
 fun HttpStatus.toKutilsHttpStatus() = dev.tommasop1804.kutils.classes.web.HttpStatus.of(value()) ?: throw NoSuchEntryException("No entry found with value ${value()}")
 
+/**
+ * Resolves the appropriate HTTP status based on the provided exception type.
+ *
+ * This method maps specific exception types to corresponding HTTP status codes
+ * to facilitate standardized error handling. For example, different categories
+ * of errors such as bad requests, resource conflicts, or server-side errors are
+ * represented by their respective HTTP status codes.
+ *
+ * @receiver The exception for which the HTTP status should be determined.
+ * @return The corresponding HTTP status for the provided exception.
+ * @since 3.7.5
+ */
+val Throwable.httpStatus get() = getStatus(this).toKutilsHttpStatus()
+
 internal fun getStatus(e: Throwable) = when (e) {
-    is BadGatewayException, is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
-    is BadRequestException,
+    is ResponseException -> e.status.toSpringHttpStatus()
+    is ExternalServiceHttpException -> HttpStatus.BAD_GATEWAY
     is RequiredPropertyException,
     is RequiredParameterException,
     is RequiredHeaderException,
     is NumberSignException,
     is JsonSchemaValidationException,
+    is XmlSchemaValidationException,
     is MalformedInputException -> HttpStatus.BAD_REQUEST
-    is ContentTooLargeException -> HttpStatus.CONTENT_TOO_LARGE
-    is ConflictException, is ResourceAlreadyExistsException, is ResourceConflictException, is ResourceInUseException -> HttpStatus.CONFLICT
-    is ExpectationFailedException -> HttpStatus.EXPECTATION_FAILED
-    is FailedDependencyException -> HttpStatus.FAILED_DEPENDENCY
-    is ForbiddenException, is InsufficientPermissionsException -> HttpStatus.FORBIDDEN
-    is GatewayTimeoutException -> HttpStatus.GATEWAY_TIMEOUT
-    is GoneException, is ResourceDeletedException -> HttpStatus.GONE
-    is InsufficientStorageException -> HttpStatus.INSUFFICIENT_STORAGE
-    is LengthRequiredException -> HttpStatus.LENGTH_REQUIRED
+    is ResourceAlreadyExistsException, is ResourceConflictException, is ResourceInUseException -> HttpStatus.CONFLICT
+    is InsufficientPermissionsException -> HttpStatus.FORBIDDEN
+    is ResourceDeletedException -> HttpStatus.GONE
     is LockedException, is ResourceLockedException -> HttpStatus.LOCKED
-    is LoopDetectedException -> HttpStatus.LOOP_DETECTED
-    is MisdirectedRequestException -> HttpStatus.MISDIRECTED_REQUEST
-    is NetworkAuthenticationRequiredException -> HttpStatus.NETWORK_AUTHENTICATION_REQUIRED
-    is NotAcceptableException -> HttpStatus.NOT_ACCEPTABLE
-    is NotExtendedException -> HttpStatus.NOT_EXTENDED
-    is NotFoundException, is ResourceNotFoundException -> HttpStatus.NOT_FOUND
-    is NotImplementedException -> HttpStatus.NOT_IMPLEMENTED
-    is PaymentRequiredException -> HttpStatus.PAYMENT_REQUIRED
-    is PreconditionFailedException -> HttpStatus.PRECONDITION_FAILED
-    is PreconditionRequiredException -> HttpStatus.PRECONDITION_REQUIRED
-    is RangeNotSatisfiableException -> HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE
-    is RequestTimeoutException -> HttpStatus.REQUEST_TIMEOUT
-    is ServiceUnavailableException -> HttpStatus.SERVICE_UNAVAILABLE
-    is TeapotException -> HttpStatus.I_AM_A_TEAPOT
-    is TooEarlyException -> HttpStatus.TOO_EARLY
-    is TooManyRequestsException -> HttpStatus.TOO_MANY_REQUESTS
-    is UnauthorizedException -> HttpStatus.UNAUTHORIZED
-    is UnavailableForLegalReasonsException -> HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS
-    is UnprocessableContentException, is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_CONTENT
-    is UnsupportedMediaTypeException -> HttpStatus.UNSUPPORTED_MEDIA_TYPE
-    is VariantAlsoNegotiatesException -> HttpStatus.VARIANT_ALSO_NEGOTIATES
+    is ResourceNotFoundException -> HttpStatus.NOT_FOUND
+    is ResourceNotAcceptableException -> HttpStatus.UNPROCESSABLE_CONTENT
     else -> HttpStatus.INTERNAL_SERVER_ERROR
 }
 
@@ -296,7 +286,8 @@ internal val STATUS_CODE_EXCEPTIONS = arrayOf(
     ResourceNotAcceptableException::class,
     ResourceInUseException::class,
     DatabaseOperationException::class,
-    JsonSchemaValidationException::class
+    JsonSchemaValidationException::class,
+    XmlSchemaValidationException::class
 )
 
 internal fun findCorrectException(e: Throwable) =

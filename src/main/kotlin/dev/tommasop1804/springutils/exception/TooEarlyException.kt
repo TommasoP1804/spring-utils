@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.TOO_EARLY)
 @Suppress("unused")
 class TooEarlyException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.TOO_EARLY
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

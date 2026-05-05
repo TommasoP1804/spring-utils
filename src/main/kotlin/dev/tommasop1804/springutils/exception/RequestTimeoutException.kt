@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
 @Suppress("unused")
 class RequestTimeoutException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.REQUEST_TIMEOUT
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

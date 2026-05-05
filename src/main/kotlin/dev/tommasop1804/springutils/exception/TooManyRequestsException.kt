@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
 @Suppress("unused")
 class TooManyRequestsException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.TOO_MANY_REQUESTS
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

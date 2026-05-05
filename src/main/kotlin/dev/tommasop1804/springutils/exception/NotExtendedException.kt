@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_EXTENDED)
 @Suppress("unused")
 class NotExtendedException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NOT_EXTENDED
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

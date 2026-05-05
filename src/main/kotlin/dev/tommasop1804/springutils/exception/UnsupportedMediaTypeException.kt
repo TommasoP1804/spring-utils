@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
 @Suppress("unused")
 class UnsupportedMediaTypeException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.UNSUPPORTED_MEDIA_TYPE
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

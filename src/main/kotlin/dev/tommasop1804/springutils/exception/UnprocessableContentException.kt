@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
 @Suppress("unused")
 class UnprocessableContentException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.UNPROCESSABLE_CONTENT
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)

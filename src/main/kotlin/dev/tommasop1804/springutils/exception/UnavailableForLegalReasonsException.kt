@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
 @Suppress("unused")
 class UnavailableForLegalReasonsException : ResponseException {
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS
+
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
     constructor(cause: Throwable?, internalErrorCode: String? = null) : super(cause, internalErrorCode)
