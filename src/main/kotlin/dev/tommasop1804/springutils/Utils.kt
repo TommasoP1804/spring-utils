@@ -239,7 +239,7 @@ fun HttpStatus.toKutilsHttpStatus() = dev.tommasop1804.kutils.classes.web.HttpSt
  *
  * @receiver The exception for which the HTTP status should be determined.
  * @return The corresponding HTTP status for the provided exception.
- * @since 3.7.5
+ * @since 3.7.6
  */
 val Throwable.httpStatus get() = getStatus(this).toKutilsHttpStatus()
 
