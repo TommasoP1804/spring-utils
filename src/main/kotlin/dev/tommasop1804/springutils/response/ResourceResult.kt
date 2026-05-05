@@ -5,6 +5,7 @@
 package dev.tommasop1804.springutils.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.annotations.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.springutils.*
@@ -22,11 +23,11 @@ import dev.tommasop1804.springutils.*
 data class ResourceResult(
     val reference: Any,
     val statusCode: HttpStatus,
-    @property:Since("3.7.7") val properties: Any? = null
+    @property:Since("3.7.8") val properties: DataMap? = null
 ) {
     constructor(
         reference: Any,
         statusCode: org.springframework.http.HttpStatus,
-        properties: Any? = null
+        properties: DataMap? = null
     ) : this(reference, statusCode.toKutilsHttpStatus(), properties)
 }
