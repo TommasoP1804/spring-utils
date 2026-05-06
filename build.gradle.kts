@@ -8,6 +8,13 @@
 import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+group = "dev.tommasop1804"
+version = "3.7.9"
+// Spring-Utils
+// Tommaso Pastorelli
+// Last update: Tommaso Pastorelli | 20260506T105609Z
+
+
 plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.20"
     id("org.jetbrains.kotlin.plugin.spring") version "2.3.20"
@@ -20,17 +27,11 @@ plugins {
     id("maven-publish")
     signing
 }
-group = "dev.tommasop1804"
-version = "3.7.8"
-// Spring-Utils
-// Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260505T215221Z
 
 repositories {
     mavenCentral()
     mavenLocal()
 }
-
 
 dependencies {
     // Spring Boot starter dependency
@@ -62,8 +63,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:3.11.1")
-    api("dev.tommasop1804:kotlin-utils:3.11.1")
+    aspect("dev.tommasop1804:kotlin-utils:3.11.3")
+    api("dev.tommasop1804:kotlin-utils:3.11.3")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")

@@ -68,6 +68,32 @@ val ServerRequest.headers get() = headers().asHttpHeaders().toKutilsHttpHeaders(
  * @since 3.0.2
  */
 val ServerRequest.pathVariables: StringMap get() = pathVariables()
+/**
+ * Retrieves the protocol used in the server request.
+ *
+ * This property represents the protocol string of the current server request,
+ * such as `HTTP/1.1` or `HTTP/2.0`, by directly accessing the underlying
+ * servlet request's protocol method.
+ *
+ * @receiver An instance of `ServerRequest` for which the protocol is being retrieved.
+ * @return A string representing the protocol of the request.
+ * @since 3.7.9
+ */
+val ServerRequest.protocol: String get() = servletRequest().protocol
+/**
+ * Retrieves the HTTP version associated with the current server request.
+ *
+ * The property maps the HTTP protocol string provided by `servletRequest().protocol`
+ * to a corresponding `HttpVersion` enum value. For example, "HTTP/2.0" is mapped to
+ * `HttpVersion.HTTP_2`. If the given protocol value does not directly match a predefined
+ * version, the `HttpVersion` object is constructed using the protocol string.
+ *
+ * @receiver An instance of `ServerRequest` from which this property is accessed.
+ * @return The `HttpVersion` derived from the request's protocol, or `null` if the protocol
+ * string is unavailable.
+ * @since 3.7.9
+ */
+val ServerRequest.httpVersion: HttpVersion? get() = HttpVersion of servletRequest().protocol
 
 /**
  * Retrieves the value of a query parameter by its name or throws an exception if it is missing.
