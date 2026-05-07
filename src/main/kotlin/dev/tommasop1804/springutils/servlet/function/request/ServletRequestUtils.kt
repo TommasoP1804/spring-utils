@@ -29,6 +29,7 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpSession
 import jakarta.servlet.http.Part
 import org.springframework.http.HttpHeaders
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.function.ServerRequest
 import org.springframework.web.servlet.function.paramOrNull
 import java.time.Instant
@@ -105,7 +106,7 @@ val ServerRequest.httpVersion: HttpVersion? get() = HttpVersion of servletReques
  *
  * @receiver ServerRequest The server request from which the HTTP method is extracted.
  * @return The HTTP method as an `HttpMethod` enum constant.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.method: HttpMethod get() = servletRequest().method.toEnumConst()
 /**
@@ -118,7 +119,7 @@ val ServerRequest.method: HttpMethod get() = servletRequest().method.toEnumConst
  * @receiver The current `ServerRequest` instance.
  * @return An instance of `AuthType` corresponding to the authentication type of the request,
  * or `null` if no authentication type is associated with the request.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.authType: AuthType? get() = AuthType of servletRequest().authType
 /**
@@ -129,7 +130,7 @@ val ServerRequest.authType: AuthType? get() = AuthType of servletRequest().authT
  *
  * @receiver The current server request.
  * @return A list of cookies extracted from the servlet request or an empty list if none exist.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.cookies: List<Cookie> get() = servletRequest().cookies?.toList().orEmpty()
 /**
@@ -142,7 +143,7 @@ val ServerRequest.cookies: List<Cookie> get() = servletRequest().cookies?.toList
  * @receiver The `ServerRequest` from which the `pathInfo` is extracted.
  * @return A nullable `String` representing the additional path information, or `null`
  *         if no such information is available for the current request.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.pathInfo: String? get() = servletRequest().pathInfo
 /**
@@ -157,7 +158,7 @@ val ServerRequest.pathInfo: String? get() = servletRequest().pathInfo
  * @receiver The `ServerRequest` instance from which the translated path is retrieved.
  * @return The translated file system path as a `String`, or `null` if the path cannot
  * be resolved to a file system location.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.pathTranslated: String? get() = servletRequest().pathTranslated
 /**
@@ -170,7 +171,7 @@ val ServerRequest.pathTranslated: String? get() = servletRequest().pathTranslate
  *
  * @receiver The `ServerRequest` object representing the current HTTP request.
  * @return The context path as a `String`, or `null` if the context path is not set or is empty.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.contextPath: String? get() = servletRequest().contextPath
 /**
@@ -181,7 +182,7 @@ val ServerRequest.contextPath: String? get() = servletRequest().contextPath
  * Returns `null` if no query string is present in the request.
  *
  * @receiver The `ServerRequest` instance from which the query string is extracted.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.queryString: String? get() = servletRequest().queryString
 /**
@@ -193,7 +194,7 @@ val ServerRequest.queryString: String? get() = servletRequest().queryString
  *
  * @receiver The `ServerRequest` instance on which the property is accessed.
  * @return The name of the authenticated remote user or null if the user is not authenticated.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.remoteUser: String? get() = servletRequest().remoteUser
 /**
@@ -206,7 +207,7 @@ val ServerRequest.remoteUser: String? get() = servletRequest().remoteUser
  *
  * @receiver The `ServerRequest` instance for which the session is being accessed.
  * @return The `HttpSession` associated with the `ServerRequest`.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.session: HttpSession get() = servletRequest().session
 /**
@@ -219,7 +220,7 @@ val ServerRequest.session: HttpSession get() = servletRequest().session
  * @receiver The `ServerRequest` instance from which the parts are retrieved.
  * @return A collection of `Part` objects that are part of the current request.
  * @throws IllegalStateException if the multipart request has not been parsed properly.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.parts: Collection<Part> get() = servletRequest().parts
 /**
@@ -232,7 +233,7 @@ val ServerRequest.parts: Collection<Part> get() = servletRequest().parts
  *
  * @receiver The HTTP request context encapsulated in `ServerRequest`.
  * @return A `StringMap` representing the trailer fields of the HTTP request.
- * @since 3.7.10
+ * @since 3.8.0
  */
 val ServerRequest.trailerFields: StringMap get() = servletRequest().trailerFields
 
@@ -241,7 +242,7 @@ val ServerRequest.trailerFields: StringMap get() = servletRequest().trailerField
  *
  * @param name The name of the part to retrieve from the multipart request.
  * @return The `Part` object corresponding to the specified name, or `null` if no such part exists.
- * @since 3.7.10
+ * @since 3.8.0
  */
 fun ServerRequest.part(name: String): Part? = servletRequest().getPart(name)
 /**
@@ -253,9 +254,9 @@ fun ServerRequest.part(name: String): Part? = servletRequest().getPart(name)
  *                      if the part with the specified name is not found. Defaults to throwing a `NoSuchElementException`.
  * @return The `Part` associated with the specified name.
  * @throws Throwable The exception provided by the `lazyException` supplier if the part is not found.
- * @since 3.7.10
+ * @since 3.8.0
  */
-fun ServerRequest.partOrThrow(name: String, lazyException: ThrowableSupplier = { NoSuchElementException() }): Part = servletRequest().getPart(name) ?: throw lazyException()
+fun ServerRequest.partOrThrow(name: String, lazyException: ThrowableSupplier = { MissingServletRequestPartException(name) }): Part = servletRequest().getPart(name) ?: throw lazyException()
 
 /**
  * Retrieves the value of a query parameter by its name or throws an exception if it is missing.
