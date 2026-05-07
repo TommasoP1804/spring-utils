@@ -25,6 +25,9 @@ import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.servlet.request.*
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpSession
+import jakarta.servlet.http.Part
 import org.springframework.http.HttpHeaders
 import org.springframework.web.servlet.function.ServerRequest
 import org.springframework.web.servlet.function.paramOrNull
@@ -94,6 +97,165 @@ val ServerRequest.protocol: String get() = servletRequest().protocol
  * @since 3.7.9
  */
 val ServerRequest.httpVersion: HttpVersion? get() = HttpVersion of servletRequest().protocol
+/**
+ * Retrieves the HTTP method of the current server request.
+ *
+ * This extension property maps the HTTP method from the underlying servlet request
+ * to an instance of the `HttpMethod` enum.
+ *
+ * @receiver ServerRequest The server request from which the HTTP method is extracted.
+ * @return The HTTP method as an `HttpMethod` enum constant.
+ * @since 3.7.10
+ */
+val ServerRequest.method: HttpMethod get() = servletRequest().method.toEnumConst()
+/**
+ * Retrieves the authentication type for the current server request, if available.
+ *
+ * This property provides access to the authentication mechanism used by the server to
+ * authenticate the client making the request. Examples of authentication types might include
+ * "BASIC", "DIGEST", or "CLIENT-CERT".
+ *
+ * @receiver The current `ServerRequest` instance.
+ * @return An instance of `AuthType` corresponding to the authentication type of the request,
+ * or `null` if no authentication type is associated with the request.
+ * @since 3.7.10
+ */
+val ServerRequest.authType: AuthType? get() = AuthType of servletRequest().authType
+/**
+ * Retrieves a list of cookies associated with the current server request.
+ *
+ * This property accesses the underlying servlet request to obtain the cookies,
+ * converts them into a list representation, and returns an empty list if no cookies are present.
+ *
+ * @receiver The current server request.
+ * @return A list of cookies extracted from the servlet request or an empty list if none exist.
+ * @since 3.7.10
+ */
+val ServerRequest.cookies: List<Cookie> get() = servletRequest().cookies?.toList().orEmpty()
+/**
+ * Retrieves the `pathInfo` of the current server request.
+ *
+ * This property provides access to the additional path information from the request URL,
+ * beyond the context path. It is typically used to determine the specific resource or
+ * sub-path being requested within a web application.
+ *
+ * @receiver The `ServerRequest` from which the `pathInfo` is extracted.
+ * @return A nullable `String` representing the additional path information, or `null`
+ *         if no such information is available for the current request.
+ * @since 3.7.10
+ */
+val ServerRequest.pathInfo: String? get() = servletRequest().pathInfo
+/**
+ * Retrieves the translated path of the request, if available. The translated path
+ * represents the file system location corresponding to the requested path, as interpreted
+ * by the servlet container.
+ *
+ * This property is typically populated by the servlet container when a request is mapped
+ * to a specific resource on the server's file system. It may return `null` if no
+ * file-system mapping is applicable for the requested path.
+ *
+ * @receiver The `ServerRequest` instance from which the translated path is retrieved.
+ * @return The translated file system path as a `String`, or `null` if the path cannot
+ * be resolved to a file system location.
+ * @since 3.7.10
+ */
+val ServerRequest.pathTranslated: String? get() = servletRequest().pathTranslated
+/**
+ * Retrieves the context path of the current HTTP request, or `null` if unavailable.
+ *
+ * The context path refers to the portion of the request's URI that indicates
+ * the context of the web application. This is typically the first part of the
+ * URI following the server name and port number, but preceding the application's
+ * servlet paths or endpoints.
+ *
+ * @receiver The `ServerRequest` object representing the current HTTP request.
+ * @return The context path as a `String`, or `null` if the context path is not set or is empty.
+ * @since 3.7.10
+ */
+val ServerRequest.contextPath: String? get() = servletRequest().contextPath
+/**
+ * Retrieves the query string of the current server request, if available.
+ *
+ * The query string is a portion of the request URI that contains
+ * the parameters sent with the request, typically found after the `?` symbol.
+ * Returns `null` if no query string is present in the request.
+ *
+ * @receiver The `ServerRequest` instance from which the query string is extracted.
+ * @since 3.7.10
+ */
+val ServerRequest.queryString: String? get() = servletRequest().queryString
+/**
+ * Retrieves the name of the remote user associated with the current request, if the user has been authenticated.
+ *
+ * This property delegates to the `remoteUser` property of the underlying `HttpServletRequest`
+ * for the current `ServerRequest`. It may return null if no remote user information is available
+ * or if the request is unauthenticated.
+ *
+ * @receiver The `ServerRequest` instance on which the property is accessed.
+ * @return The name of the authenticated remote user or null if the user is not authenticated.
+ * @since 3.7.10
+ */
+val ServerRequest.remoteUser: String? get() = servletRequest().remoteUser
+/**
+ * Retrieves the current HTTP session associated with this `ServerRequest`.
+ *
+ * This extension property provides access to the underlying `HttpSession`
+ * linked to the current request, allowing interaction with session attributes
+ * or properties. If no session exists, a new one may be created based on
+ * server configuration and request context.
+ *
+ * @receiver The `ServerRequest` instance for which the session is being accessed.
+ * @return The `HttpSession` associated with the `ServerRequest`.
+ * @since 3.7.10
+ */
+val ServerRequest.session: HttpSession get() = servletRequest().session
+/**
+ * Retrieves a collection of all `Part` objects associated with the `ServerRequest`.
+ *
+ * The `Part` objects represent the individual parts of a multipart request.
+ * This is typically used for handling multipart/form-data submissions,
+ * such as file uploads or form submissions with file inputs.
+ *
+ * @receiver The `ServerRequest` instance from which the parts are retrieved.
+ * @return A collection of `Part` objects that are part of the current request.
+ * @throws IllegalStateException if the multipart request has not been parsed properly.
+ * @since 3.7.10
+ */
+val ServerRequest.parts: Collection<Part> get() = servletRequest().parts
+/**
+ * Retrieves the trailer fields from the HTTP request.
+ *
+ * Trailer fields are additional headers that may be sent at the end of a streamed HTTP request or response.
+ * They provide supplementary metadata that might not be available at the time of the initial headers.
+ *
+ * This property provides a convenient way to access these fields from the underlying `servletRequest`.
+ *
+ * @receiver The HTTP request context encapsulated in `ServerRequest`.
+ * @return A `StringMap` representing the trailer fields of the HTTP request.
+ * @since 3.7.10
+ */
+val ServerRequest.trailerFields: StringMap get() = servletRequest().trailerFields
+
+/**
+ * Retrieves a part of a multipart request by its name.
+ *
+ * @param name The name of the part to retrieve from the multipart request.
+ * @return The `Part` object corresponding to the specified name, or `null` if no such part exists.
+ * @since 3.7.10
+ */
+fun ServerRequest.part(name: String): Part? = servletRequest().getPart(name)
+/**
+ * Retrieves a `Part` from the request based on the provided name.
+ * If the part is not found, the supplied exception is thrown.
+ *
+ * @param name The name of the part to retrieve from the request.
+ * @param lazyException A supplier function for the exception to be thrown
+ *                      if the part with the specified name is not found. Defaults to throwing a `NoSuchElementException`.
+ * @return The `Part` associated with the specified name.
+ * @throws Throwable The exception provided by the `lazyException` supplier if the part is not found.
+ * @since 3.7.10
+ */
+fun ServerRequest.partOrThrow(name: String, lazyException: ThrowableSupplier = { NoSuchElementException() }): Part = servletRequest().getPart(name) ?: throw lazyException()
 
 /**
  * Retrieves the value of a query parameter by its name or throws an exception if it is missing.
