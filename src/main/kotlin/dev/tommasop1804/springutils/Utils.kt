@@ -483,7 +483,7 @@ inline fun <reified T : Any> PropertyResolver.getPropertyOrDefault(key: String, 
  * @since 3.5.0
  */
 fun PropertyResolver.getPropertyOrThrow(key: String, lazyException: ThrowableSupplier = { NoSuchEnvPropertyException(propertyName = key) }) =
-    getProperty(key) ?: lazyException()
+    getProperty(key) ?: throw lazyException()
 /**
  * Retrieves the property value associated with the specified key or throws an exception if the property is not found.
  *
@@ -528,7 +528,7 @@ fun PropertyResolver.getPropertyOrThrow(key: String, internalErrorCode: String?,
  * @since 3.5.0
  */
 inline fun <reified T : Any> PropertyResolver.getPropertyOrThrow(key: String, lazyException: ThrowableSupplier = { NoSuchEnvPropertyException(propertyName = key) }) =
-    getProperty(key, T::class.java) ?: lazyException()
+    getProperty(key, T::class.java) ?: throw lazyException()
 /**
  * Retrieves a property value of the specified type associated with the provided key.
  * If the property is not found, this method throws a NoSuchEnvPropertyException.
