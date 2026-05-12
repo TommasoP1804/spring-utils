@@ -5,12 +5,10 @@
 package dev.tommasop1804.springutils.exception
 
 import dev.tommasop1804.kutils.*
-import dev.tommasop1804.springutils.annotations.Feature
+import dev.tommasop1804.springutils.*
+import dev.tommasop1804.springutils.annotations.*
 import dev.tommasop1804.springutils.exception.ServletExceptionHandler.Companion.extractErrorCode
-import dev.tommasop1804.springutils.findCallerMethod
-import dev.tommasop1804.springutils.findCorrectException
-import dev.tommasop1804.springutils.getStatus
-import dev.tommasop1804.springutils.servlet.request.RequestIdProvider
+import dev.tommasop1804.springutils.servlet.request.*
 import org.springframework.beans.ConversionNotSupportedException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -123,7 +121,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = httpStatus.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = httpStatus.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = detail,
                 internalErrorCode = internalCode
             ),
@@ -155,7 +153,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}.$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
                 internalErrorCode = internalCode
             ),
@@ -189,7 +187,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) " (`${methodParameter!!.containingClass.simpleName}.${methodParameter.method?.name}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
@@ -221,7 +219,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = $$"Missing request part: $${ex.requestPartName}",
                 internalErrorCode = internalCode
             ),
@@ -253,7 +251,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "HTTP method not supported: ${ex.method}${if (ex.supportedMethods.isNotNull() && ex.supportedMethods!!.isNotEmpty()) ". Choose one of [${ex.supportedMethods!!.joinToString(", ")}]" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
@@ -285,7 +283,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "HTTP media type not supported: ${ex.contentType}. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode
             ),
@@ -317,7 +315,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "HTTP media type not acceptable. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode
             ),
@@ -349,7 +347,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Invalid parameter: ${ex.parameter} ${" (`${ex.parameter.containingClass.simpleName}.${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
                 internalErrorCode = internalErrorCode
             ),
@@ -381,7 +379,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Resource with this path not found: ${ex.resourcePath}",
                 internalErrorCode = internalErrorCode
             ),
@@ -413,7 +411,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Conversion not supported: ${ex.message}",
                 internalErrorCode = internalErrorCode
             ),
@@ -445,7 +443,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Type mismatch. Required `${ex.requiredType?.simpleName}`",
                 internalErrorCode = internalErrorCode
             ),
@@ -477,7 +475,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Maximum upload size exceeded. Allowed: ${(if (ex.maxUploadSize == -1L) "unknown number of" else ex.maxUploadSize)} bytes",
                 internalErrorCode = internalCode
             ),
@@ -509,7 +507,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Failed to write HTTP message. ${ex.message}",
                 internalErrorCode = internalCode
             ),
@@ -538,7 +536,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
                 description = "Missing API version",
                 internalErrorCode = internalErrorCode,
             ),
@@ -567,7 +565,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
                 description = "Invalid API version `${ex.version}`",
                 internalErrorCode = internalErrorCode,
             ),
@@ -596,7 +594,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
                 description = "API version `${ex.version}` is not acceptable",
                 internalErrorCode = internalErrorCode,
             ),
