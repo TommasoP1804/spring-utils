@@ -529,7 +529,8 @@ fun ServerRequest.priorityOrThrow(lazyException: ThrowableSupplier = { RequiredH
 fun ServerRequest.rangeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.RANGE, List::class) }) = header(HttpHeaders.RANGE).ifEmpty { throw lazyException() }
 fun ServerRequest.refererOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.REFERER, Url::class) }) = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow() ?: throw lazyException()
 
-fun ServerRequest.paramOrThrowAsStringList(name: String) = paramOrThrow(name, List::class).splitAndTrim(Char.COMMA)
+fun ServerRequest.paramOrThrowAsStringList(name: String) = params[name].ifNullOrEmpty { throw RequiredQueryParamException(name, List::class) }
+fun ServerRequest.paramOrThrowAsIntList(name: String) = params[name]?.map(String::toInt).ifNullOrEmpty { throw RequiredQueryParamException(name, List::class) }
 fun ServerRequest.paramOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, Int::class).toInt() }
 fun ServerRequest.paramOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, Long::class).toLong() }
 fun ServerRequest.paramOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, Double::class).toDouble() }
@@ -543,7 +544,8 @@ fun ServerRequest.paramOrThrowAsDate(name: String) = paramOrThrow(name, LocalDat
 fun ServerRequest.paramOrThrowAsDateTime(name: String) = paramOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedQueryParamException(name, OffsetDateTime::class) })
 inline fun <reified T : Enum<T>> ServerRequest.paramOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { paramOrThrow(name, T::class).toEnumConst<T>() }
 
-fun ServerRequest.paramOrNullAsStringList(name: String) = paramOrNull(name)?.splitAndTrim(Char.COMMA)
+fun ServerRequest.paramOrNullAsStringList(name: String) = params[name]
+fun ServerRequest.paramOrNullAsIntList(name: String) = params[name]?.map(String::toInt)
 fun ServerRequest.paramOrNullAsInt(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false) { paramOrNull(name)?.toInt() }
 fun ServerRequest.paramOrNullAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false) { paramOrNull(name)?.toLong() }
 fun ServerRequest.paramOrNullAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false) { paramOrNull(name)?.toDouble() }
@@ -557,7 +559,8 @@ fun ServerRequest.paramOrNullAsDate(name: String) = paramOrNull(name)?.parseToLo
 fun ServerRequest.paramOrNullAsDateTime(name: String) = paramOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.paramOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }) { paramOrNull(name)?.toEnumConst<T>() }
 
-fun ServerRequest.paramOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = paramOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
+fun ServerRequest.paramOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = params[name] ?: defaultValue()
+fun ServerRequest.paramOrDefaultAsIntList(name: String, defaultValue: Supplier<List<Int>>) = params[name]?.map(String::toInt) ?: defaultValue()
 fun ServerRequest.paramOrDefaultAsInt(name: String, defaultValue: Supplier<Int>) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false) { paramOrNull(name)?.toInt() ?: defaultValue() }
 fun ServerRequest.paramOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false) { paramOrNull(name)?.toLong() ?: defaultValue() }
 fun ServerRequest.paramOrDefaultAsDouble(name: String, defaultValue: Supplier<Double>) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false) { paramOrNull(name)?.toDouble() ?: defaultValue() }
