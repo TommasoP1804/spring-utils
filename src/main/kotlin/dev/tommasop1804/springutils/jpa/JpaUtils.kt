@@ -163,6 +163,17 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
     findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMesage().toString(), internalErrorCode = internalErrorCode)
 
 /**
+ * Retrieves an entity by its ID or returns a default value if the entity is not found.
+ *
+ * @param id The ID of the entity to be retrieved.
+ * @param default A supplier that provides a default value if the entity is not found.
+ * @return The entity associated with the specified ID or the default value provided by the supplier.
+ * @since 3.9.1
+ */
+fun <T : Any, ID : Any> CrudRepository<T, ID>.findByIdOr(id: ID, default: Supplier<T>): T =
+    findById(id).orElseGet(default)
+
+/**
  * Finds all entities matching the given example and sorts the results based on the provided sort options.
  *
  * @param example the example entity used to filter the results
