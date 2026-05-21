@@ -25,6 +25,7 @@ import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.servlet.request.*
+import org.springframework.core.convert.ConversionService
 import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.queryParamOrNull
@@ -82,7 +83,7 @@ val ServerRequest.pathVariables: StringMap get() = pathVariables()
  */
 fun ServerRequest.queryParamOrThrow(
     name: String,
-    `class`: KClass<*>,
+    `class`: KClass<*> = String::class,
     lazyException: ThrowableSupplier = { RequiredQueryParamException(name, `class`) }
 ) = queryParamOrNull(name) ?: throw lazyException()
 /**
@@ -103,7 +104,7 @@ fun ServerRequest.queryParamOrThrow(
  */
 fun ServerRequest.queryParamOrThrow(
     name: String,
-    `class`: KClass<*>,
+    `class`: KClass<*> = String::class,
     internalErrorCode: String
 ) = queryParamOrNull(name) ?: throw RequiredQueryParamException(name, `class`, internalErrorCode)
 /**
@@ -132,7 +133,7 @@ fun ServerRequest.queryParamOrDefault(
  * @return The path variable as a string if the retrieval is successful.
  * @since 3.0.0
  */
-fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, lazyException: ThrowableSupplier = { RequiredPathVariableException(name, `class`) }) =
+fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String::class, lazyException: ThrowableSupplier = { RequiredPathVariableException(name, `class`) }) =
     tryOrThrow(lazyException, includeCause = false) { pathVariable(name) }
 /**
  * Extracts a required path variable from the server request. If the specified path variable
@@ -147,7 +148,7 @@ fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, lazyExce
  * @throws RequiredPathVariableException If the path variable is not present or invalid.
  * @since 3.0.0
  */
-fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String) =
+fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String::class, internalErrorCode: String) =
     tryOrThrow({ -> RequiredPathVariableException(name, `class`, internalErrorCode) }, includeCause = false) { pathVariable(name) }
 /**
  * Retrieves the value of a path variable by the given name from the ServerRequest.
@@ -337,6 +338,8 @@ fun ServerRequest.priorityOrThrow(lazyException: ThrowableSupplier = { RequiredH
 fun ServerRequest.rangeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.RANGE, List::class) }) = header(HttpHeaders.RANGE).ifEmpty { throw lazyException() }
 fun ServerRequest.refererOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.REFERER, Url::class) }) = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow() ?: throw lazyException()
 
+context(conversionService: ConversionService)
+inline fun <reified T : Any> ServerRequest.queryParamOrThrowAs(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { conversionService.convert(queryParamOrThrow(name), T::class.java)!! }
 fun ServerRequest.queryParamOrThrowAsStringList(name: String) = queryParams[name].ifNullOrEmpty { throw RequiredQueryParamException(name, List::class) }
 fun ServerRequest.queryParamOrThrowAsIntList(name: String) = queryParams[name]?.map(String::toInt).ifNullOrEmpty { throw RequiredQueryParamException(name, List::class) }
 fun ServerRequest.queryParamOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Int::class).toInt() }
@@ -352,6 +355,8 @@ fun ServerRequest.queryParamOrThrowAsDate(name: String) = queryParamOrThrow(name
 fun ServerRequest.queryParamOrThrowAsDateTime(name: String) = queryParamOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedQueryParamException(name, OffsetDateTime::class) })
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, T::class).toEnumConst<T>() }
 
+context(conversionService: ConversionService)
+inline fun <reified T : Any> ServerRequest.queryParamOrNullAs(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false) { conversionService.convert(queryParamOrNull(name), T::class.java) }
 fun ServerRequest.queryParamOrNullAsStringList(name: String) = queryParams[name]
 fun ServerRequest.queryParamOrNullAsIntList(name: String) = queryParams[name]?.map(String::toInt)
 fun ServerRequest.queryParamOrNullAsInt(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false) { queryParamOrNull(name)?.toInt() }
@@ -367,6 +372,8 @@ fun ServerRequest.queryParamOrNullAsDate(name: String) = queryParamOrNull(name)?
 fun ServerRequest.queryParamOrNullAsDateTime(name: String) = queryParamOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }) { queryParamOrNull(name)?.toEnumConst<T>() }
 
+context(conversionService: ConversionService)
+inline fun <reified T : Any> ServerRequest.queryParamOrDefaultAs(name: String, defaultValue: Supplier<T>) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false) { conversionService.convert(queryParamOrNull(name), T::class.java) } ?: defaultValue()
 fun ServerRequest.queryParamOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = queryParams[name] ?: defaultValue()
 fun ServerRequest.queryParamOrDefaultAsIntList(name: String, defaultValue: Supplier<List<Int>>) = queryParams[name]?.map(String::toInt) ?: defaultValue()
 fun ServerRequest.queryParamOrDefaultAsInt(name: String, defaultValue: Supplier<Int>) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false) { queryParamOrNull(name)?.toInt() ?: defaultValue() }
@@ -382,6 +389,9 @@ fun ServerRequest.queryParamOrDefaultAsDate(name: String, defaultValue: Supplier
 fun ServerRequest.queryParamOrDefaultAsDateTime(name: String, defaultValue: Supplier<OffsetDateTime>) = queryParamOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedQueryParamException(name, OffsetDateTime::class) } ?: defaultValue()
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrDefaultAsEnum(name: String, crossinline defaultValue: () -> T) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false) { queryParamOrNull(name)?.toEnumConst<T>() ?: defaultValue() }
 
+
+context(conversionService: ConversionService)
+inline fun <reified T : Any> ServerRequest.pathVariableOrThrowAs(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { conversionService.convert(pathVariableOrThrow(name), T::class.java) }
 fun ServerRequest.pathVariableOrThrowAsStringList(name: String) = pathVariableOrThrow(name, List::class).splitAndTrim(Char.COMMA)
 fun ServerRequest.pathVariableOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Int::class).toInt() }
 fun ServerRequest.pathVariableOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Long::class).toLong() }
@@ -396,6 +406,8 @@ fun ServerRequest.pathVariableOrThrowAsDate(name: String) = pathVariableOrThrow(
 fun ServerRequest.pathVariableOrThrowAsDateTime(name: String) = pathVariableOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedPathVariableException(name, OffsetDateTime::class) })
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, T::class).toEnumConst<T>() }
 
+context(conversionService: ConversionService)
+inline fun <reified T : Any> ServerRequest.pathVariableOrNullAs(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false) { conversionService.convert(pathVariableOrNull(name), T::class.java) }
 fun ServerRequest.pathVariableOrNullAsStringList(name: String) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA)
 fun ServerRequest.pathVariableOrNullAsInt(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false) { pathVariableOrNull(name)?.toInt() }
 fun ServerRequest.pathVariableOrNullAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false) { pathVariableOrNull(name)?.toLong() }
@@ -410,6 +422,8 @@ fun ServerRequest.pathVariableOrNullAsDate(name: String) = pathVariableOrNull(na
 fun ServerRequest.pathVariableOrNullAsDateTime(name: String) = pathVariableOrNull(name)?.parseToOffsetDateTime()?.getOrThrow { MalformedPathVariableException(name, OffsetDateTime::class) }
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrNullAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }) { pathVariableOrNull(name)?.toEnumConst<T>() }
 
+context(conversionService: ConversionService)
+inline fun <reified T : Any> ServerRequest.pathVariableOrDefaultAs(name: String, defaultValue: Supplier<T>) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false) { conversionService.convert(pathVariableOrNull(name), T::class.java) } ?: defaultValue()
 fun ServerRequest.pathVariableOrDefaultAsStringList(name: String, defaultValue: Supplier<List<String>>) = pathVariableOrNull(name)?.splitAndTrim(Char.COMMA) ?: defaultValue()
 fun ServerRequest.pathVariableOrDefaultAsInt(name: String, defaultValue: Supplier<Int>) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false) { pathVariableOrNull(name)?.toInt() ?: defaultValue() }
 fun ServerRequest.pathVariableOrDefaultAsLong(name: String, defaultValue: Supplier<Long>) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false) { pathVariableOrNull(name)?.toLong() ?: defaultValue() }
