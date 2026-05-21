@@ -4,7 +4,7 @@
 
 @file:JvmName("JpaUtilsKt")
 @file:Since("3.0.5")
-@file:Suppress("unused", "FunctionName")
+@file:Suppress("unused", "FunctionName", "UNCHECKED_CAST")
 
 package dev.tommasop1804.springutils.jpa
 
@@ -49,7 +49,7 @@ val <T : Any> JpaRepository<T, *>.isEmpty
  * @throws NoSuchElementException if the repository does not contain any elements.
  * @since 1.0.0
  */
-fun <T : Any> JpaRepository<T, *>.first(): T = findAll(PageRequest.of(0, 1)).firstOrThrow { NoSuchElementException("No elements found.") }
+fun <T : Any, R : T> JpaRepository<T, *>.first(): R = findAll(PageRequest.of(0, 1)).firstOrThrow { NoSuchElementException("No elements found.") } as R
 /**
  * Retrieves the first entity from the repository or returns null if the repository is empty.
  *
@@ -69,7 +69,7 @@ fun <T : Any> JpaRepository<T, *>.firstOrNull(): T? = findAll(PageRequest.of(0, 
  * @throws Throwable The exception supplied by the lazyException lambda if no element is found.
  * @since 1.0.0
  */
-inline fun <T : Any> JpaRepository<T, *>.firstOrThrow(lazyException: () -> Throwable): T = findAll(PageRequest.of(0, 1)).firstOrNull() ?: throw lazyException()
+inline fun <T : Any, R : T> JpaRepository<T, *>.firstOrThrow(lazyException: () -> Throwable): R = (findAll(PageRequest.of(0, 1)).firstOrNull() ?: throw lazyException()) as R
 
 /**
  * Verifies whether an entity of type [T] with the specified [id] exists in the repository.
@@ -127,8 +127,8 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * @throws Throwable The exception provided by the `lazyException` supplier if the entity is not found.
  * @since 1.0.0
  */
-inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, T::class) }): T =
-    findById(id).getOrNull() ?: throw lazyException()
+inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, T::class) }): R =
+    (findById(id).getOrNull() ?: throw lazyException()) as R
 /**
  * Finds an entity by its ID or throws a `ResourceNotFoundException` if the entity is not found.
  *
@@ -138,8 +138,8 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
  * @since 1.1.0
  */
 @JvmName("findByIdOrThrowLazyMessage")
-inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, lazyMessage: Supplier<Any>): T =
-    findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMessage().toString())
+inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, lazyMessage: Supplier<Any>): R =
+    (findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMessage().toString())) as R
 /**
  * Finds an entity by its ID or throws a `ResourceNotFoundException` if the entity is not found.
  *
@@ -148,8 +148,8 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
  * @return The entity of type `T` if found.
  * @since 1.1.0
  */
-inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String?): T =
-    findById(id).getOrNull() ?: throw ResourceNotFoundException(id, T::class, internalErrorCode = internalErrorCode)
+inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String?): R =
+    (findById(id).getOrNull() ?: throw ResourceNotFoundException(id, T::class, internalErrorCode = internalErrorCode)) as R
 /**
  * Finds an entity by its ID or throws a `ResourceNotFoundException` if the entity is not found.
  *
@@ -159,8 +159,8 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
  * @return The entity of type `T` if found.
  * @since 1.1.0
  */
-inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String?, lazyMesage: Supplier<Any>): T =
-    findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMesage().toString(), internalErrorCode = internalErrorCode)
+inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, internalErrorCode: String?, lazyMesage: Supplier<Any>): R =
+    (findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMesage().toString(), internalErrorCode = internalErrorCode)) as R
 
 /**
  * Retrieves an entity by its ID or returns a default value if the entity is not found.
@@ -170,8 +170,8 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.findByIdOrThrow(id:
  * @return The entity associated with the specified ID or the default value provided by the supplier.
  * @since 3.9.1
  */
-fun <T : Any, ID : Any> CrudRepository<T, ID>.findByIdOr(id: ID, default: Supplier<T>): T =
-    findById(id).orElseGet(default)
+fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOr(id: ID, default: Supplier<T>): R =
+    findById(id).orElseGet(default) as R
 
 /**
  * Finds all entities matching the given example and sorts the results based on the provided sort options.
@@ -201,7 +201,7 @@ inline fun <reified T : Any> JpaRepository<T, *>.findAll(vararg sort: SortOption
  * @throws Throwable If the entity is not found, the exception supplied by `findByIdOrThrow` will be thrown.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID): T = findByIdOrThrow(id)
+inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(id: ID): R = findByIdOrThrow(id) as R
 /**
  * Provides a convenient operator to retrieve an entity by its ID from the repository
  * or throw a `ResourceNotFoundException` if the entity is not found.
@@ -212,7 +212,8 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @return The entity of type `T` if found in the repository.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String, lazyMesage: Supplier<Any>): T = findByIdOrThrow(id, internalErrorCode, lazyMesage)
+inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String, lazyMesage: Supplier<Any>): R =
+    (findByIdOrThrow(id, internalErrorCode, lazyMesage)) as R
 /**
  * Provides a convenient operator to retrieve an entity by its ID from the repository
  * or throw a `ResourceNotFoundException` if the entity is not found.
@@ -222,7 +223,8 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @return The entity of type `T` if found in the repository.
  * @since 1.1.0
  */
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String): T = findByIdOrThrow(id, internalErrorCode)
+inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(id: ID, internalErrorCode: String): R =
+    (findByIdOrThrow(id, internalErrorCode)) as R
 /**
  * Retrieves an entity by its ID from the repository or throws an exception if the entity is not found.
  *
@@ -234,7 +236,8 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @throws Throwable The exception provided by the `lazyException` supplier if the entity is not found.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, lazyException: ThrowableSupplier): T = findByIdOrThrow(id, lazyException)
+inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(id: ID, lazyException: ThrowableSupplier): R =
+    (findByIdOrThrow(id, lazyException)) as R
 /**
  * Provides a convenient operator to retrieve an entity by its ID from the repository
  * or throw a `ResourceNotFoundException` if the entity is not found.
@@ -245,7 +248,8 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @since 1.1.0
  */
 @JvmName("getLazyMessage")
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID, lazyMesage: Supplier<Any>): T = findByIdOrThrow(id, lazyMesage)
+inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(id: ID, lazyMesage: Supplier<Any>): R =
+    (findByIdOrThrow(id, lazyMesage)) as R
 /**
  * Retrieves a list of entities with the specified IDs from the repository.
  *
@@ -253,7 +257,7 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(id: ID
  * @return A list of entities matching the provided IDs.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(ids: Iterable<ID>): List<T> = findAllById(ids).toList()
+inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(ids: Iterable<ID>): List<R> = findAllById(ids).map { it as R }.toList()
 
 /**
  * Retrieves an entity from the repository based on a set of property-value pairs. If no entity is found,
@@ -267,12 +271,12 @@ inline operator fun <reified T : Any, ID : Any> CrudRepository<T, ID>.get(ids: I
  * @throws TooManyResultsException If multiple results are found when one was expected.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any> JpaRepository<T, *>.get(
+inline operator fun <reified T : Any, R : T> JpaRepository<T, *>.get(
     vararg search: Pair<KProperty1<T, *>, *>,
     noinline lazyException: ThrowableSupplier = { ResourceNotFoundException(T::class) }
-): T = invoke(*search).run {
+): R = invoke(*search).run {
     if (isEmpty()) throw lazyException()
-    onlyElementOrThrow { TooManyResultsException(size) }
+    onlyElementOrThrow { TooManyResultsException(size) } as R
 }
 
 /**
@@ -288,13 +292,13 @@ inline operator fun <reified T : Any> JpaRepository<T, *>.get(
  * @throws IllegalStateException If one of the properties in the search criteria is not accessible.
  * @since 1.0.0
  */
-inline operator fun <reified T : Any> JpaRepository<T, *>.get(
+inline operator fun <reified T : Any, R : T> JpaRepository<T, *>.get(
     vararg search: Pair<KProperty1<T, *>, *>,
     internalErrorCode: String? = null,
     crossinline lazyMesage: Supplier<Any>
-): T = invoke(*search).run {
+): R = invoke(*search).run {
     requireOrThrow({ ResourceNotFoundException(lazyMesage().toString(), internalErrorCode = internalErrorCode) }) { isEmpty() }
-    onlyElementOrThrow { TooManyResultsException(size) }
+    onlyElementOrThrow { TooManyResultsException(size) } as R
 }
 
 /**
@@ -312,7 +316,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(): List<T> = findAll()
  * @return A list of entries that match the specified filtering criteria.
  * @since 1.0.0
  */
-operator fun <T : Any> CrudRepository<T, *>.invoke(filter: Predicate<T>) = findAll().filter(filter)
+operator fun <T : Any, R : T> CrudRepository<T, *>.invoke(filter: Predicate<T>) = findAll().filter(filter).map { it as R }
 /**
  * Retrieves a list of entities with the specified IDs from the repository.
  *
@@ -320,7 +324,7 @@ operator fun <T : Any> CrudRepository<T, *>.invoke(filter: Predicate<T>) = findA
  * @return A list of entities matching the provided IDs.
  * @since 1.0.0
  */
-operator fun <T : Any, ID : Any> CrudRepository<T, ID>.invoke(ids: Iterable<ID>): List<T> = findAllById(ids).toList()
+operator fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.invoke(ids: Iterable<ID>): List<R> = findAllById(ids).toList().map { it as R }
 /**
  * Extension operator function for invoking a JpaRepository with a specified Pageable
  * to retrieve a paginated result of entities.
@@ -329,7 +333,7 @@ operator fun <T : Any, ID : Any> CrudRepository<T, ID>.invoke(ids: Iterable<ID>)
  * @return a Page containing the paginated list of entities of type T
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(pageable: Pageable): Page<T> = findAll(pageable)
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(pageable: Pageable): Page<R> = findAll(pageable) as Page<R>
 /**
  * Retrieves all entities of type [T] from the repository, sorted according to the provided [Sort] order.
  *
@@ -337,7 +341,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(pageable: Pageable): Page<T> =
  * @return a list of all entities of type [T], sorted as specified.
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(sort: Sort): List<T> = findAll(sort)
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(sort: Sort): List<R> = findAll(sort).map { it as R }
 /**
  * Retrieves a list of entities of type [T] from the repository, sorted according to the provided sorting options.
  *
@@ -345,7 +349,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(sort: Sort): List<T> = findAll
  * @return A list of entities of type [T] sorted as per the provided options.
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(vararg sort: SortOption): List<T> = findAll(sort.toList().toJpaSort())
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(vararg sort: SortOption): List<R> = findAll(sort.toList().toJpaSort()).map { it as R }
 /**
  * Invokes the repository to find all entities matching the provided example.
  *
@@ -356,7 +360,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(vararg sort: SortOption): List
  * @return a list of entities that match the criteria defined in the example.
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>): List<T> = findAll(example)
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(example: Example<T>): List<R> = findAll(example).map { it as R }
 /**
  * Invokes the `findAll` function of the `JpaRepository` with the provided example and sorting criteria.
  *
@@ -365,7 +369,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>): List<T> 
  * @return a list of entities that match the given example and sort criteria.
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, sort: Sort): List<T> = findAll(example, sort)
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(example: Example<T>, sort: Sort): List<R> = findAll(example, sort).map { it as R }
 /**
  * Finds all entities matching the given example and sorts the results based on the provided sort options.
  *
@@ -374,7 +378,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, sort: Sor
  * @return a list of entities matching the specified example and sorted according to the given sort options
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, vararg sort: SortOption): List<T> = findAll(example, sort.toList().toJpaSort())
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(example: Example<T>, vararg sort: SortOption): List<R> = findAll(example, sort.toList().toJpaSort()).map { it as R }
 /**
  * Executes a query based on the provided example and pageable information.
  *
@@ -383,7 +387,7 @@ operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, vararg so
  * @return a page of entities matching the query defined by the example.
  * @since 1.0.0
  */
-operator fun <T : Any> JpaRepository<T, *>.invoke(example: Example<T>, pageable: Pageable): Page<T> = findAll(example, pageable)
+operator fun <T : Any, R : T> JpaRepository<T, *>.invoke(example: Example<T>, pageable: Pageable): Page<R> = findAll(example, pageable) as Page<R>
 /**
  * Invokes a search on the repository using specified property-value pairs to create a probe object.
  *
