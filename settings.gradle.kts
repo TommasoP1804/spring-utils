@@ -2,4 +2,4 @@
  * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
  */
 
-rootProject.name = 'spring-utils'
+rootProject.name = "spring-utils"

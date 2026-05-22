@@ -69,7 +69,7 @@ fun <T : Any> JpaRepository<T, *>.firstOrNull(): T? = findAll(PageRequest.of(0, 
  * @throws Throwable The exception supplied by the lazyException lambda if no element is found.
  * @since 1.0.0
  */
-inline fun <T : Any, R : T> JpaRepository<T, *>.firstOrThrow(lazyException: () -> Throwable): R = (findAll(PageRequest.of(0, 1)).firstOrNull() ?: throw lazyException()) as R
+inline fun <T : Any, R : T> JpaRepository<T, *>.firstOrThrow(lazyException: ThrowableSupplier = { NoSuchElementException("Table is empty") }): R = (findAll(PageRequest.of(0, 1)).firstOrNull() ?: throw lazyException()) as R
 
 /**
  * Verifies whether an entity of type [T] with the specified [id] exists in the repository.
@@ -191,6 +191,14 @@ inline fun <reified T : Any> JpaRepository<T, *>.findAll(example: Example<T>, va
  */
 inline fun <reified T : Any> JpaRepository<T, *>.findAll(vararg sort: SortOption): List<T> = findAll(sort.toList().toJpaSort())
 
+/**
+ * Retrieves the first entity that matches the given predicate from the repository.
+ *
+ * @param predicate The predicate used to filter and identify the desired entity.
+ * @return The first entity that matches the predicate, or `null` if no matching entity is found.
+ * @since 3.11.0
+ */
+operator fun <T : Any, R : T> CrudRepository<T, *>.get(predicate: Predicate<T>): R? = invoke(predicate).firstOrNull() as R?
 /**
  * Retrieves an entity by its ID or throws an exception if the entity is not found.
  *

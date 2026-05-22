@@ -27,7 +27,9 @@ import org.springframework.web.servlet.function.paramOrNull
  * @author Tommaso Pastorelli
  */
 @Suppress("unused")
-abstract class EnhancedHandler(protected open val conversionService: ConversionService) {
+abstract class EnhancedHandler {
+    protected abstract val conversionService: ConversionService
+
     /**
      * Retrieves the query parameter with the specified name from the ServerRequest, converts it to the expected type [T],
      * and returns it. If the parameter is missing or cannot be converted, an exception is thrown.
