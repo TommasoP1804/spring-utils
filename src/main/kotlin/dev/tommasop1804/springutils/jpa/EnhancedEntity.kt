@@ -253,40 +253,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: JpaRepository<T, ID>)
         fun hasOrThrow(id: ID, lazyException: ThrowableSupplier) = repository.existsByIdOrThrow(id, this::class as KClass<T>, lazyException)
-        /**
-         * Checks for the existence of an entity with the specified identifier in the repository.
-         * If the entity does not exist, throws a `ResourceNotFoundException` with the provided lazy message.
-         *
-         * @param id the identifier of the entity whose existence needs to be verified.
-         * @param lazyMessage a supplier for the exception message to be thrown if the entity does not exist.
-         * @throws ResourceNotFoundException if no entity exists with the specified identifier.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, lazyMessage: Supplier<Any>) = repository.existsByIdOrThrow(id, this::class as KClass<T>, lazyMessage)
-        /**
-         * Verifies the existence of an entity by its identifier in the repository and throws an exception
-         * with a specified error code if the entity does not exist.
-         *
-         * @param id The identifier of the entity to check for existence.
-         * @param internalErrorCode The error code to include in the exception if the entity is not found.
-         * @throws ResourceNotFoundException if no entity exists with the given identifier.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, internalErrorCode: String) = repository.existsByIdOrThrow(id, this::class as KClass<T>, internalErrorCode)
-        /**
-         * Verifies the existence of an entity by its identifier in the repository. If the entity does not exist,
-         * throws a `ResourceNotFoundException` with a specified internal error code and a lazily evaluated message.
-         *
-         * @param id the identifier of the entity to check for existence.
-         * @param internalErrorCode the internal error code to be included in the exception.
-         * @param lazyMessage a supplier that provides the exception message if the entity does not exist.
-         * @throws ResourceNotFoundException if no entity exists with the given identifier.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) = repository.existsByIdOrThrow(id, this::class as KClass<T>, internalErrorCode, lazyMessage)
 
         /**
          * Retrieves an entity by its ID or throws an exception if not found.
@@ -308,37 +274,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: JpaRepository<T, ID>)
         operator fun get(id: ID, lazyException: ThrowableSupplier) = repository.findByIdOrThrow(id, this::class as KClass<T>, lazyException)
-        /**
-         * Retrieves an entity by its ID from the repository or throws an exception if not found.
-         *
-         * @param id The ID of the entity to retrieve.
-         * @param lazyMessage A supplier that provides the message for the exception if the entity is not found.
-         * @return The entity associated with the given ID if found.
-         * @throws IllegalArgumentException if the entity is not found in the repository.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, lazyMessage: Supplier<Any>) = repository.findByIdOrThrow(id, this::class as KClass<T>, lazyMessage)
-        /**
-         * Retrieves an entity by its ID or throws an exception with a specific internal error code
-         * if the entity is not found.
-         *
-         * @param id The ID of the entity to retrieve.
-         * @param internalErrorCode The error code to use in the thrown exception if the entity is not found.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, internalErrorCode: String) = repository.findByIdOrThrow(id, this::class as KClass<T>, internalErrorCode)
-        /**
-         * Retrieves an entity by its ID or throws an exception if the entity is not found.
-         *
-         * @param id The ID of the entity to retrieve.
-         * @param internalErrorCode The error code to include in the exception if the entity is not found.
-         * @param lazyMessage A supplier for the message to include in the exception if the entity is not found.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) = repository.findByIdOrThrow(id, this::class as KClass<T>, internalErrorCode, lazyMessage)
         /**
          * Retrieves an entity from the repository that matches the specified predicate.
          *

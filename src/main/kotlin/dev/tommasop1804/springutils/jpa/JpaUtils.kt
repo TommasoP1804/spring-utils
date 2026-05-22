@@ -113,18 +113,6 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * a `ResourceNotFoundException` is thrown with the provided lazy message.
  *
  * @param id the identifier of the entity to check for existence.
- * @param lazyMessage a supplier for the exception message to be used if the entity is not found.
- * @throws ResourceNotFoundException if no entity exists with the given identifier.
- * @since 3.11.0
- */
-@JvmName("existsByIdOrThrowLazyMessage")
-internal fun <T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, `class`: KClass<T>, lazyMessage: Supplier<Any>) =
-    existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString())
-/**
- * Checks whether an entity exists by its identifier in the repository. If the entity does not exist,
- * a `ResourceNotFoundException` is thrown with the provided lazy message.
- *
- * @param id the identifier of the entity to check for existence.
  * @param internalErrorCode Optional error code to be used in the exception message.
  * @throws ResourceNotFoundException if no entity exists with the given identifier.
  * @since 1.1.0
@@ -138,31 +126,9 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * @param id the identifier of the entity to check for existence.
  * @param internalErrorCode Optional error code to be used in the exception message.
  * @throws ResourceNotFoundException if no entity exists with the given identifier.
- * @since 3.11.0
- */
-internal fun <T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, `class`: KClass<T>, internalErrorCode: String) =
-    existsById(id) || throw ResourceNotFoundException(id, `class`, internalErrorCode = internalErrorCode)
-/**
- * Checks whether an entity exists by its identifier in the repository. If the entity does not exist,
- * a `ResourceNotFoundException` is thrown with the provided lazy message.
- *
- * @param id the identifier of the entity to check for existence.
- * @param internalErrorCode Optional error code to be used in the exception message.
- * @throws ResourceNotFoundException if no entity exists with the given identifier.
  * @since 1.1.0
  */
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) =
-    existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString(), internalErrorCode = internalErrorCode)
-/**
- * Checks whether an entity exists by its identifier in the repository. If the entity does not exist,
- * a `ResourceNotFoundException` is thrown with the provided lazy message.
- *
- * @param id the identifier of the entity to check for existence.
- * @param internalErrorCode Optional error code to be used in the exception message.
- * @throws ResourceNotFoundException if no entity exists with the given identifier.
- * @since 1.1.0
- */
-internal fun <T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, `class`: KClass<T>, internalErrorCode: String, lazyMessage: Supplier<Any>) =
     existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString(), internalErrorCode = internalErrorCode)
 
 /**
