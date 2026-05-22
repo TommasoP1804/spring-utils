@@ -242,7 +242,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        infix fun hasOrThrow(id: ID) = repository.existsByIdOrThrow(this::class as KClass<T>, id)
+        infix fun hasOrThrow(id: ID) = repository.existsByIdOrThrow(id, this::class as KClass<T>)
         /**
          * Checks if an entity with the specified [id] exists in the repository and throws an exception if it does not.
          *
@@ -252,7 +252,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, lazyException: ThrowableSupplier) = repository.existsByIdOrThrow(this::class as KClass<T>, id, lazyException)
+        fun hasOrThrow(id: ID, lazyException: ThrowableSupplier) = repository.existsByIdOrThrow(id, this::class as KClass<T>, lazyException)
         /**
          * Checks for the existence of an entity with the specified identifier in the repository.
          * If the entity does not exist, throws a `ResourceNotFoundException` with the provided lazy message.
@@ -263,7 +263,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, lazyMessage: Supplier<Any>) = repository.existsByIdOrThrow(this::class as KClass<T>, id, lazyMessage)
+        fun hasOrThrow(id: ID, lazyMessage: Supplier<Any>) = repository.existsByIdOrThrow(id, this::class as KClass<T>, lazyMessage)
         /**
          * Verifies the existence of an entity by its identifier in the repository and throws an exception
          * with a specified error code if the entity does not exist.
@@ -274,7 +274,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, internalErrorCode: String) = repository.existsByIdOrThrow(this::class as KClass<T>, id, internalErrorCode)
+        fun hasOrThrow(id: ID, internalErrorCode: String) = repository.existsByIdOrThrow(id, this::class as KClass<T>, internalErrorCode)
         /**
          * Verifies the existence of an entity by its identifier in the repository. If the entity does not exist,
          * throws a `ResourceNotFoundException` with a specified internal error code and a lazily evaluated message.
@@ -286,7 +286,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) = repository.existsByIdOrThrow(this::class as KClass<T>, id, internalErrorCode, lazyMessage)
+        fun hasOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) = repository.existsByIdOrThrow(id, this::class as KClass<T>, internalErrorCode, lazyMessage)
 
         /**
          * Retrieves an entity by its ID or throws an exception if not found.
@@ -297,7 +297,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID) = repository.findByIdOrThrow(this::class as KClass<T>, id)
+        operator fun get(id: ID) = repository.findByIdOrThrow(id, this::class as KClass<T>)
         /**
          * Retrieves an entity by its ID or throws an exception if not found.
          *
@@ -307,7 +307,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, lazyException: ThrowableSupplier) = repository.findByIdOrThrow(this::class as KClass<T>, id, lazyException)
+        operator fun get(id: ID, lazyException: ThrowableSupplier) = repository.findByIdOrThrow(id, this::class as KClass<T>, lazyException)
         /**
          * Retrieves an entity by its ID from the repository or throws an exception if not found.
          *
@@ -318,7 +318,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, lazyMessage: Supplier<Any>) = repository.findByIdOrThrow(this::class as KClass<T>, id, lazyMessage)
+        operator fun get(id: ID, lazyMessage: Supplier<Any>) = repository.findByIdOrThrow(id, this::class as KClass<T>, lazyMessage)
         /**
          * Retrieves an entity by its ID or throws an exception with a specific internal error code
          * if the entity is not found.
@@ -328,7 +328,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, internalErrorCode: String) = repository.findByIdOrThrow(this::class as KClass<T>, id, internalErrorCode)
+        operator fun get(id: ID, internalErrorCode: String) = repository.findByIdOrThrow(id, this::class as KClass<T>, internalErrorCode)
         /**
          * Retrieves an entity by its ID or throws an exception if the entity is not found.
          *
@@ -338,7 +338,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) = repository.findByIdOrThrow(this::class as KClass<T>, id, internalErrorCode, lazyMessage)
+        operator fun get(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) = repository.findByIdOrThrow(id, this::class as KClass<T>, internalErrorCode, lazyMessage)
         /**
          * Retrieves an entity from the repository that matches the specified predicate.
          *
@@ -355,7 +355,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun get(ids: Iterable<ID>) = repository[this::class as KClass<T>, ids]
+        operator fun get(ids: Iterable<ID>) = repository[ids, this::class as KClass<T>]
         /**
          * Retrieves an entity by its unique identifier or returns null if the entity is not found.
          *
@@ -400,7 +400,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * @since 3.11.0
          */
         context(repository: JpaRepository<T, ID>)
-        operator fun minusAssign(id: ID) { repository.deleteByIdOrThrow(this::class as KClass<T>, id) }
+        operator fun minusAssign(id: ID) { repository.deleteByIdOrThrow(id, this::class as KClass<T>) }
         /**
          * Deletes an entity with the given identifier from the repository.
          *
