@@ -181,18 +181,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
         val nonePresent get() = repository.count() == 0L
 
         /**
-         * Retrieves the first entity from the repository.
-         *
-         * This method delegates to the `first()` function of the provided `JpaRepository`.
-         * It is used to fetch the first record based on the repository's default sorting or ordering criteria.
-         *
-         * @receiver The context of the `JpaRepository` containing the entities of type `T` and their identifiers of type `ID`.
-         * @return The first entity in the repository based on the default ordering, or `null` if the repository is empty.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        fun first() = repository.first()
-        /**
          * Retrieves the first entity from the repository. If no entity is found, an exception is thrown
          * as supplied by the given lazy exception supplier.
          *
@@ -203,16 +191,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: JpaRepository<T, ID>)
         fun firstOrThrow(lazyException: ThrowableSupplier = { NoSuchElementException("Table is empty") }) = repository.firstOrThrow(lazyException)
-        /**
-         * Retrieves the first element from the repository or returns null if the repository is empty.
-         * If a lazyException is provided, it can be used to customize the exception thrown when no element is found.
-         *
-         * @param lazyException A supplier of the exception to be thrown if the table is empty. Defaults to a NoSuchElementException.
-         * @return The first element in the repository, or null if the repository is empty.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        fun firstOrNull(lazyException: ThrowableSupplier = { NoSuchElementException("Table is empty") }) = repository.firstOrNull()
 
         /**
          * Returns all entities from the repository that match the given predicate.
@@ -305,10 +283,10 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          *
          * @param id The ID of the entity to be retrieved.
          * @param defaultValue A supplier that provides a default value in case the entity with the specified ID is not found.
-         * @since 3.11.0
+         * @since 3.11.1
          */
         context(repository: JpaRepository<T, ID>)
-        fun getOrElse(id: ID, defaultValue: Supplier<T>) = repository.findByIdOr(id, defaultValue)
+        fun getOr(id: ID, defaultValue: Supplier<T>) = repository.findByIdOr(id, defaultValue)
 
         /**
          * Counts the number of entities that match the given predicate.
@@ -358,7 +336,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          * Delegates the flush operation to the underlying `JpaRepository`.
          * @since 3.11.0
          */
-        context(repository: JpaRepository<*, ID>)
+        context(repository: JpaRepository<T, ID>)
         fun flush() = repository.flush()
     }
 }
