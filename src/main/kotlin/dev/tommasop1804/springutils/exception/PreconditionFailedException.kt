@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
 @Suppress("unused")
 class PreconditionFailedException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.PRECONDITION_FAILED
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.PreconditionFailed
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

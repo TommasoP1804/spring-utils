@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
 @Suppress("unused")
 class NotAcceptableException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NOT_ACCEPTABLE
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NotAcceptable
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

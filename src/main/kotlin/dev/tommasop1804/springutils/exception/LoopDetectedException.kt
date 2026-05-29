@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.LOOP_DETECTED)
 @Suppress("unused")
 class LoopDetectedException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.LOOP_DETECTED
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.LoopDetected
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

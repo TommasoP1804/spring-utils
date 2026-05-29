@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.FORBIDDEN)
 @Suppress("unused")
 class ForbiddenException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.FORBIDDEN
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.Forbidden
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

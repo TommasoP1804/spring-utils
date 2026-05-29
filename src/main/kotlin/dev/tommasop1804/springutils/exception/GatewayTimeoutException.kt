@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
 @Suppress("unused")
 class GatewayTimeoutException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.GATEWAY_TIMEOUT
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.GatewayTimeout
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

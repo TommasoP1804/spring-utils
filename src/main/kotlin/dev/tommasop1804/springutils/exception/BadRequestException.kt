@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 @Suppress("unused")
 class BadRequestException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.BAD_REQUEST
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.BadRequest
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

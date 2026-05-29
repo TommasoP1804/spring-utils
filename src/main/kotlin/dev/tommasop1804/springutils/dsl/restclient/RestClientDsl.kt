@@ -194,21 +194,21 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
         var method: HttpMethod? = null
 
         val request = when (this.method) {
-            HttpMethod.GET -> client.get().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
-            }.apply { method = HttpMethod.GET }
-            HttpMethod.HEAD -> client.head().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
-            }.apply { method = HttpMethod.HEAD }
-            HttpMethod.OPTIONS -> client.options().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
-            }.apply { method = HttpMethod.OPTIONS }
-            HttpMethod.DELETE -> client.delete().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.WARN, "Request body will be ignored")
-            }.apply { method = HttpMethod.DELETE }
-            HttpMethod.POST -> client.post().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.POST }
-            HttpMethod.PUT -> client.put().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.PUT }
-            HttpMethod.PATCH -> client.patch().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.PATCH }
+            HttpMethod.Get -> client.get().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
+                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+            }.apply { method = HttpMethod.Get }
+            HttpMethod.Head -> client.head().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
+                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+            }.apply { method = HttpMethod.Head }
+            HttpMethod.Options -> client.options().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
+                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+            }.apply { method = HttpMethod.Options }
+            HttpMethod.Delete -> client.delete().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
+                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+            }.apply { method = HttpMethod.Delete }
+            HttpMethod.Post -> client.post().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Post }
+            HttpMethod.Put -> client.put().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Put }
+            HttpMethod.Patch -> client.patch().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Patch }
             else -> throw ConfigurationException()
         }
 
@@ -312,7 +312,7 @@ class RestClientDslScope(
     fun GET(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null
-    ) = buildJsonRoute(HttpMethod.GET, path, spec)
+    ) = buildJsonRoute(HttpMethod.Get, path, spec)
 
     /**
      * Defines an HTTP GET request for a specific path with an optional request specification.
@@ -326,8 +326,8 @@ class RestClientDslScope(
     inline fun <reified T : Any> GET(
         path: String,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.GET, path, spec)
-    
+    ) = buildRoute<T>(HttpMethod.Get, path, spec)
+
     /**
      * Defines an HTTP HEAD request for the specified path with an optional request specification.
      *
@@ -338,7 +338,7 @@ class RestClientDslScope(
     fun HEAD(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.HEAD, path, spec)
+    ) = buildJsonRoute(HttpMethod.Head, path, spec)
 
     /**
      * Defines an HTTP OPTIONS request to the specified path with an optional request specification.
@@ -351,7 +351,7 @@ class RestClientDslScope(
     fun OPTIONS(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.OPTIONS, path, spec)
+    ) = buildJsonRoute(HttpMethod.Options, path, spec)
 
     /**
      * Defines a route for an HTTP OPTIONS request with a specified path and request specification.
@@ -365,7 +365,7 @@ class RestClientDslScope(
     inline fun <reified T : Any> OPTIONS(
         path: String,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.OPTIONS, path, spec)
+    ) = buildRoute<T>(HttpMethod.Options, path, spec)
 
     /**
      * Defines a POST request route within the scope of the DSL client.
@@ -381,7 +381,7 @@ class RestClientDslScope(
     fun POST(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.POST, path, spec)
+    ) = buildJsonRoute(HttpMethod.Post, path, spec)
 
     /**
      * Creates a POST HTTP route with the specified path and an optional request specification.
@@ -396,7 +396,7 @@ class RestClientDslScope(
     inline fun <reified T : Any> POST(
         path: String,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.POST, path, spec)
+    ) = buildRoute<T>(HttpMethod.Post, path, spec)
 
     /**
      * Defines a PUT request route.
@@ -408,7 +408,7 @@ class RestClientDslScope(
     fun PUT(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.PUT, path, spec)
+    ) = buildJsonRoute(HttpMethod.Put, path, spec)
 
     /**
      * Constructs a PUT HTTP request route with the given path and optional request specification.
@@ -422,7 +422,7 @@ class RestClientDslScope(
     inline fun <reified T : Any> PUT(
         path: String,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.PUT, path, spec)
+    ) = buildRoute<T>(HttpMethod.Put, path, spec)
 
     /**
      * Configures a PATCH HTTP request for the specified path with an optional request specification.
@@ -438,7 +438,7 @@ class RestClientDslScope(
     fun PATCH(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.PATCH, path, spec)
+    ) = buildJsonRoute(HttpMethod.Patch, path, spec)
 
     /**
      * Defines a PATCH request with the ability to specify a path and an optional HTTP request specification.
@@ -455,7 +455,7 @@ class RestClientDslScope(
     inline fun <reified T : Any> PATCH(
         path: String,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.PATCH, path, spec)
+    ) = buildRoute<T>(HttpMethod.Patch, path, spec)
 
     /**
      * Creates a DELETE HTTP request route with the specified path and optional request specification.
@@ -468,7 +468,7 @@ class RestClientDslScope(
     fun DELETE(
         path: String,
         spec: ReceiverConsumer<ReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.DELETE, path, spec)
+    ) = buildJsonRoute(HttpMethod.Delete, path, spec)
 
     // ── Internals ──
 

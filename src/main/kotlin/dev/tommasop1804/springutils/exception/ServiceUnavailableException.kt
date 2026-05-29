@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
 @Suppress("unused")
 class ServiceUnavailableException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.SERVICE_UNAVAILABLE
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.ServiceUnavailable
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

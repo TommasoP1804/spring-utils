@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 @Suppress("unused")
 class UnauthorizedException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.UNAUTHORIZED
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.Unauthorized
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

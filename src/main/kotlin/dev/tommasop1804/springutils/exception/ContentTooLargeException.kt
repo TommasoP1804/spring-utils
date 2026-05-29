@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
 @Suppress("unused")
 class ContentTooLargeException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.CONTENT_TOO_LARGE
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.ContentTooLarge
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

@@ -23,7 +23,6 @@ import dev.tommasop1804.springutils.exception.*
 import dev.tommasop1804.springutils.request.*
 import dev.tommasop1804.springutils.response.*
 import dev.tommasop1804.springutils.servlet.*
-import dev.tommasop1804.springutils.servlet.EmptyResponse
 import dev.tommasop1804.springutils.servlet.request.*
 import org.springframework.http.ResponseEntity
 import java.net.URI
@@ -63,7 +62,7 @@ fun <T : Any> conditionalGet(
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
-    status: HttpStatus = HttpStatus.OK,
+    status: HttpStatus = HttpStatus.Ok,
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     expires: TemporalAccessor? = null,
@@ -84,9 +83,9 @@ fun <T : Any> conditionalGet(
         body.eTag
     }
     if (eTagNoneMatch.isNotNullOrEmpty() && eTagNoneMatch.any { (it - Char.QUOTATION_MARK) == eTag || it == String.STAR })
-         status = HttpStatus.NOT_MODIFIED
+        status = HttpStatus.NotModified
     if (!eTagNoneMatch && ifModifiedSince.isNotNull() && lastModifiedDate.isNotNull() && !lastModifiedDate.isAfter(ifModifiedSince))
-        status = HttpStatus.NOT_MODIFIED
+        status = HttpStatus.NotModified
 
 
     val response = ResponseEntity.status(status.toSpringHttpStatus())
@@ -97,7 +96,7 @@ fun <T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
-    if (status == HttpStatus.NOT_MODIFIED) return response.build()
+    if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).body(body ?: body())
 }
 /**
@@ -136,7 +135,7 @@ fun <T : Any> conditionalGet(
     resourceETag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
-    status: HttpStatus = HttpStatus.OK,
+    status: HttpStatus = HttpStatus.Ok,
     featureCode: String,
     includeRequestId: Boolean = true,
     expires: TemporalAccessor? = null,
@@ -157,9 +156,9 @@ fun <T : Any> conditionalGet(
         body.eTag
     }
     if (eTagNoneMatch.isNotNullOrEmpty() && eTagNoneMatch.any { (it - Char.QUOTATION_MARK) == eTag || it == String.STAR  })
-        status = HttpStatus.NOT_MODIFIED
+        status = HttpStatus.NotModified
     if (!eTagNoneMatch && ifModifiedSince.isNotNull() && lastModifiedDate.isNotNull() && !lastModifiedDate.isAfter(ifModifiedSince))
-        status = HttpStatus.NOT_MODIFIED
+        status = HttpStatus.NotModified
 
 
     val response = ResponseEntity.status(status.toSpringHttpStatus())
@@ -170,7 +169,7 @@ fun <T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
-    if (status == HttpStatus.NOT_MODIFIED) return response.build()
+    if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).body(body ?: body())
 }
 
@@ -237,7 +236,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         throw lazyException()
 
     val body = body()
-    val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
+    val status = status ?: (if (body is Unit) HttpStatus.NoContent else HttpStatus.Ok)
     val response = ResponseEntity.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers(headers.toSpringHttpHeaders())
     if (includeFeatureCode) response.featureCode()
@@ -309,7 +308,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         throw lazyException()
 
     val body = body()
-    val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
+    val status = status ?: (if (body is Unit) HttpStatus.NoContent else HttpStatus.Ok)
     val response = ResponseEntity.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers(headers.toSpringHttpHeaders())
     if (includeFeatureCode) response.featureCode()
@@ -386,7 +385,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         throw lazyException()
 
     val body = body()
-    val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
+    val status = status ?: (if (body is Unit) HttpStatus.NoContent else HttpStatus.Ok)
     val response = ResponseEntity.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers(headers.toSpringHttpHeaders())
     response.featureCode(featureCode)
@@ -458,7 +457,7 @@ fun <T : Any, R : Any> conditionalUpdate(
         throw lazyException()
 
     val body = body()
-    val status = status ?: (if (body is Unit) HttpStatus.NO_CONTENT else HttpStatus.OK)
+    val status = status ?: (if (body is Unit) HttpStatus.NoContent else HttpStatus.Ok)
     val response = ResponseEntity.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers(headers.toSpringHttpHeaders())
     response.featureCode(featureCode)
@@ -479,7 +478,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  * @param ifUnmodifiedSince Optional timestamp to ensure the resource has not been modified after this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate Optional previous last modified date of the resource.
  * @param requireAtLeastOneValidator If true, at least one validator (ETag or If-Unmodified-Since) must be provided and pass.
- * @param status HTTP status to be used for a successful response. Defaults to HttpStatus.NO_CONTENT.
+ * @param status HTTP status to be used for a successful response. Defaults to HttpStatus.NoContent.
  * @param lazyException Supplier of the exception to be thrown when validators fail.
  * @param lazyExceptionIfNotPresent Supplier of the exception to be thrown when required validators are not present.
  * @param includeFeatureCode If true, includes a "Feature-Code" header in the response.
@@ -500,7 +499,7 @@ fun <T : Any> conditionalUpdate(
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
-    status: HttpStatus = HttpStatus.NO_CONTENT,
+    status: HttpStatus = HttpStatus.NoContent,
     lazyException: ThrowableSupplier = { PreconditionFailedException("ETag not matched or If-Unmodified-Since header failed.") },
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use: If-Match, If-Unmodified-Since") },
     includeFeatureCode: Boolean = true,
@@ -546,7 +545,7 @@ fun <T : Any> conditionalUpdate(
  * @param ifUnmodifiedSince Optional timestamp to ensure the resource has not been modified after this time. If eTagIfMatch is present, this is not considered.
  * @param previousLastModifiedDate Optional previous last modified date of the resource.
  * @param requireAtLeastOneValidator If true, at least one validator (ETag or If-Unmodified-Since) must be provided and pass.
- * @param status HTTP status to be used for a successful response. Defaults to HttpStatus.NO_CONTENT.
+ * @param status HTTP status to be used for a successful response. Defaults to HttpStatus.NoContent.
  * @param lazyException Supplier of the exception to be thrown when validators fail.
  * @param lazyExceptionIfNotPresent Supplier of the exception to be thrown when required validators are not present.
  * @param includeFeatureCode If true, includes a "Feature-Code" header in the response.
@@ -567,7 +566,7 @@ fun <T : Any> conditionalUpdate(
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
-    status: HttpStatus = HttpStatus.NO_CONTENT,
+    status: HttpStatus = HttpStatus.NoContent,
     lazyException: ThrowableSupplier = { PreconditionFailedException("ETag not matched or If-Unmodified-Since header failed.") },
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use: If-Match, If-Unmodified-Since") },
     includeFeatureCode: Boolean = true,
@@ -631,7 +630,7 @@ fun <T : Any> conditionalUpdate(
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
-    status: HttpStatus = HttpStatus.NO_CONTENT,
+    status: HttpStatus = HttpStatus.NoContent,
     lazyException: ThrowableSupplier = { PreconditionFailedException("ETag not matched or If-Unmodified-Since header failed.") },
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use: If-Match, If-Unmodified-Since") },
     featureCode: String,
@@ -699,7 +698,7 @@ fun <T : Any> conditionalUpdate(
     ifUnmodifiedSince: OffsetDateTime? = null,
     previousLastModifiedDate: OffsetDateTime? = null,
     requireAtLeastOneValidator: Boolean = false,
-    status: HttpStatus = HttpStatus.NO_CONTENT,
+    status: HttpStatus = HttpStatus.NoContent,
     lazyException: ThrowableSupplier = { PreconditionFailedException("ETag not matched or If-Unmodified-Since header failed.") },
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use: If-Match, If-Unmodified-Since") },
     featureCode: String,
@@ -739,10 +738,10 @@ fun <T : Any> conditionalUpdate(
  * and feature code header inclusion settings.
  *
  * If an `action` is provided, it is invoked before building the response. By default,
- * the HTTP status is set to `HttpStatus.NO_CONTENT`, and the "Feature-Code" header is included
+ * the HTTP status is set to `HttpStatus.NoContent`, and the "Feature-Code" header is included
  * if applicable. Custom headers can also be added through the `headers` parameter.
  *
- * @param status The HTTP status to set for the response. Defaults to `HttpStatus.NO_CONTENT`.
+ * @param status The HTTP status to set for the response. Defaults to `HttpStatus.NoContent`.
  * @param includeFeatureCode Whether to include the "Feature-Code" header in the response. Defaults to `true`.*
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag Optional ETag value to include in the response. Defaults to `null`.
@@ -755,7 +754,7 @@ fun <T : Any> conditionalUpdate(
  * @since 1.0.0
  */
 fun EmptyResponse(
-    status: HttpStatus = HttpStatus.NO_CONTENT,
+    status: HttpStatus = HttpStatus.NoContent,
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     eTag: String? = null,
@@ -783,7 +782,7 @@ fun EmptyResponse(
 /**
  * Constructs an `EmptyResponse` with the given HTTP status, feature code, optional headers, and action.
  *
- * @param status the HTTP status to set for the response; defaults to `HttpStatus.NO_CONTENT`
+ * @param status the HTTP status to set for the response; defaults to `HttpStatus.NoContent`
  * @param featureCode the feature code to be added as a "Feature-Code" header in the response
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param eTag Optional ETag value to include in the response. Defaults to `null`.
@@ -797,7 +796,7 @@ fun EmptyResponse(
  * @since 1.0.0
  */
 fun EmptyResponse(
-    status: HttpStatus = HttpStatus.NO_CONTENT,
+    status: HttpStatus = HttpStatus.NoContent,
     featureCode: String,
     includeRequestId: Boolean = true,
     eTag: String? = null,
@@ -1190,7 +1189,7 @@ fun ResetContentResponse(
  *        Defaults to true.
  * @param lastModifiedDate Specifies the "Last-Modified" timestamp for the response. Can be null.
  *        Defaults to null.
-*  @param expires an optional timestamp to include as an "Expires" header, defaults to null
+ *  @param expires an optional timestamp to include as an "Expires" header, defaults to null
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
@@ -1324,7 +1323,7 @@ fun MultiStatusResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
-    responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
+    responseType: MultiStatusResponseType = MultiStatusResponseType.WebdavXml,
     httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
     action: Action? = null
 ): Response<Any> {
@@ -1337,10 +1336,10 @@ fun MultiStatusResponse(
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.body(when(responseType) {
-        MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
-        MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
-        MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
-        MultiStatusResponseType.GROUPED_BY_SUCCESS_AND_FAILURE_MAP -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion.notation)
+        MultiStatusResponseType.WebdavXml -> generateMultiStatusXML(resources, httpVersion.notation)
+        MultiStatusResponseType.Map -> generateMultiStatusMap(resources, httpVersion.notation)
+        MultiStatusResponseType.MapGroupedByStatus -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
+        MultiStatusResponseType.MapGroupedBySuccessAndFailure -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion.notation)
     })
 }
 /**
@@ -1366,7 +1365,7 @@ fun MultiStatusResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
-    responseType: MultiStatusResponseType = MultiStatusResponseType.WEBDAV_XML,
+    responseType: MultiStatusResponseType = MultiStatusResponseType.WebdavXml,
     httpVersion: HttpVersion = HttpVersion.HTTP_1_1,
 ): Response<Any> {
     val re = Response.status(org.springframework.http.HttpStatus.MULTI_STATUS)
@@ -1377,10 +1376,10 @@ fun MultiStatusResponse(
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.body(when(responseType) {
-        MultiStatusResponseType.WEBDAV_XML -> generateMultiStatusXML(resources, httpVersion.notation)
-        MultiStatusResponseType.MAP -> generateMultiStatusMap(resources, httpVersion.notation)
-        MultiStatusResponseType.GROUPED_BY_STATUS_MAP -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
-        MultiStatusResponseType.GROUPED_BY_SUCCESS_AND_FAILURE_MAP -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion.notation)
+        MultiStatusResponseType.WebdavXml -> generateMultiStatusXML(resources, httpVersion.notation)
+        MultiStatusResponseType.Map -> generateMultiStatusMap(resources, httpVersion.notation)
+        MultiStatusResponseType.MapGroupedByStatus -> generateMultiStatusGroupedMap(resources, httpVersion.notation)
+        MultiStatusResponseType.MapGroupedBySuccessAndFailure -> generateMultiStatusGroupedByCategoryMap(resources, httpVersion.notation)
     })
 }
 
@@ -1872,6 +1871,8 @@ fun MovedPermanentlyResponse(
  *
  * @param featureCode a string representing the feature code to be added as a custom header in the response.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
+ * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param retryAfter optional duration after which the client should retry the request
  * @param headers optional HTTP headers to be included in the response (overrides any other header parameters of this method).
  * @param location a URI indicating the new location of the requested resource.
  * @param action an optional action to be executed during the construction of the response.
@@ -1881,6 +1882,8 @@ fun MovedPermanentlyResponse(
 fun MovedPermanentlyResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
+    serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
+    retryAfter: Duration? = null,
     headers: HttpHeaders = HttpHeaders(),
     location: Uri,
     action: Action? = null
@@ -1889,6 +1892,8 @@ fun MovedPermanentlyResponse(
     if (headers.isNotEmpty()) re.headers(headers.toSpringHttpHeaders())
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     re.featureCode(featureCode).location(location)
+    if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
     if (action.isNotNull()) action()
     return re.build()
 }
@@ -2249,7 +2254,7 @@ fun TemporaryRedirectResponse(
  * Constructs a 304 Not Modified HTTP response.
  *
  * This method customizes the response by adding optional headers, an ETag, and feature code metadata.
- * It uses the `HttpStatus.NOT_MODIFIED` status to indicate that the resource has not changed since last requested.
+ * It uses the `HttpStatus.NotModified` status to indicate that the resource has not changed since last requested.
  *
  * @param includeFeatureCode Specifies whether to include the "Feature-Code" header in the response. Defaults to `true`.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
@@ -2287,7 +2292,7 @@ fun NotModifiedResponse(
  * Constructs a 304 Not Modified HTTP response.
  *
  * This method customizes the response by adding optional headers, an ETag, and feature code metadata.
- * It uses the `HttpStatus.NOT_MODIFIED` status to indicate that the resource has not changed since last requested.
+ * It uses the `HttpStatus.NotModified` status to indicate that the resource has not changed since last requested.
  *
  * @param featureCode Specifies the "Feature-Code" header in the response.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
@@ -2317,82 +2322,6 @@ fun NotModifiedResponse(
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (action.isNotNull()) action()
-    return re.build()
-}
-
-/**
- * Constructs a `Response` object with an HTTP 204 (No Content) status code.
- *
- * This function optionally includes additional metadata such as an `ETag` header, custom headers,
- * and a feature code header derived from the `Feature` annotation of the calling method if applicable.
- * It can also perform a specified action to further customize the response.
- *
- * Deprecated in favor of the [EmptyResponse] function.
- *
- * @param includeFeatureCode A boolean flag indicating whether to include the "Feature-Code" header
- *  based on the `Feature` annotation of the calling method. Defaults to `true`.*
- * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
- * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
- * @param refresh optional pair of duration and URL for refresh header, defaults to null
- * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
- * @param headers Optional custom HTTP headers to add to the response (overrides any other header parameters of this method). Can be `null` or empty.
- * @param action An optional action to further customize the response object. Can be `null`.
- * @return A `Response` object with an HTTP 204 (No Content) status code and any specified metadata.
- * @since 1.0.0
- */
-@Deprecated("Use EmptyResponse instead")
-fun NoContentResponse(
-    includeFeatureCode: Boolean = true,
-    includeRequestId: Boolean = true,
-    preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, Url?>? = null,
-    serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders = HttpHeaders(),
-    action: Action? = null
-): EmptyResponse {
-    val re = Response.status(org.springframework.http.HttpStatus.NO_CONTENT)
-    if (headers.isNotEmpty()) re.headers(headers.toSpringHttpHeaders())
-    if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
-    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
-    if (includeFeatureCode) re.featureCode()
-    if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (action.isNotNull()) action()
-    return re.build()
-}
-/**
- * Builds an HTTP 204 No Content response with optional headers and eTag.
- *
- * Deprecated in favor of the [EmptyResponse] function.
- *
- * @param featureCode the feature code to include as the "Feature-Code" header in the response
- * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
- * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
- * @param refresh optional pair of duration and URL for refresh header, defaults to null
- * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
- * @param headers optional custom headers to include in the response (overrides any other header parameters of this method)
- * @param action an optional action to further modify the response
- * @return a response with an HTTP 204 No Content status
- * @since 1.0.0
- */
-@Deprecated("Use EmptyResponse instead")
-fun NoContentResponse(
-    featureCode: String,
-    includeRequestId: Boolean = true,
-    preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, Url?>? = null,
-    serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
-    headers: HttpHeaders = HttpHeaders(),
-    action: Action? = null
-): EmptyResponse {
-    val re = Response.status(org.springframework.http.HttpStatus.NO_CONTENT)
-    if (headers.isNotEmpty()) re.headers(headers.toSpringHttpHeaders())
-    re.featureCode(featureCode)
-    if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
-    if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (action.isNotNull()) action()
     return re.build()

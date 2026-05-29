@@ -661,8 +661,8 @@ fun PageRequest(offset: Int, pageSize: Int, sort: Sort): PageRequest = PageReque
  */
 fun PageRequest(offset: Int, pageSize: Int, sort: SortOption): PageRequest = PageRequest.of(offset, pageSize, Sort.by(
     when (sort.direction) {
-        SortDirection.ASCENDING -> Sort.Direction.ASC
-        SortDirection.DESCENDING -> Sort.Direction.DESC
+        SortDirection.Ascending -> Sort.Direction.ASC
+        SortDirection.Descending -> Sort.Direction.DESC
     },
     *(sort.field.split(".").toTypedArray())
 ))
@@ -784,8 +784,8 @@ fun <T : Any> Chunked<T>.toJpaPage() = PageImpl(
 )
 
 internal fun Sort.toSortOption(): List<SortOption> = toList().map { SortOption(it.property, when (it.direction) {
-    Sort.Direction.ASC -> SortDirection.ASCENDING
-    Sort.Direction.DESC -> SortDirection.DESCENDING
+    Sort.Direction.ASC -> SortDirection.Ascending
+    Sort.Direction.DESC -> SortDirection.Descending
 }) }
 /**
  * Converts a collection of SortOption objects into a JPA Sort instance.
@@ -813,8 +813,8 @@ fun Collection<SortOption>.toJpaSort(): Sort {
  * @since 3.0.0
  */
 fun SortDirection.toJpaSortDirection() = when (this) {
-    SortDirection.ASCENDING -> Sort.Direction.ASC
-    SortDirection.DESCENDING -> Sort.Direction.DESC
+    SortDirection.Ascending-> Sort.Direction.ASC
+    SortDirection.Descending -> Sort.Direction.DESC
 }
 /**
  * Converts a Spring Data Sort.Direction to a SortDirection enumeration value.
@@ -827,6 +827,6 @@ fun SortDirection.toJpaSortDirection() = when (this) {
  * @since 1.0.0
  */
 fun Sort.Direction.toSortDirection() = when (this) {
-    Sort.Direction.ASC -> SortDirection.ASCENDING
-    Sort.Direction.DESC -> SortDirection.DESCENDING
+    Sort.Direction.ASC -> SortDirection.Ascending
+    Sort.Direction.DESC -> SortDirection.Descending
 }

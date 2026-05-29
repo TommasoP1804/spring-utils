@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.GONE)
 @Suppress("unused")
 class GoneException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.GONE
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.Gone
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

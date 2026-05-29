@@ -33,13 +33,13 @@ internal object Logs {
     private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
     fun logStart(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, service: String?, featureCode: String?, id: RequestId, customs: List<String2> = emptyList()) {
-        val clazz = clazz whenTrue (Component.CLASS_NAME in components)
-        val method = method whenTrue (Component.FUNCTION_NAME in components)
-        val username = username whenTrue (Component.USER in components)
-        val service = service whenTrue (Component.SERVICE in components)
-        val id = id whenTrue (Component.ID in components)
-        val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
-        val path = path whenTrue (Component.PATH in components)
+        val clazz = clazz whenTrue (Component.ClassName in components)
+        val method = method whenTrue (Component.FunctionName in components)
+        val username = username whenTrue (Component.User in components)
+        val service = service whenTrue (Component.Service in components)
+        val id = id whenTrue (Component.Id in components)
+        val featureCode = featureCode whenTrue (Component.FeatureCode in components)
+        val path = path whenTrue (Component.Path in components)
         val custom = if (customs.isNotEmpty()) buildString {
             customs.forEach {
                 append(", ")
@@ -61,14 +61,14 @@ internal object Logs {
     }
 
     fun logEnd(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, service: String?, featureCode: String?, id: RequestId, customs: List<String2> = emptyList()) {
-        val clazz = clazz whenTrue (Component.CLASS_NAME in components)
-        val method = method whenTrue (Component.FUNCTION_NAME in components)
-        val username = username whenTrue (Component.USER in components)
-        val service = service whenTrue (Component.SERVICE in components)
-        val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
+        val clazz = clazz whenTrue (Component.ClassName in components)
+        val method = method whenTrue (Component.FunctionName in components)
+        val username = username whenTrue (Component.User in components)
+        val service = service whenTrue (Component.Service in components)
+        val featureCode = featureCode whenTrue (Component.FeatureCode in components)
         val end = Instant()
-        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ELAPSED_TIME in components)
-        val path = path whenTrue (Component.PATH in components)
+        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ElapsedTime in components)
+        val path = path whenTrue (Component.Path in components)
         val custom = if (customs.isNotEmpty()) buildString {
             customs.forEach {
                 append(", ")
@@ -77,7 +77,7 @@ internal object Logs {
         } else String.EMPTY
 
         LOGGER.info(
-            (if (Component.ID in components) "$id | " else String.EMPTY)
+            (if (Component.Id in components) "$id | " else String.EMPTY)
                     + "\u001B[32m✓\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
@@ -91,14 +91,14 @@ internal object Logs {
     }
 
     fun logException(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, status: String, service: String?, featureCode: String?, id: RequestId, e: Throwable?, basePackage: String?, customs: List<String2> = emptyList()) {
-        val clazz = clazz whenTrue (Component.CLASS_NAME in components)
-        val method = method whenTrue (Component.FUNCTION_NAME in components)
-        val username = username whenTrue (Component.USER in components)
-        val service = service whenTrue (Component.SERVICE in components)
-        val featureCode = featureCode whenTrue (Component.FEATURE_CODE in components)
+        val clazz = clazz whenTrue (Component.ClassName in components)
+        val method = method whenTrue (Component.FunctionName in components)
+        val username = username whenTrue (Component.User in components)
+        val service = service whenTrue (Component.Service in components)
+        val featureCode = featureCode whenTrue (Component.FeatureCode in components)
         val end = Instant()
-        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ELAPSED_TIME in components)
-        val status = status whenTrue (Component.STATUS in components)
+        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ElapsedTime in components)
+        val status = status whenTrue (Component.Status in components)
         val stackTrace = e.getPrettyStackTrace(basePackage)
         var index = -1
         for (i in stackTrace.indices) {
@@ -107,7 +107,7 @@ internal object Logs {
                 break
             }
         }
-        val path = path whenTrue (Component.PATH in components)
+        val path = path whenTrue (Component.Path in components)
         val custom = if (customs.isNotEmpty()) buildString {
             customs.forEach {
                 append(", ")
@@ -116,7 +116,7 @@ internal object Logs {
         } else String.EMPTY
 
         LOGGER.error(
-            (if (Component.ID in components) "$id | " else String.EMPTY)
+            (if (Component.Id in components) "$id | " else String.EMPTY)
                     + "\u001B[31m✖\u001B[0m ENDED   "
                     + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
                     + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
@@ -127,8 +127,8 @@ internal object Logs {
                     + custom
                     + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
-                    + (if (Component.EXCEPTION in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
-                    + (if (Component.STACKTRACE in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
+                    + (if (Component.Exception in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
+                    + (if (Component.Stacktrace in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
         )
     }
 

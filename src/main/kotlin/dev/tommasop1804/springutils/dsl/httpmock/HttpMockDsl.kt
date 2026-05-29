@@ -210,27 +210,27 @@ enum class FaultType {
     /**
      * Indicates that the connection was unexpectedly closed by the remote host,
      * resulting in a failure to complete the intended operation.
-     * @since 3.1.0
+     * @since 4.0.0
      */
-    CONNECTION_RESET,
+    ConnectionReset,
     /**
      * Represents a fault scenario where a response is missing or entirely empty.
-     * @since 3.1.0
+     * @since 4.0.0
      */
-    EMPTY_RESPONSE,
+    EmptyResponse,
     /**
      * Represents a fault type indicating that the response received does not conform to the
      * expected format or structure. This type of fault typically occurs when the data returned
      * from an external source is corrupted, incomplete, or organized in an invalid manner.
-     * @since 3.1.0
+     * @since 4.0.0
      */
-    MALFORMED_RESPONSE,
+    MalformedResponse,
     /**
      * Represents a fault type indicating that random or nonsensical data
      * was encountered in a response where meaningful data was expected.
-     * @since 3.1.0
+     * @since 4.0.0
      */
-    RANDOM_DATA,
+    RandomData,
 }
 
 /**
@@ -597,7 +597,7 @@ class RequestMatcherBuilder {
      * allowing it to match HTTP `GET` requests.
      * @since 3.1.0
      */
-    fun get() { method = HttpMethod.GET }
+    fun get() { method = HttpMethod.Get }
     /**
      * Sets the HTTP method of the request matcher to `POST`.
      *
@@ -606,7 +606,7 @@ class RequestMatcherBuilder {
      * behavior or expectations for HTTP POST requests in the context of the request matching logic.
      * @since 3.1.0
      */
-    fun post() { method = HttpMethod.POST }
+    fun post() { method = HttpMethod.Post }
     /**
      * Sets the HTTP method of the request matcher to `PUT`.
      *
@@ -615,7 +615,7 @@ class RequestMatcherBuilder {
      * you specify that the matcher should filter and respond to requests using the `PUT` HTTP method.
      * @since 3.1.0
      */
-    fun put() { method = HttpMethod.PUT }
+    fun put() { method = HttpMethod.Put }
     /**
      * Configures the request matcher to use the HTTP DELETE method.
      *
@@ -624,7 +624,7 @@ class RequestMatcherBuilder {
      * property to `HttpMethod.DELETE` within the request matcher.
      * @since 3.1.0
      */
-    fun delete() { method = HttpMethod.DELETE }
+    fun delete() { method = HttpMethod.Delete }
     /**
      * Sets the HTTP method to PATCH for the request being built.
      *
@@ -634,7 +634,7 @@ class RequestMatcherBuilder {
      * should use the PATCH method.
      * @since 3.1.0
      */
-    fun patch() { method = HttpMethod.PATCH }
+    fun patch() { method = HttpMethod.Patch }
 
     /**
      * Adds or updates a path parameter in the request matcher configuration.
@@ -787,7 +787,7 @@ class ResponseBuilder {
      * in mock setups, such as `HttpStatus.NOT_FOUND` or `HttpStatus.INTERNAL_SERVER_ERROR`.
      * @since 3.1.0
      */
-    var status: HttpStatus = HttpStatus.OK
+    var status: HttpStatus = HttpStatus.Ok
     /**
      * Represents the HTTP headers for a request or response.
      * This variable holds a collection of key-value pairs that define protocol
@@ -1012,7 +1012,7 @@ class StubBuilder {
      */
     fun build() = StubDefinition(
         requestMatcher ?: error("request {} block is required"),
-        responses.ifEmpty { listOf(ResponseBuilder().apply { status = HttpStatus.OK }.build()) },
+        responses.ifEmpty { listOf(ResponseBuilder().apply { status = HttpStatus.Ok }.build()) },
         priority,
         scenario,
     )

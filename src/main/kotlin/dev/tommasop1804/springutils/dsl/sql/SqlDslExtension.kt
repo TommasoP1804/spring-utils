@@ -9,11 +9,12 @@ package dev.tommasop1804.springutils.dsl.sql
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.classes.constants.*
 import dev.tommasop1804.kutils.dsl.sql.*
-import dev.tommasop1804.springutils.jpa.*
 import jakarta.persistence.Column
+import jakarta.persistence.Table
 import org.intellij.lang.annotations.Language
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.findAnnotation
 
 /**
  * Resolves a [KProperty1] to its SQL column name using `@Column` annotation or camelCase → snake_case.
@@ -136,7 +137,7 @@ inline fun <reified T : Any> SqlBuilder.join(alias: String? = null, type: JoinTy
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.inner(alias: String? = null, @Language("sql") on: String) {
-    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.INNER, on)
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.Inner, on)
 }
 /**
  * LEFT JOIN on reified entity.
@@ -145,7 +146,7 @@ inline fun <reified T : Any> JoinScope.inner(alias: String? = null, @Language("s
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.left(alias: String? = null, @Language("sql") on: String) {
-    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.LEFT_OUTER, on)
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.LeftOuter, on)
 }
 /**
  * RIGHT JOIN on reified entity.
@@ -154,7 +155,7 @@ inline fun <reified T : Any> JoinScope.left(alias: String? = null, @Language("sq
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.right(alias: String? = null, @Language("sql") on: String) {
-    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.RIGHT_OUTER, on)
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.RightOuter, on)
 }
 /**
  * FULL OUTER JOIN on reified entity.
@@ -163,7 +164,7 @@ inline fun <reified T : Any> JoinScope.right(alias: String? = null, @Language("s
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.full(alias: String? = null, @Language("sql") on: String) {
-    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.FULL_OUTER, on)
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.FullOuter, on)
 }
 /**
  * CROSS JOIN on reified entity.
@@ -172,7 +173,7 @@ inline fun <reified T : Any> JoinScope.full(alias: String? = null, @Language("sq
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.cross(alias: String? = null) {
-    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.CROSS)
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.Cross)
 }
 /**
  * NATURAL JOIN on reified entity.
@@ -181,7 +182,7 @@ inline fun <reified T : Any> JoinScope.cross(alias: String? = null) {
  */
 @SqlDslMarker
 inline fun <reified T : Any> JoinScope.natural(alias: String? = null) {
-    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.NATURAL)
+    join(convertName(T::class) + (alias?.let { " $it" } ?: String.EMPTY), JoinType.Natural)
 }
 
 /**
@@ -1135,7 +1136,7 @@ fun SqlBuilder.orderBy(vararg columns: Pair<KProperty1<*, *>, SortDirection>) =
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+fun SqlBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.Ascending) =
     orderBy(*columns.map { it.toColumnName() to direction }.toTypedArray())
 /**
  * ORDER BY with `KProperty1` columns under a shared table alias and direction.
@@ -1143,7 +1144,7 @@ fun SqlBuilder.orderBy(vararg columns: KProperty1<*, *>, direction: SortDirectio
  * @since 3.4.0
  */
 @SqlDslMarker
-fun SqlBuilder.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) {
+fun SqlBuilder.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, direction: SortDirection = SortDirection.Ascending) {
     val alias = tableAlias ?: columns.firstOrNull()?.ownerClass?.simpleName?.first()?.lowercase().orEmpty()
     orderBy(*columns.map { it.toQualifiedColumnName(alias) to direction }.toTypedArray())
 }
@@ -1153,12 +1154,12 @@ fun SqlBuilder.orderBy(tableAlias: String?, vararg columns: KProperty1<*, *>, di
  * @since 3.4.0
  */
 @SqlDslMarker
-fun OrderByScope.column(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+fun OrderByScope.column(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.Ascending) =
     column(prop.toColumnName(), direction)
 
 /** @since 3.4.0 */
 @SqlDslMarker
-fun OrderByScope.column(alias: String?, prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+fun OrderByScope.column(alias: String?, prop: KProperty1<*, *>, direction: SortDirection = SortDirection.Ascending) =
     column(prop.toQualifiedColumnName(alias), direction)
 
 /** @since 3.4.0 */
@@ -1171,12 +1172,12 @@ fun OrderByScope.desc(prop: KProperty1<*, *>) = desc(prop.toColumnName())
 
 /** @since 3.4.0 */
 @SqlDslMarker
-fun OrderByScope.nullsFirst(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+fun OrderByScope.nullsFirst(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.Ascending) =
     nullsFirst(prop.toColumnName(), direction)
 
 /** @since 3.4.0 */
 @SqlDslMarker
-fun OrderByScope.nullsLast(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.ASCENDING) =
+fun OrderByScope.nullsLast(prop: KProperty1<*, *>, direction: SortDirection = SortDirection.Ascending) =
     nullsLast(prop.toColumnName(), direction)
 
 /**
@@ -1185,7 +1186,7 @@ fun OrderByScope.nullsLast(prop: KProperty1<*, *>, direction: SortDirection = So
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlBuilder.truncate(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
+inline fun <reified T : Any> SqlBuilder.truncate(ifExists: Boolean = false, dropType: DropType = DropType.Restrict) {
     val clazz = T::class
     truncate(convertName(clazz), ifExists, dropType)
 }
@@ -1217,7 +1218,7 @@ inline fun <reified T : Any> SqlBuilder.alterTable(ifExists: Boolean = false, @L
  * @since 3.4.0
  */
 @SqlDslMarker
-inline fun <reified T : Any> SqlBuilder.dropTable(ifExists: Boolean = false, dropType: DropType = DropType.RESTRICT) {
+inline fun <reified T : Any> SqlBuilder.dropTable(ifExists: Boolean = false, dropType: DropType = DropType.Restrict) {
     val clazz = T::class
     dropTable(convertName(clazz), ifExists, dropType)
 }
@@ -1275,4 +1276,18 @@ inline fun <reified T : Any> SqlBuilder.showIndexFromTable() {
 inline fun <reified T : Any> TriggerScope.onTable() {
     val clazz = T::class
     onTable(convertName(clazz))
+}
+
+/**
+ * Converts the name of a given class into a formatted string based on its `@Table` annotation.
+ *
+ * @param clazz The class whose name is to be converted.
+ * @return A string representation of the class name, including the schema if specified
+ *         in the `@Table` annotation, or the simple name of the class if not annotated.
+ * @since 2.7.0
+ */
+@PublishedApi
+internal fun convertName(clazz: KClass<*>): String {
+    val annotation = clazz.findAnnotation<Table>()
+    return (annotation?.schema?.ifEmpty { null }?.let { "$it." } ?: String.EMPTY) + (annotation?.name?.ifEmpty { null } ?: -clazz.simpleName!!)
 }

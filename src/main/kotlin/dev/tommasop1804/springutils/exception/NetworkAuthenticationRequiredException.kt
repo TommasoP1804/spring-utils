@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED)
 @Suppress("unused")
 class NetworkAuthenticationRequiredException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NETWORK_AUTHENTICATION_REQUIRED
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NetworkAuthenticationRequired
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.BAD_GATEWAY)
 @Suppress("unused")
 class BadGatewayException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.BAD_GATEWAY
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.BadGateway
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

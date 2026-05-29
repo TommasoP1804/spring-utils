@@ -120,7 +120,7 @@ class XmlHttpMessageWriter(private val xmlMapper: XmlMapper) : HttpMessageWriter
 
     override fun canWrite(elementType: ResolvableType, mediaType: MediaType?): Boolean {
         val result = mediaType.isNotNull() && XML_MEDIA_TYPES.any { it.includes(mediaType) }
-        log(LogLevel.DEBUG, "`canWrite` mediaType=`$mediaType` result=`$result`")
+        log(LogLevel.Debug, "`canWrite` mediaType=`$mediaType` result=`$result`")
         return result
     }
 

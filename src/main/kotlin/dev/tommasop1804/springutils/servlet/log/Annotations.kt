@@ -14,7 +14,7 @@ import dev.tommasop1804.kutils.*
 )
 @Retention(AnnotationRetention.RUNTIME)
 annotation class LogExecution(
-    val behaviour: Array<Behaviour> = [Behaviour.BEFORE, Behaviour.AFTER, Behaviour.AFTER_THROWING],
+    val behaviour: Array<Behaviour> = [Behaviour.Before, Behaviour.After, Behaviour.AfterThrowing],
     val basePackage: String = "",
     val includeHighlight: Boolean = true,
     val exclude: Array<Component> = [],
@@ -22,24 +22,24 @@ annotation class LogExecution(
     val customMessages: Array<CustomMessage> = []
 ) {
     enum class Component {
-        FUNCTION_NAME,
-        PATH,
-        CLASS_NAME,
-        USER,
-        SERVICE,
-        ID,
-        FEATURE_CODE,
-        ELAPSED_TIME,
-        STATUS,
-        EXCEPTION,
-        STACKTRACE
+        FunctionName,
+        Path,
+        ClassName,
+        User,
+        Service,
+        Id,
+        FeatureCode,
+        ElapsedTime,
+        Status,
+        Exception,
+        Stacktrace
     }
 
     enum class Behaviour {
-        BEFORE,
-        AFTER,
-        AFTER_THROWING,
-        @Suppress("unused") NONE
+        Before,
+        After,
+        AfterThrowing,
+        @Suppress("unused") None
     }
 
     @Retention(AnnotationRetention.RUNTIME)
@@ -48,15 +48,15 @@ annotation class LogExecution(
         val type: Type,
         val reference: String,
         val effects: Array<Ansi.Effect> = [],
-        val textColor: Ansi.TextColor = Ansi.TextColor.DEFAULT,
-        val bgColor: Ansi.BackgroundColor = Ansi.BackgroundColor.DEFAULT,
+        val textColor: Ansi.TextColor = Ansi.TextColor.Default,
+        val bgColor: Ansi.BackgroundColor = Ansi.BackgroundColor.Default,
     ) {
         enum class Type {
-            HEADER,
-            QUERY_PARAM,
-            PATH_VARIABLE,
-            PATH_INDEX,
-            STATIC
+            Header,
+            QueryParam,
+            PathVariable,
+            PathIndex,
+            Static
         }
     }
 }

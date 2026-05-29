@@ -151,18 +151,18 @@ class TypedTestRoute<T : Any> @PublishedApi internal constructor(
         val uri = buildUri(pathTemplate, execSpec)
         val request = RestAssured.given().applySpec(execSpec).`when`()
 
-        if (method in listOf(HttpMethod.GET, HttpMethod.HEAD, HttpMethod.OPTIONS, HttpMethod.DELETE)
+        if (method in listOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Delete)
             && execSpec.body.isNotNull()
-        ) log(LogLevel.WARN, "Request body will be ignored for $method")
+        ) log(LogLevel.Warn, "Request body will be ignored for $method")
 
         val response = when (method) {
-            HttpMethod.GET -> request.get(uri)
-            HttpMethod.HEAD -> request.head(uri)
-            HttpMethod.OPTIONS -> request.options(uri)
-            HttpMethod.POST -> request.post(uri)
-            HttpMethod.PUT -> request.put(uri)
-            HttpMethod.PATCH -> request.patch(uri)
-            HttpMethod.DELETE -> request.delete(uri)
+            HttpMethod.Get -> request.get(uri)
+            HttpMethod.Head -> request.head(uri)
+            HttpMethod.Options -> request.options(uri)
+            HttpMethod.Post -> request.post(uri)
+            HttpMethod.Put -> request.put(uri)
+            HttpMethod.Patch -> request.patch(uri)
+            HttpMethod.Delete -> request.delete(uri)
             else -> throw ConfigurationException()
         }
 
@@ -484,7 +484,7 @@ class RestAssuredDslScope(
     fun GET(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.GET, path, spec)
+    ) = buildJsonRoute(HttpMethod.Get, path, spec)
 
     /**
      * Builds a typed `GET` test route.
@@ -493,7 +493,7 @@ class RestAssuredDslScope(
     inline fun <reified T : Any> GET(
         path: String,
         noinline spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.GET, path, spec)
+    ) = buildRoute<T>(HttpMethod.Get, path, spec)
 
     /**
      * Builds a JSON `HEAD` test route.
@@ -502,7 +502,7 @@ class RestAssuredDslScope(
     fun HEAD(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.HEAD, path, spec)
+    ) = buildJsonRoute(HttpMethod.Head, path, spec)
 
     /**
      * Builds a JSON `OPTIONS` test route.
@@ -511,7 +511,7 @@ class RestAssuredDslScope(
     fun OPTIONS(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.OPTIONS, path, spec)
+    ) = buildJsonRoute(HttpMethod.Options, path, spec)
 
     /**
      * Builds a typed `OPTIONS` test route.
@@ -520,7 +520,7 @@ class RestAssuredDslScope(
     inline fun <reified T : Any> OPTIONS(
         path: String,
         noinline spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.OPTIONS, path, spec)
+    ) = buildRoute<T>(HttpMethod.Options, path, spec)
 
     /**
      * Builds a JSON `POST` test route.
@@ -529,7 +529,7 @@ class RestAssuredDslScope(
     fun POST(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.POST, path, spec)
+    ) = buildJsonRoute(HttpMethod.Post, path, spec)
 
     /**
      * Builds a typed `POST` test route.
@@ -538,7 +538,7 @@ class RestAssuredDslScope(
     inline fun <reified T : Any> POST(
         path: String,
         noinline spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.POST, path, spec)
+    ) = buildRoute<T>(HttpMethod.Post, path, spec)
 
     /**
      * Builds a JSON `PUT` test route.
@@ -547,7 +547,7 @@ class RestAssuredDslScope(
     fun PUT(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.PUT, path, spec)
+    ) = buildJsonRoute(HttpMethod.Put, path, spec)
 
     /**
      * Builds a typed `PUT` test route.
@@ -556,7 +556,7 @@ class RestAssuredDslScope(
     inline fun <reified T : Any> PUT(
         path: String,
         noinline spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.PUT, path, spec)
+    ) = buildRoute<T>(HttpMethod.Put, path, spec)
 
     /**
      * Builds a JSON `PATCH` test route.
@@ -565,7 +565,7 @@ class RestAssuredDslScope(
     fun PATCH(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.PATCH, path, spec)
+    ) = buildJsonRoute(HttpMethod.Patch, path, spec)
 
     /**
      * Builds a typed `PATCH` test route.
@@ -574,7 +574,7 @@ class RestAssuredDslScope(
     inline fun <reified T : Any> PATCH(
         path: String,
         noinline spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildRoute<T>(HttpMethod.PATCH, path, spec)
+    ) = buildRoute<T>(HttpMethod.Patch, path, spec)
 
     /**
      * Builds a JSON `DELETE` test route.
@@ -583,7 +583,7 @@ class RestAssuredDslScope(
     fun DELETE(
         path: String,
         spec: ReceiverConsumer<TestReqSpec>? = null,
-    ) = buildJsonRoute(HttpMethod.DELETE, path, spec)
+    ) = buildJsonRoute(HttpMethod.Delete, path, spec)
 
     // ── Internals ──
 

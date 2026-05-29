@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
 @Suppress("unused")
 class NotImplementedException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NOT_IMPLEMENTED
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NotImplemented
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

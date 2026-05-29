@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
 @Suppress("unused")
 class ExpectationFailedException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.EXPECTATION_FAILED
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.ExpectationFailed
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

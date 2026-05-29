@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.VARIANT_ALSO_NEGOTIATES)
 @Suppress("unused")
 class VariantAlsoNegotiatesException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.VARIANT_ALSO_NEGOTIATES
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.VariantAlsoNegotiates
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

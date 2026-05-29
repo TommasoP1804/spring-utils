@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
 @Suppress("unused")
 class RangeNotSatisfiableException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.RANGE_NOT_SATISFIABLE
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.RangeNotSatisfiable
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)

@@ -37,18 +37,18 @@ import java.util.concurrent.ConcurrentHashMap
 
 @ConfigurationProperties(prefix = "spring-utils.reactive.logging")
 data class LoggingProperties(
-    @DefaultValue("FUNCTION_NAME,CLASS_NAME,PATH,USER,SERVICE,ID,FEATURE_CODE,ELAPSED_TIME,STATUS,EXCEPTION,STACKTRACE")
+    @DefaultValue("FunctionName,ClassName,Path,User,Service,Id,FeatureCode,ElapsedTime,Status,Exception,Stacktrace")
     val include: Set<LogExecution.Component> = LogExecution.Component.entries.toSet(),
     @DefaultValue
     val exclude: Set<LogExecution.Component> = emptySet(),
     @DefaultValue("true")
     val includeHighlight: Boolean = true,
     val basePackage: String? = null,
-    @DefaultValue("BEFORE,AFTER,AFTER_THROWING")
+    @DefaultValue("Before,After,AfterThrowing")
     val behaviour: Set<LogExecution.Behaviour> = setOf(
-        LogExecution.Behaviour.BEFORE,
-        LogExecution.Behaviour.AFTER,
-        LogExecution.Behaviour.AFTER_THROWING
+        LogExecution.Behaviour.Before,
+        LogExecution.Behaviour.After,
+        LogExecution.Behaviour.AfterThrowing
     ),
 )
 
@@ -143,18 +143,18 @@ class LoggingWebFilter(
                 }
             }}"
 
-            if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
+            if (LogExecution.Behaviour.Before in properties.behaviour) {
                 Logs.logStart(finalComponents, className, methodName, path, currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
-                if (LogExecution.Behaviour.AFTER in properties.behaviour) {
+                if (LogExecution.Behaviour.After in properties.behaviour) {
                     Logs.logEnd(finalComponents, className, methodName, path, currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
-                if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
+                if (LogExecution.Behaviour.AfterThrowing in properties.behaviour) {
                     val status = getStatus(e)
 
                     val resolvedBasePackage = if (properties.includeHighlight) {
@@ -200,18 +200,18 @@ class LoggingWebFilter(
             val serviceValue: String? = exchange.request.headers.getFirst("From-Service")
             val featureCode = findCallerMethod()?.getAnnotation(Feature::class.java)?.code
 
-            if (LogExecution.Behaviour.BEFORE in properties.behaviour) {
+            if (LogExecution.Behaviour.Before in properties.behaviour) {
                 Logs.logStart(finalComponents, null, null, path, currentUser, serviceValue, featureCode, requestId)
             }
 
             try {
                 chain.filter(exchange)
 
-                if (LogExecution.Behaviour.AFTER in properties.behaviour) {
+                if (LogExecution.Behaviour.After in properties.behaviour) {
                     Logs.logEnd(finalComponents, null, null, path, currentUser, serviceValue, featureCode, requestId)
                 }
             } catch (e: Throwable) {
-                if (LogExecution.Behaviour.AFTER_THROWING in properties.behaviour) {
+                if (LogExecution.Behaviour.AfterThrowing in properties.behaviour) {
                     val status = if (e is ResponseStatusException) HttpStatus.valueOf(e.statusCode.value()) else getStatus(e)
 
                     Logs.logException(

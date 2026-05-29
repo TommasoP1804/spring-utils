@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.INSUFFICIENT_STORAGE)
 @Suppress("unused")
 class InsufficientStorageException : ResponseException {
-    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.INSUFFICIENT_STORAGE
+    override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.InsufficientStorage
 
     constructor() : super()
     constructor(message: String?, internalErrorCode: String? = null) : super(message, internalErrorCode)
