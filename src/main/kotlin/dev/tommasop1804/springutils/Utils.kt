@@ -4,6 +4,7 @@
 
 @file:JvmName("UtilsKt")
 @file:Suppress("unused", "FunctionName", "UnusedReceiverParameter")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils
 

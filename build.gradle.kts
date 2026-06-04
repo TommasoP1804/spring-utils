@@ -9,16 +9,16 @@ import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "dev.tommasop1804"
-version = "4.0.0"
+version = "4.1.0"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260529T124012Z
+// Last update: Tommaso Pastorelli | 20260604T142420Z
 
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.3.20"
-    id("org.jetbrains.kotlin.plugin.spring") version "2.3.20"
-    id("org.jetbrains.kotlin.plugin.jpa") version "2.3.20"
+    id("org.jetbrains.kotlin.jvm") version "2.4.0"
+    id("org.jetbrains.kotlin.plugin.spring") version "2.4.0"
+    id("org.jetbrains.kotlin.plugin.jpa") version "2.4.0"
     id("org.springframework.boot") version "4.0.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "9.1.0"
@@ -63,8 +63,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:4.0.0")
-    api("dev.tommasop1804:kotlin-utils:4.0.0")
+    aspect("dev.tommasop1804:kotlin-utils:4.1.0")
+    api("dev.tommasop1804:kotlin-utils:4.1.0")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")
@@ -77,7 +77,9 @@ kotlin {
     compilerOptions {
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
-            "-Xcontext-parameters",
+            "-Xcollection-literals",
+            "-Xallow-returns-result-of",
+            "-Xreturn-value-checker=check",
             "-Xname-based-destructuring=complete"
         )
     }
@@ -91,7 +93,9 @@ java {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
+        freeCompilerArgs.add("-Xcollection-literals")
+        freeCompilerArgs.add("-Xallow-returns-result-of")
+        freeCompilerArgs.add("-Xreturn-value-checker=check")
         freeCompilerArgs.add("-Xname-based-destructuring=complete")
     }
 }

@@ -20,6 +20,7 @@ import dev.tommasop1804.springutils.*
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Suppress("unused")
+@MustUseReturnValues
 data class ResourceResult(
     val reference: Any,
     val statusCode: HttpStatus,

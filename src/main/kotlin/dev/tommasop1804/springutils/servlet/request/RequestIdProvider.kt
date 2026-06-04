@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component
  */
 @Suppress("unused")
 @Component
+@MustUseReturnValues
 class RequestIdProvider(
     val environment: Environment
 ) {

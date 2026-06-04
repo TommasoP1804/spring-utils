@@ -5,6 +5,7 @@
 @file:JvmName("RestAssuredExtensionKt")
 @file:Since("3.2.0")
 @file:Suppress("unused")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.restassured
 

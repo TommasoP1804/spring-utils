@@ -4,6 +4,7 @@
 
 @file:JvmName("SecurityUtilsKt")
 @file:Suppress("unused", "kutils_null_check")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.servlet.security
 

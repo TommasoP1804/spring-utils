@@ -4,6 +4,7 @@
 
 package dev.tommasop1804.springutils.response
 
+@MustUseReturnValues
 enum class MultiStatusResponseType {
     WebdavXml,
     Map,

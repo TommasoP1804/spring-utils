@@ -5,6 +5,7 @@
 @file:JvmName("ReactiveRequestUtilsKt")
 @file:Since("2.0.0")
 @file:Suppress("unused", "MoveLambdaOutsideParentheses")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.reactive.function.request
 
@@ -45,11 +46,11 @@ import kotlin.reflect.KClass
  */
 val ServerRequest.queryParams get() = queryParams().toMultiMap()
 /**
- * Retrieves all headers from the current server request and converts them 
+ * Retrieves all headers from the current server request and converts them
  * into an instance of `HttpHeaders` from the `kutils` library.
  *
- * This method first accesses the headers of the server request, then converts 
- * the `org.springframework.http.HttpHeaders` instance into the `HttpHeaders` 
+ * This method first accesses the headers of the server request, then converts
+ * the `org.springframework.http.HttpHeaders` instance into the `HttpHeaders`
  * used by the `kutils` library, ensuring the headers are retained in the process.
  *
  * @receiver The server request from which headers are to be retrieved.
@@ -81,6 +82,7 @@ val ServerRequest.pathVariables: StringMap get() = pathVariables()
  * @return The value of the query parameter if it exists.
  * @since 3.0.0
  */
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrow(
     name: String,
     `class`: KClass<*> = String::class,
@@ -102,6 +104,7 @@ fun ServerRequest.queryParamOrThrow(
  * @throws RequiredQueryParamException if the query parameter is not present in the request.
  * @since 3.0.0
  */
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrow(
     name: String,
     `class`: KClass<*> = String::class,
@@ -133,6 +136,7 @@ fun ServerRequest.queryParamOrDefault(
  * @return The path variable as a string if the retrieval is successful.
  * @since 3.0.0
  */
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String::class, lazyException: ThrowableSupplier = { RequiredPathVariableException(name, `class`) }) =
     tryOrThrow(lazyException, includeCause = false) { pathVariable(name) }
 /**
@@ -148,6 +152,7 @@ fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String:
  * @throws RequiredPathVariableException If the path variable is not present or invalid.
  * @since 3.0.0
  */
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrow(name: String, `class`: KClass<*> = String::class, internalErrorCode: String) =
     tryOrThrow({ -> RequiredPathVariableException(name, `class`, internalErrorCode) }, includeCause = false) { pathVariable(name) }
 /**
@@ -185,6 +190,7 @@ fun ServerRequest.pathVariableOrNull(name: String): String? = tryOrNull { pathVa
  * `lazyException` parameter.
  * @since 3.0.0
  */
+@IgnorableReturnValue
 fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }) =
     tryOrThrow(lazyException, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
 /**
@@ -196,6 +202,7 @@ fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, lazyException:
  * @param internalErrorCode the internal error code to associate with the exception if the header is missing or invalid
  * @since 3.0.0
  */
+@IgnorableReturnValue
 fun ServerRequest.headerOrThrow(name: String, `class`: KClass<*>, internalErrorCode: String): List<String> =
     tryOrThrow({ -> RequiredHeaderException(name, `class`, internalErrorCode) }, includeCause = false) { headers().header(name).ifNullOrEmpty { throw NoSuchElementException() } }
 /**
@@ -232,6 +239,7 @@ fun ServerRequest.header(name: String): List<String> = tryOrNull { headers().hea
  * @return the single value of the header as a `String`.
  * @since 3.0.2
  */
+@IgnorableReturnValue
 fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = String::class, lazyException: ThrowableSupplier = { RequiredHeaderException(name, `class`) }): String =
     headerOrThrow(name, `class`, lazyException).onlyElement()
 /**
@@ -244,6 +252,7 @@ fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = St
  * @return the single value of the specified header
  * @since 3.0.2
  */
+@IgnorableReturnValue
 fun ServerRequest.headerOrThrowOnlyElement(name: String, `class`: KClass<*> = String::class, internalErrorCode: String): String =
     headerOrThrow(name, `class`, internalErrorCode).onlyElement()
 /**
@@ -315,44 +324,81 @@ fun ServerRequest.priorityOrDefault(default: Supplier<List<String>>) = header("P
 fun ServerRequest.rangeOrDefault(default: Supplier<List<String>>) = header(HttpHeaders.RANGE).ifEmpty(default)
 fun ServerRequest.refererOrDefault(default: Supplier<Url>) = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow() ?: default()
 
+@IgnorableReturnValue
 fun ServerRequest.acceptOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT, List::class) }) = header(HttpHeaders.ACCEPT).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.acceptCharsetOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_CHARSET, List::class) }) = header(HttpHeaders.ACCEPT_CHARSET).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.acceptEncodingOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_ENCODING, List::class) }) = header(HttpHeaders.ACCEPT_ENCODING).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.acceptLanguageOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_LANGUAGE, List::class) }) = header(HttpHeaders.ACCEPT_LANGUAGE).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.acceptRangesOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ACCEPT_RANGES, List::class) }) = header(HttpHeaders.ACCEPT_RANGES).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.connectionOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.CONNECTION, ConnectionBehaviour::class) }) = header(HttpHeaders.CONNECTION).firstOrNull()?.let(ConnectionBehaviour::of) ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.contentLengthOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.CONTENT_LENGTH, DataSize::class) }): DataSize = header(HttpHeaders.CONTENT_LENGTH).firstOrNull()?.let { it.toInt() ofUnit MeasureUnit.DataSizeUnit.BYTES } ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.contentTypeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.CONTENT_TYPE, MediaType::class) }) = header(HttpHeaders.CONTENT_TYPE).firstOrNull()?.let { MediaType.parse(it)() } ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.expectOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.EXPECT, List::class) }) = header(HttpHeaders.EXPECT).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.fromServiceOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException("From-Service", String::class) }) = header("From-Service").firstOrNull() ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.hostOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.HOST, List::class) }) = header(HttpHeaders.HOST).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.ifMatchOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_MATCH, List::class) }) = header(HttpHeaders.IF_MATCH).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.ifModifiedSinceOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_MODIFIED_SINCE, Instant::class) }) = header(HttpHeaders.IF_MODIFIED_SINCE).firstOrNull()?.headerDateToInstant() ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.ifNoneMatchOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_NONE_MATCH, List::class) }) = header(HttpHeaders.IF_NONE_MATCH).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.ifRangeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_RANGE, List::class) }) = header(HttpHeaders.IF_RANGE).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.ifUnmodifiedSinceOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.IF_UNMODIFIED_SINCE, Instant::class) }) = header(HttpHeaders.IF_UNMODIFIED_SINCE).firstOrNull()?.headerDateToInstant() ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.jwtTokenOrThrow(headerName: String = HttpHeaders.AUTHORIZATION, lazyException: ThrowableSupplier = { RequiredHeaderException(headerName, Jwt::class) }) = header(headerName).firstOrNull()?.toJwt()?.getOrThrow() ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.originOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.ORIGIN, Uri::class) }) = header(HttpHeaders.ORIGIN).firstOrNull()?.toUri()?.getOrThrow { MalformedHeaderException(name = HttpHeaders.ORIGIN, Uri::class) } ?: throw lazyException()
+@IgnorableReturnValue
 fun ServerRequest.preferOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException("Prefer", List::class) }) = header("Prefer").ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.priorityOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException("Priority", List::class) }) = header("Priority").ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.rangeOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.RANGE, List::class) }) = header(HttpHeaders.RANGE).ifEmpty { throw lazyException() }
+@IgnorableReturnValue
 fun ServerRequest.refererOrThrow(lazyException: ThrowableSupplier = { RequiredHeaderException(HttpHeaders.REFERER, Url::class) }) = header(HttpHeaders.REFERER).firstOrNull()?.toUrl()?.getOrThrow() ?: throw lazyException()
 
+@IgnorableReturnValue
 context(conversionService: ConversionService)
 inline fun <reified T : Any> ServerRequest.queryParamOrThrowAs(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { conversionService.convert(queryParamOrThrow(name), T::class.java)!! }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsStringList(name: String) = queryParams[name].ifNullOrEmpty { throw RequiredQueryParamException(name, List::class) }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsIntList(name: String) = queryParams[name]?.map(String::toInt).ifNullOrEmpty { throw RequiredQueryParamException(name, List::class) }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Int::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Int::class).toInt() }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Long::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Long::class).toLong() }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Double::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Double::class).toDouble() }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsBoolean(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, Boolean::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, Boolean::class).toBoolean() }
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsUuid(name: String) = queryParamOrThrow(name, Uuid::class).toUuid().getOrThrow(lazyException = { MalformedQueryParamException(name, Uuid::class) })
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsUlid(name: String) = queryParamOrThrow(name, Ulid::class).toUlid().getOrThrow(lazyException = { MalformedQueryParamException(name, Ulid::class) })
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsKsuid(name: String) = queryParamOrThrow(name, Ksuid::class).toKsuid().getOrThrow(lazyException = { MalformedQueryParamException(name, Ksuid::class) })
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsCuid(name: String) = queryParamOrThrow(name, Cuid::class).toCuid().getOrThrow(lazyException = { MalformedQueryParamException(name, Cuid::class) })
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsTsid(name: String) = queryParamOrThrow(name, Tsid::class).toTsid().getOrThrow(lazyException = { MalformedQueryParamException(name, Tsid::class) })
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsDate(name: String) = queryParamOrThrow(name, LocalDate::class).parseToLocalDate().getOrThrow(lazyException = { MalformedQueryParamException(name, LocalDate::class) })
+@IgnorableReturnValue
 fun ServerRequest.queryParamOrThrowAsDateTime(name: String) = queryParamOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedQueryParamException(name, OffsetDateTime::class) })
+@IgnorableReturnValue
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false, notOverwrite = RequiredQueryParamException::class) { queryParamOrThrow(name, T::class).toEnumConst<T>() }
 
 context(conversionService: ConversionService)
@@ -390,20 +436,34 @@ fun ServerRequest.queryParamOrDefaultAsDateTime(name: String, defaultValue: Supp
 inline fun <reified T : Enum<T>> ServerRequest.queryParamOrDefaultAsEnum(name: String, crossinline defaultValue: () -> T) = tryOrThrow({ -> MalformedQueryParamException(name, T::class) }, includeCause = false) { queryParamOrNull(name)?.toEnumConst<T>() ?: defaultValue() }
 
 
+@IgnorableReturnValue
 context(conversionService: ConversionService)
 inline fun <reified T : Any> ServerRequest.pathVariableOrThrowAs(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { conversionService.convert(pathVariableOrThrow(name), T::class.java) }
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsStringList(name: String) = pathVariableOrThrow(name, List::class).splitAndTrim(Char.COMMA)
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsInt(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Int::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Int::class).toInt() }
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsLong(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Long::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Long::class).toLong() }
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsDouble(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Double::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Double::class).toDouble() }
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsBoolean(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, Boolean::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, Boolean::class).toBoolean() }
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsUuid(name: String) = pathVariableOrThrow(name, Uuid::class).toUuid().getOrThrow(lazyException = { MalformedPathVariableException(name, Uuid::class) })
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsUlid(name: String) = pathVariableOrThrow(name, Ulid::class).toUlid().getOrThrow(lazyException = { MalformedPathVariableException(name, Ulid::class) })
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsKsuid(name: String) = pathVariableOrThrow(name, Ksuid::class).toKsuid().getOrThrow(lazyException = { MalformedPathVariableException(name, Ksuid::class) })
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsCuid(name: String) = pathVariableOrThrow(name, Cuid::class).toCuid().getOrThrow(lazyException = { MalformedPathVariableException(name, Cuid::class) })
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsTsid(name: String) = pathVariableOrThrow(name, Tsid::class).toTsid().getOrThrow(lazyException = { MalformedPathVariableException(name, Tsid::class) })
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsDate(name: String) = pathVariableOrThrow(name, LocalDate::class).parseToLocalDate().getOrThrow(lazyException = { MalformedPathVariableException(name, LocalDate::class) })
+@IgnorableReturnValue
 fun ServerRequest.pathVariableOrThrowAsDateTime(name: String) = pathVariableOrThrow(name, OffsetDateTime::class).parseToOffsetDateTime().getOrThrow(lazyException = { MalformedPathVariableException(name, OffsetDateTime::class) })
+@IgnorableReturnValue
 inline fun <reified T : Enum<T>> ServerRequest.pathVariableOrThrowAsEnum(name: String) = tryOrThrow({ -> MalformedPathVariableException(name, T::class) }, includeCause = false, notOverwrite = RequiredPathVariableException::class) { pathVariableOrThrow(name, T::class).toEnumConst<T>() }
 
 context(conversionService: ConversionService)

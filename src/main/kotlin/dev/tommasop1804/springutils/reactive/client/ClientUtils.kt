@@ -4,7 +4,8 @@
 
 @file:JvmName("ClientUtilsKt")
 @file:Since("2.3.0")
-@file:Suppress("unused")
+@file:Suppress("unused", "RETURN_VALUE_NOT_USED", "RETURN_VALUE_NOT_USED_COERCION")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.reactive.client
 
@@ -27,6 +28,7 @@ import org.springframework.web.reactive.function.client.*
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
+import kotlin.collections.addAll
 
 class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
     override fun canDecode(

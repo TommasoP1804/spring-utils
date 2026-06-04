@@ -4,7 +4,8 @@
 
 @file:JvmName("ClientUtilsKt")
 @file:Since("2.3.0")
-@file:Suppress("unused")
+@file:Suppress("unused", "RETURN_VALUE_NOT_USED_COERCION", "RETURN_VALUE_NOT_USED")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.servlet.client
 
@@ -22,6 +23,7 @@ import org.springframework.http.client.observation.ClientRequestObservationConve
 import org.springframework.http.converter.HttpMessageConverters
 import org.springframework.web.client.ApiVersionInserter
 import org.springframework.web.client.RestClient
+import kotlin.collections.addAll
 
 /**
  * Constructs a new `RestClient` instance with customizable configuration parameters.
@@ -66,7 +68,9 @@ fun RestClient(
     observationRegistry: ObservationRegistry? = null,
     observationConvention: ClientRequestObservationConvention? = null
 ) = RestClient.builder()
-    .also { if (baseUrl.isNotNull()) it.baseUrl(baseUrl) }
+    .also {
+        if (baseUrl.isNotNull()) it.baseUrl(baseUrl)
+    }
     .contentType(contentType)
     .accept(accept)
     .also { builder ->
@@ -185,12 +189,12 @@ fun RestClient.Builder.contentType(contentType: MimeType) = defaultHeader(HttpHe
  * Configures the `Accept` header for the `RestClient.Builder` with the specified media types.
  *
  * This method sets the `Accept` header to indicate the media types that the client can handle as a response.
- * The provided `accept` parameters are converted to their string representations and added as header values.
+ * The provided `contentType` parameters are converted to their string representations and added as header values.
  *
- * @param accept A vararg of `MediaType` values representing the media types to be added to the `Accept` header.
- * @since 3.7.2
+ * @param contentType A vararg of `MediaType` values representing the media types to be added to the `Accept` header.
+ * @since 3.1.0
  */
-fun RestClient.Builder.accept(vararg accept: MediaType) = defaultHeader(HttpHeader.ACCEPT, *accept.map { it.toString() }.toTypedArray())
+fun RestClient.Builder.accept(vararg contentType: MediaType) = defaultHeader(HttpHeader.ACCEPT, *contentType.map { it.toString() }.toTypedArray())
 
 /**
  * Adds a `FROM_SERVICE` header to the request with the specified service name.

@@ -4,7 +4,8 @@
 
 @file:JvmName("ReactiveResponseUtilsKt")
 @file:Since("3.0.0")
-@file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST")
+@file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST", "RETURN_VALUE_NOT_USED")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.reactive.function.response
 
@@ -31,6 +32,7 @@ import org.springframework.web.reactive.function.server.buildAndAwait
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
+import kotlin.text.set
 
 /**
  * Negotiates the response content type based on the `Accept` header from the client request and sets it accordingly.
@@ -2365,7 +2367,7 @@ suspend fun NotModifiedResponse(
 /**
  * Adds the "Request-Id" header to the response if a request ID is present in the current logging context.
  *
- * This method retrieves the current request ID from the `LoggingAspect` and appends it as a
+ * This method retrieves the current request ID from the `LoggingAspect` and appends it as a 
  * header to the response if a non-null value is present. The header key is "Request-Id".
  * If no request ID is available, it returns the builder without modifying the headers.
  *
@@ -2417,7 +2419,7 @@ fun ServerResponse.BodyBuilder.featureCode(): ServerResponse.BodyBuilder = heade
  *                  Must be an instance of `MediaType` from the `kutils.classes.web` package.
  * @since 3.6.1
  */
-fun ServerResponse.BodyBuilder.contentType(mediaType: MediaType) = contentType(mediaType.toSpringMediaType())
+fun ServerResponse.BodyBuilder.contentType(mediaType: dev.tommasop1804.kutils.classes.web.MediaType) = contentType(mediaType.toSpringMediaType())
 /**
  * Sets the `Content-Type` header of the HTTP response to the specified media type.
  *

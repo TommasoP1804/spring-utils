@@ -4,6 +4,7 @@
 
 @file:JvmName("SecurityUtilsKt")
 @file:Suppress("unused")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.reactive.security
 

@@ -19,6 +19,7 @@ import dev.tommasop1804.kutils.classes.identifiers.Ulid.Companion.toUlid
  */
 @JvmInline
 @Suppress("unused")
+@MustUseReturnValues
 value class RequestId internal constructor(val value: String): CharSequence {
     /**
      * Represents the length of the underlying string value for this instance of [RequestId].

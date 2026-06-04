@@ -5,6 +5,7 @@
 @file:JvmName("JpaUtilsKt")
 @file:Since("3.0.5")
 @file:Suppress("unused", "FunctionName", "UNCHECKED_CAST")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.jpa
 
@@ -82,6 +83,7 @@ inline fun <T : Any, R : T> JpaRepository<T, *>.firstOrThrow(lazyException: Thro
  * @throws Throwable If the entity does not exist and the [lazyException] provides the throwable to be raised.
  * @since 1.0.0
  */
+@IgnorableReturnValue
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, T::class) }) =
     existsById(id) || throw lazyException()
 /**
@@ -94,6 +96,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * @throws Throwable If the entity does not exist and the [lazyException] provides the throwable to be raised.
  * @since 3.11.0
  */
+@IgnorableReturnValue
 internal fun <T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, `class`: KClass<T>, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, `class`) }) =
     existsById(id) || throw lazyException()
 /**
@@ -105,6 +108,7 @@ internal fun <T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID,
  * @throws ResourceNotFoundException if no entity exists with the given identifier.
  * @since 1.0.0
  */
+@IgnorableReturnValue
 @JvmName("existsByIdOrThrowLazyMessage")
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, lazyMessage: Supplier<Any>) =
     existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString())
@@ -117,6 +121,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * @throws ResourceNotFoundException if no entity exists with the given identifier.
  * @since 1.1.0
  */
+@IgnorableReturnValue
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, internalErrorCode: String) =
     existsById(id) || throw ResourceNotFoundException(id, T::class, internalErrorCode = internalErrorCode)
 /**
@@ -128,6 +133,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * @throws ResourceNotFoundException if no entity exists with the given identifier.
  * @since 1.1.0
  */
+@IgnorableReturnValue
 inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, internalErrorCode: String, lazyMessage: Supplier<Any>) =
     existsById(id) || throw ResourceNotFoundException(message = lazyMessage().toString(), internalErrorCode = internalErrorCode)
 

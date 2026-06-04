@@ -26,6 +26,7 @@ import kotlin.reflect.KClass
  * @since 3.11.0
  */
 @Suppress("unchecked_cast")
+@MustUseReturnValues
 abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
     /**
      * Represents a unique identifier associated with an object or entity.
@@ -44,6 +45,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      *              immediate flushing. Defaults to `false`.
      * @since 3.11.0
      */
+    @IgnorableReturnValue
     context(repository: JpaRepository<T, ID>)
     fun save(flush: Boolean = false) = if (flush) repository.saveAndFlush(this as T) else repository.save(this as T)
     /**
@@ -55,6 +57,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      *         The boolean is `true` if the entity was saved, `false` otherwise.
      * @since 3.11.0
      */
+    @IgnorableReturnValue
     context(repository: JpaRepository<T, ID>)
     fun saveIf(predicate: Predicate<T>): Pair<T, Boolean> {
         return if (predicate(this as T)) save() to true
@@ -68,6 +71,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      *              If `true`, the repository's changes will be immediately flushed to the database.
      * @since 3.11.0
      */
+    @IgnorableReturnValue
     context(repository: JpaRepository<T, ID>)
     fun delete(flush: Boolean = false) = repository.delete(this as T).apply { if (flush) repository.flush() }
     /**
@@ -78,6 +82,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      * @return `true` if the entity was deleted, `false` otherwise.
      * @since 3.11.0
      */
+    @IgnorableReturnValue
     context(repository: JpaRepository<T, ID>)
     fun deleteIf(predicate: Predicate<T>) = if (predicate(this as T)) {
         delete()

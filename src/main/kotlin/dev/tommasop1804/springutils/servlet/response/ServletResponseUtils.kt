@@ -4,7 +4,8 @@
 
 @file:JvmName("ServletResponseUtilsKt")
 @file:Since("1.0.0")
-@file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST")
+@file:Suppress("unused", "FunctionName", "FunctionName", "UNCHECKED_CAST", "RETURN_VALUE_NOT_USED")
+@file:MustUseReturnValues
 
 package dev.tommasop1804.springutils.servlet.response
 
@@ -28,6 +29,12 @@ import org.springframework.http.ResponseEntity
 import java.net.URI
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
+import kotlin.code
+import kotlin.invoke
+import kotlin.text.get
+import kotlin.text.set
+import kotlin.text.toLong
+import kotlin.toString
 
 /**
  * Evaluates conditional GET preconditions based on request headers and returns an appropriate response status
@@ -1891,9 +1898,9 @@ fun MovedPermanentlyResponse(
     val re = Response.status(org.springframework.http.HttpStatus.MOVED_PERMANENTLY)
     if (headers.isNotEmpty()) re.headers(headers.toSpringHttpHeaders())
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { re.header(HttpHeader.REQUEST_ID, toString()) }
-    re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
+    re.featureCode(featureCode).location(location)
     if (action.isNotNull()) action()
     return re.build()
 }
