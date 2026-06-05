@@ -9,10 +9,10 @@ import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "dev.tommasop1804"
-version = "4.1.0"
+version = "4.1.1"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260604T142420Z
+// Last update: Tommaso Pastorelli | 20260605T151317Z
 
 
 plugins {
@@ -63,8 +63,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:4.1.0")
-    api("dev.tommasop1804:kotlin-utils:4.1.0")
+    aspect("dev.tommasop1804:kotlin-utils:4.1.1")
+    api("dev.tommasop1804:kotlin-utils:4.1.1")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")
