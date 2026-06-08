@@ -19,14 +19,13 @@ import kotlin.reflect.KClass
  * with repositories (such as saving, deleting, and refreshing) while providing
  * utility methods for equality and hash code implementation.
  *
- * @property _id The unique identifier associated with the entity. Nullable to indicate the absence of an assigned ID.
  * @param T The type of the entity.
  * @param ID The type of the primary key for the entity.
  *
  * @author Tommaso Pasatorelli
  * @since 3.11.0
  */
-@Suppress("unchecked_cast", "PropertyName")
+@Suppress("unchecked_cast")
 @MustUseReturnValues
 abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
     /**
@@ -35,7 +34,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      * @return The unique identifier of the entity, or `null` if the entity has not been assigned an identifier.
      * @since 4.1.7
      */
-    protected abstract val _id: ID?
+    protected abstract fun getId(): ID?
 
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
@@ -98,8 +97,8 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      * @since 3.11.0
      */
     context(repository: CrudRepository<T, ID>)
-    fun refresh() = (repository.findById(_id ?: throw RequiredPropertyException(::_id)).getOrNull()
-        ?: throw ResourceNotFoundException(_id!!, this::class))
+    fun refresh() = (repository.findById(getId() ?: throw RequiredPropertyException("id")).getOrNull()
+        ?: throw ResourceNotFoundException(getId()!!, this::class))
 
     /**
      * Compares this object with the specified object for equality.
@@ -111,7 +110,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is EnhancedEntity<T, ID>) return false
-        return _id.isNotNull() && _id == other._id
+        return getId().isNotNull() && getId() == other.getId()
     }
 
     /**
