@@ -97,6 +97,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(i
  * @since 3.11.0
  */
 @IgnorableReturnValue
+@PublishedApi
 internal fun <T : Any, ID : Any> CrudRepository<T, ID>.existsByIdOrThrow(id: ID, `class`: KClass<T>, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, `class`) }) =
     existsById(id) || throw lazyException()
 /**
@@ -157,6 +158,7 @@ inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrTh
  * @throws Throwable The exception provided by the `lazyException` supplier if the entity is not found.
  * @since 3.11.0
  */
+@PublishedApi
 internal fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, `class`: KClass<T>, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, `class`) }): R =
     (findById(id).getOrNull() ?: throw lazyException()) as R
 /**
@@ -179,6 +181,7 @@ inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrTh
  * @since 3.11.0
  */
 @JvmName("findByIdOrThrowLazyMessage")
+@PublishedApi
 internal fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, `class`: KClass<T>, lazyMessage: Supplier<Any>): R =
     (findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMessage().toString())) as R
 /**
@@ -199,6 +202,7 @@ inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrTh
  * @return The entity of type `T` if found.
  * @since 3.11.0
  */
+@PublishedApi
 internal fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, `class`: KClass<T>, internalErrorCode: String?): R =
     (findById(id).getOrNull() ?: throw ResourceNotFoundException(id, `class`, internalErrorCode = internalErrorCode)) as R
 /**
@@ -221,6 +225,7 @@ inline fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrTh
  * @return The entity of type `T` if found.
  * @since 3.11.0
  */
+@PublishedApi
 internal fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.findByIdOrThrow(id: ID, `class`: KClass<T>, internalErrorCode: String?, lazyMesage: Supplier<Any>): R =
     (findById(id).getOrNull() ?: throw ResourceNotFoundException(message = lazyMesage().toString(), internalErrorCode = internalErrorCode)) as R
 
@@ -335,6 +340,7 @@ inline operator fun <reified T : Any, ID : Any, R : T> CrudRepository<T, ID>.get
  * @return A list of entities matching the provided IDs.
  * @since 3.11.0
  */
+@PublishedApi
 internal operator fun <T : Any, ID : Any, R : T> CrudRepository<T, ID>.get(ids: Iterable<ID>, `class`: KClass<T>): List<R> = findAllById(ids).map { it as R }.toList()
 
 /**
@@ -543,6 +549,7 @@ inline fun <reified T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(i
  * @param ID The type of the entity's ID.
  * @since 3.11.0
  */
+@PublishedApi
 internal fun <T : Any, ID : Any> CrudRepository<T, ID>.deleteByIdOrThrow(id: ID, `class`: KClass<T>, lazyException: ThrowableSupplier = { ResourceNotFoundException(id, `class`) }) =
     existsByIdOrThrow(id, `class`, lazyException).run { deleteById(id) }
 /**

@@ -35,7 +35,6 @@ import kotlin.reflect.jvm.javaGetter
 @Suppress("unchecked_cast")
 @MustUseReturnValues
 abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
-
     companion object {
         private val idPropertyCache = ConcurrentHashMap<KClass<*>, KProperty1<*, *>>()
     }
@@ -49,7 +48,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
                     || it.javaGetter?.isAnnotationPresent(Id::class.java).isTrue
             }
     }.let { (it as KProperty1<EnhancedEntity<T, ID>, ID?>).get(this) }
-
 
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
@@ -231,47 +229,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: CrudRepository<T, ID>)
         infix fun has(id: ID) = repository.existsById(id)
-        /**
-         * Checks if an entity with the given [id] exists in the repository.
-         * If the entity does not exist, an exception is thrown.
-         *
-         * @param id The identifier of the entity to check for existence.
-         * @throws Throwable If the entity does not exist, an exception defined by the underlying `existsByIdOrThrow` implementation is raised.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        infix fun hasOrThrow(id: ID) = repository.existsByIdOrThrow(id, this::class as KClass<T>)
-        /**
-         * Checks if an entity with the specified [id] exists in the repository and throws an exception if it does not.
-         *
-         * @param id The identifier of the entity to check for existence.
-         * @param lazyException A function supplying the exception to be thrown if the entity does not exist.
-         * @throws Throwable If the entity does not exist and the supplied [lazyException] provides the throwable to be raised.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        fun hasOrThrow(id: ID, lazyException: ThrowableSupplier) = repository.existsByIdOrThrow(id, this::class as KClass<T>, lazyException)
 
-        /**
-         * Retrieves an entity by its ID or throws an exception if not found.
-         *
-         * @param id The ID of the entity to retrieve.
-         * @return The entity associated with the specified ID.
-         * @throws NoSuchElementException if the entity is not found.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID) = repository.findByIdOrThrow(id, this::class as KClass<T>)
-        /**
-         * Retrieves an entity by its ID or throws an exception if not found.
-         *
-         * @param id The identifier of the entity to be retrieved.
-         * @param lazyException A supplier for the exception to be thrown if the entity is not found.
-         * @return The entity associated with the given ID.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun get(id: ID, lazyException: ThrowableSupplier) = repository.findByIdOrThrow(id, this::class as KClass<T>, lazyException)
         /**
          * Retrieves an entity from the repository that matches the specified predicate.
          *
@@ -281,14 +239,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: JpaRepository<T, ID>)
         operator fun get(predicate: Predicate<T>) = repository[predicate]
-        /**
-         * Retrieves a collection of entities corresponding to the provided iterable of IDs from the repository.
-         *
-         * @param ids An iterable containing the IDs of the entities to be retrieved.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun get(ids: Iterable<ID>) = repository[ids, this::class as KClass<T>]
         /**
          * Retrieves an entity by its unique identifier or returns null if the entity is not found.
          *
@@ -326,14 +276,6 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: CrudRepository<T, *>)
         operator fun plusAssign(entity: T) { repository.save(entity) }
-        /**
-         * Operator function that deletes an entity from the repository based on its ID.
-         *
-         * @param id The identifier of the entity to be deleted.
-         * @since 3.11.0
-         */
-        context(repository: JpaRepository<T, ID>)
-        operator fun minusAssign(id: ID) { repository.deleteByIdOrThrow(id, this::class as KClass<T>) }
         /**
          * Deletes an entity with the given identifier from the repository.
          *
@@ -384,3 +326,67 @@ fun <T : EnhancedEntity<T, *>> Iterable<T>.deleteAll(flush: Boolean = false, inB
     (if (inBatch) repository.deleteAllInBatch(this) else repository.deleteAll(this)).apply {
         if (flush) repository.flush()
     }
+
+/**
+ * Checks if an entity with the given [id] exists in the repository.
+ * If the entity does not exist, an exception is thrown.
+ *
+ * @param id The identifier of the entity to check for existence.
+ * @throws Throwable If the entity does not exist, an exception defined by the underlying `existsByIdOrThrow` implementation is raised.
+ * @since 4.1.9
+ */
+context(repository: JpaRepository<T, ID>)
+inline infix fun <reified T : Any, ID : Any> EnhancedEntity.EnhancedEntityCompanion<T, ID>.hasOrThrow(id: ID): Boolean =
+    repository.existsByIdOrThrow(id, T::class)
+/**
+ * Checks if an entity with the specified [id] exists in the repository and throws an exception if it does not.
+ *
+ * @param id The identifier of the entity to check for existence.
+ * @param lazyException A function supplying the exception to be thrown if the entity does not exist.
+ * @throws Throwable If the entity does not exist and the supplied [lazyException] provides the throwable to be raised.
+ * @since 4.1.9
+ */
+context(repository: JpaRepository<T, ID>)
+inline fun <reified T : Any, ID : Any> EnhancedEntity.EnhancedEntityCompanion<T, ID>.hasOrThrow(id: ID, noinline lazyException: ThrowableSupplier) =
+    repository.existsByIdOrThrow(id, T::class, lazyException)
+/**
+ * Retrieves an entity by its ID or throws an exception if not found.
+ *
+ * @param id The ID of the entity to retrieve.
+ * @return The entity associated with the specified ID.
+ * @throws NoSuchElementException if the entity is not found.
+ * @since 4.1.9
+ */
+context(repository: JpaRepository<T, ID>)
+inline operator fun <reified T : Any, ID : Any> EnhancedEntity.EnhancedEntityCompanion<T, ID>.get(id: ID) =
+    repository.findByIdOrThrow(id, T::class)
+/**
+ * Retrieves an entity by its ID or throws an exception if not found.
+ *
+ * @param id The identifier of the entity to be retrieved.
+ * @param lazyException A supplier for the exception to be thrown if the entity is not found.
+ * @return The entity associated with the given ID.
+ * @since 4.1.9
+ */
+context(repository: JpaRepository<T, ID>)
+inline operator fun <reified T : Any, ID : Any> EnhancedEntity.EnhancedEntityCompanion<T, ID>.get(id: ID, noinline lazyException: ThrowableSupplier) =
+    repository.findByIdOrThrow(id, T::class, lazyException)
+/**
+ * Retrieves a collection of entities corresponding to the provided iterable of IDs from the repository.
+ *
+ * @param ids An iterable containing the IDs of the entities to be retrieved.
+ * @since 4.1.9
+ */
+context(repository: JpaRepository<T, ID>)
+inline operator fun <reified T : Any, ID : Any> EnhancedEntity.EnhancedEntityCompanion<T, ID>.get(ids: Iterable<ID>) =
+    repository[ids, T::class]
+/**
+ * Operator function that deletes an entity from the repository based on its ID.
+ *
+ * @param id The identifier of the entity to be deleted.
+ * @since 4.1.9
+ */
+context(repository: JpaRepository<T, ID>)
+inline operator fun <reified T : Any, ID : Any> EnhancedEntity.EnhancedEntityCompanion<T, ID>.minusAssign(id: ID) {
+    repository.deleteByIdOrThrow(id, T::class)
+}

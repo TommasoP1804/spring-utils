@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.tommasop1804:spring-utils:4.1.8")
+    implementation("dev.tommasop1804:spring-utils:4.1.9")
 }
 ```
 
@@ -28,7 +28,7 @@ Full documentation is available at: [https://tommasop1804.notion.site/spring-uti
 ## Requirements
 
 - JDK 21+
-- Kotlin 2.3.20+
+- Kotlin 2.4.0+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

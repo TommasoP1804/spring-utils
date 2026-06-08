@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(HttpStatus.NOT_EXTENDED)
-@Suppress("unused")
+@Suppress("unused", "DEPRECATION")
+@Deprecated("Historic status code")
 class NotExtendedException : ResponseException {
     override val status = dev.tommasop1804.kutils.classes.web.HttpStatus.NotExtended
 
