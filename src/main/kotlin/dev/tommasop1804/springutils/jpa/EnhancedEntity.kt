@@ -8,11 +8,18 @@ package dev.tommasop1804.springutils.jpa
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.exceptions.*
+import jakarta.persistence.Id
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaField
+import kotlin.reflect.jvm.javaGetter
 
 /**
  * Represents an enhanced entity abstraction designed to simplify operations
@@ -28,13 +35,21 @@ import kotlin.reflect.KClass
 @Suppress("unchecked_cast")
 @MustUseReturnValues
 abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
-    /**
-     * Retrieves the unique identifier of the entity.
-     *
-     * @return The unique identifier of the entity, or `null` if the entity has not been assigned an identifier.
-     * @since 4.1.7
-     */
-    protected abstract fun getId(): ID?
+
+    companion object {
+        private val idPropertyCache = ConcurrentHashMap<KClass<*>, KProperty1<*, *>>()
+    }
+
+    @Suppress("FunctionName")
+    private fun _getId() = idPropertyCache.getOrPut(this::class) {
+        this::class
+            .memberProperties
+            .find { it.hasAnnotation<Id>()
+                    || it.javaField?.isAnnotationPresent(Id::class.java).isTrue
+                    || it.javaGetter?.isAnnotationPresent(Id::class.java).isTrue
+            }
+    }.let { (it as KProperty1<EnhancedEntity<T, ID>, ID?>).get(this) }
+
 
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
@@ -97,8 +112,8 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      * @since 3.11.0
      */
     context(repository: CrudRepository<T, ID>)
-    fun refresh() = (repository.findById(getId() ?: throw RequiredPropertyException("id")).getOrNull()
-        ?: throw ResourceNotFoundException(getId()!!, this::class))
+    fun refresh() = (repository.findById(_getId() ?: throw RequiredPropertyException("id")).getOrNull()
+        ?: throw ResourceNotFoundException(_getId()!!, this::class))
 
     /**
      * Compares this object with the specified object for equality.
@@ -110,7 +125,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is EnhancedEntity<T, ID>) return false
-        return getId().isNotNull() && getId() == other.getId()
+        return _getId().isNotNull() && _getId() == other._getId()
     }
 
     /**

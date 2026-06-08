@@ -12,7 +12,7 @@ group = "dev.tommasop1804"
 version = "4.1.7"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260608T090458Z
+// Last update: Tommaso Pastorelli | 20260608T092825Z
 
 
 plugins {
