@@ -8,6 +8,7 @@ package dev.tommasop1804.springutils.jpa
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.exceptions.*
+import jakarta.persistence.MappedSuperclass
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -28,7 +29,8 @@ import kotlin.reflect.KClass
  */
 @Suppress("unchecked_cast")
 @MustUseReturnValues
-abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(open val id: ID?) {
+@MappedSuperclass
+abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(var id: ID?) {
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
      * changes immediately to the database, based on the provided parameter.
