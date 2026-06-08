@@ -8,7 +8,6 @@ package dev.tommasop1804.springutils.jpa
 
 import dev.tommasop1804.kutils.*
 import dev.tommasop1804.kutils.exceptions.*
-import jakarta.persistence.MappedSuperclass
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.CrudRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -20,7 +19,7 @@ import kotlin.reflect.KClass
  * with repositories (such as saving, deleting, and refreshing) while providing
  * utility methods for equality and hash code implementation.
  *
- * @property id The unique identifier associated with the entity. Nullable to indicate the absence of an assigned ID.
+ * @property _entityId The unique identifier associated with the entity. Nullable to indicate the absence of an assigned ID.
  * @param T The type of the entity.
  * @param ID The type of the primary key for the entity.
  *
@@ -29,8 +28,7 @@ import kotlin.reflect.KClass
  */
 @Suppress("unchecked_cast")
 @MustUseReturnValues
-@MappedSuperclass
-abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(var id: ID?) {
+abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(private var _entityId: ID?) {
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
      * changes immediately to the database, based on the provided parameter.
@@ -92,8 +90,8 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(var id: ID?) 
      * @since 3.11.0
      */
     context(repository: CrudRepository<T, ID>)
-    fun refresh() = (repository.findById(id ?: throw RequiredPropertyException(::id)).getOrNull()
-        ?: throw ResourceNotFoundException(id!!, this::class))
+    fun refresh() = (repository.findById(_entityId ?: throw RequiredPropertyException(::_entityId)).getOrNull()
+        ?: throw ResourceNotFoundException(_entityId!!, this::class))
 
     /**
      * Compares this object with the specified object for equality.
@@ -105,7 +103,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(var id: ID?) 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is EnhancedEntity<T, ID>) return false
-        return id.isNotNull() && id == other.id
+        return _entityId.isNotNull() && _entityId == other._entityId
     }
 
     /**
