@@ -19,6 +19,7 @@ import kotlin.reflect.KClass
  * with repositories (such as saving, deleting, and refreshing) while providing
  * utility methods for equality and hash code implementation.
  *
+ * @property id The unique identifier associated with the entity. Nullable to indicate the absence of an assigned ID.
  * @param T The type of the entity.
  * @param ID The type of the primary key for the entity.
  *
@@ -27,15 +28,7 @@ import kotlin.reflect.KClass
  */
 @Suppress("unchecked_cast")
 @MustUseReturnValues
-abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
-    /**
-     * Represents a unique identifier associated with an object or entity.
-     * This property is abstract and must be implemented by the subclasses.
-     * The identifier can be nullable, indicating the absence of an assigned ID.
-     * @since 3.11.0
-     */
-    abstract val id: ID?
-
+abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(val id: ID?) {
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
      * changes immediately to the database, based on the provided parameter.
@@ -98,7 +91,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
      */
     context(repository: CrudRepository<T, ID>)
     fun refresh() = (repository.findById(id ?: throw RequiredPropertyException(::id)).getOrNull()
-        ?: throw ResourceNotFoundException(id!!, this::class))
+        ?: throw ResourceNotFoundException(id, this::class))
 
     /**
      * Compares this object with the specified object for equality.
