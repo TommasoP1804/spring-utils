@@ -19,16 +19,24 @@ import kotlin.reflect.KClass
  * with repositories (such as saving, deleting, and refreshing) while providing
  * utility methods for equality and hash code implementation.
  *
- * @property _entityId The unique identifier associated with the entity. Nullable to indicate the absence of an assigned ID.
+ * @property _id The unique identifier associated with the entity. Nullable to indicate the absence of an assigned ID.
  * @param T The type of the entity.
  * @param ID The type of the primary key for the entity.
  *
  * @author Tommaso Pasatorelli
  * @since 3.11.0
  */
-@Suppress("unchecked_cast")
+@Suppress("unchecked_cast", "PropertyName")
 @MustUseReturnValues
-abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(private var _entityId: ID?) {
+abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
+    /**
+     * Retrieves the unique identifier of the entity.
+     *
+     * @return The unique identifier of the entity, or `null` if the entity has not been assigned an identifier.
+     * @since 4.1.7
+     */
+    protected abstract val _id: ID?
+
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
      * changes immediately to the database, based on the provided parameter.
@@ -90,8 +98,8 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(private var _
      * @since 3.11.0
      */
     context(repository: CrudRepository<T, ID>)
-    fun refresh() = (repository.findById(_entityId ?: throw RequiredPropertyException(::_entityId)).getOrNull()
-        ?: throw ResourceNotFoundException(_entityId!!, this::class))
+    fun refresh() = (repository.findById(_id ?: throw RequiredPropertyException(::_id)).getOrNull()
+        ?: throw ResourceNotFoundException(_id!!, this::class))
 
     /**
      * Compares this object with the specified object for equality.
@@ -103,7 +111,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(private var _
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is EnhancedEntity<T, ID>) return false
-        return _entityId.isNotNull() && _entityId == other._entityId
+        return _id.isNotNull() && _id == other._id
     }
 
     /**
