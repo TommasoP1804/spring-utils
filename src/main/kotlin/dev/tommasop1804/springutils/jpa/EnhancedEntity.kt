@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  */
 @Suppress("unchecked_cast")
 @MustUseReturnValues
-abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(val id: ID?) {
+abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(open val id: ID?) {
     /**
      * Persists the current entity into the repository. Saves the entity either with or without flushing
      * changes immediately to the database, based on the provided parameter.
@@ -91,7 +91,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any>(val id: ID?) 
      */
     context(repository: CrudRepository<T, ID>)
     fun refresh() = (repository.findById(id ?: throw RequiredPropertyException(::id)).getOrNull()
-        ?: throw ResourceNotFoundException(id, this::class))
+        ?: throw ResourceNotFoundException(id!!, this::class))
 
     /**
      * Compares this object with the specified object for equality.
