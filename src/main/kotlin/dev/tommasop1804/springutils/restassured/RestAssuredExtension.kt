@@ -14,7 +14,6 @@ import dev.tommasop1804.kutils.classes.time.Duration.Companion.asMillisOfDuratio
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.classes.web.HttpStatus.Companion.toHttpStatus
 import io.restassured.http.Header
-import io.restassured.http.Headers
 import io.restassured.mapper.ObjectMapper
 import io.restassured.mapper.ObjectMapperType
 import io.restassured.response.ExtractableResponse
@@ -54,13 +53,13 @@ fun RequestSpecification.header(header: HttpHeader): RequestSpecification = head
  * @return the updated request specification with the added headers.
  * @since 3.2.0
  */
-fun RequestSpecification.headers(headers: HttpHeaders): RequestSpecification = headers(Headers().apply {
+fun RequestSpecification.headers(headers: HttpHeaders): RequestSpecification = apply {
     headers.forEach { [name, values] ->
         values.forEach { value ->
-            plus(Header(name, values.joinToString()))
+            header(Header(name, values.joinToString()))
         }
     }
-})
+}
 
 /**
  * Sets the status code for this validatable response options instance using the provided HttpStatus.

@@ -229,6 +229,15 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
          */
         context(repository: CrudRepository<T, ID>)
         infix fun has(id: ID) = repository.existsById(id)
+        /**
+         * Checks whether an entity with the given ID exists in the repository.
+         *
+         * @param id The ID of the entity to check for existence.
+         * @return `true` if an entity with the given ID exists, otherwise `false`.
+         * @since 4.1.10
+         */
+        context(repository: CrudRepository<T, ID>)
+        infix fun hasNot(id: ID) = !repository.existsById(id)
 
         /**
          * Retrieves an entity from the repository that matches the specified predicate.
