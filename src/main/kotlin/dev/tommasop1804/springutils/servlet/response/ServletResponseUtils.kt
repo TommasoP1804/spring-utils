@@ -29,12 +29,6 @@ import org.springframework.http.ResponseEntity
 import java.net.URI
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
-import kotlin.code
-import kotlin.invoke
-import kotlin.text.get
-import kotlin.text.set
-import kotlin.text.toLong
-import kotlin.toString
 
 /**
  * Evaluates conditional GET preconditions based on request headers and returns an appropriate response status
@@ -58,6 +52,7 @@ import kotlin.toString
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional headers to include in the response, if provided. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param lazyExceptionIfNotPresent A supplier for the exception to throw if validation preconditions are not present (if required).
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier for the body of the response. The resource body is only included in the response when the
  *             resource is considered modified.
  * @return A response entity containing the appropriate HTTP status, headers, and optional response body.
@@ -78,6 +73,7 @@ fun <T : Any> conditionalGet(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
+    contentType: MediaType? = null,
     body: Supplier<T>
 ): Response<T> {
     if (requireAtLeastOneValidator && eTagNoneMatch.isNullOrEmpty() && ifModifiedSince.isNull())
@@ -102,6 +98,7 @@ fun <T : Any> conditionalGet(
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) response.contentType(contentType)
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).body(body ?: body())
@@ -131,6 +128,7 @@ fun <T : Any> conditionalGet(
  * @param headers Any additional HTTP headers to be included in the response.  HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param lazyExceptionIfNotPresent A lazy supplier for an exception to throw when validators are required
  * but not provided. By default, a PreconditionRequiredException is thrown.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier function to provide the body of the response when validation succeeds.
  * @return A Response object with an appropriate HTTP status and body, depending on the result
  * of the validation.
@@ -151,6 +149,7 @@ fun <T : Any> conditionalGet(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     lazyExceptionIfNotPresent: ThrowableSupplier = { PreconditionRequiredException("Use one of this or both (based on configuration): If-None-Match, If-Modified-Since") },
+    contentType: MediaType? = null,
     body: Supplier<T>
 ): Response<T> {
     if (requireAtLeastOneValidator && eTagNoneMatch.isNullOrEmpty() && ifModifiedSince.isNull())
@@ -176,6 +175,7 @@ fun <T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) response.contentType(contentType)
     if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).body(body ?: body())
 }
@@ -203,6 +203,7 @@ fun <T : Any> conditionalGet(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue A supplier callback used to retrieve the previous state of the resource, if available.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier callback used to compute or generate the new value for the resource.
  * @return A response containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
  * @throws PreconditionFailedException Thrown if the ETag or If-Unmodified-Since validation fails.
@@ -227,6 +228,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousValue: Supplier<T?>?,
+    contentType: MediaType? = null,
     body: Supplier<R>
 ): Response<R> {
     if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
@@ -253,6 +255,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) response.contentType(contentType)
     if (body !is Unit) response.eTag(body.eTag)
     return response.body(body)
 }
@@ -279,6 +282,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier callback used to compute or generate the new value for the resource.
  * @return A response containing the newly updated value or additional details as appropriate, with an appropriate HTTP status.
  * @throws PreconditionFailedException Thrown if the ETag or If-Unmodified-Since validation fails.
@@ -303,6 +307,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
+    contentType: MediaType? = null,
     body: Supplier<R>
 ): Response<R> {
     if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
@@ -325,6 +330,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) response.contentType(contentType)
     if (body !is Unit) response.eTag(body.eTag)
     return response.body(body)
 }
@@ -352,6 +358,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue Supplier for the previous value of the resource to validate against the
  *        `eTagIfMatch` parameter.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body Supplier for the new body of the resource, to be used in the response if conditions are met.
  * @return A Response object containing the updated body or an appropriate status, headers, and metadata.
  *         If the update is successful, the response will include relevant headers like `Last-Modified`
@@ -376,6 +383,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousValue: Supplier<T?>?,
+    contentType: MediaType? = null,
     body: Supplier<R>
 ): Response<R> {
     if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
@@ -402,6 +410,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) response.contentType(contentType)
     if (body !is Unit) response.eTag(body.eTag)
     return response.body(body)
 }
@@ -428,6 +437,7 @@ fun <T : Any, R : Any> conditionalUpdate(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body Supplier for the new body of the resource, to be used in the response if conditions are met.
  * @return A Response object containing the updated body or an appropriate status, headers, and metadata.
  *         If the update is successful, the response will include relevant headers like `Last-Modified`
@@ -452,6 +462,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
+    contentType: MediaType? = null,
     body: Supplier<R>
 ): Response<R> {
     if (requireAtLeastOneValidator && eTagIfMatch.isNullOrEmpty() && ifUnmodifiedSince.isNull())
@@ -474,6 +485,7 @@ fun <T : Any, R : Any> conditionalUpdate(
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) response.contentType(contentType)
     if (body !is Unit) response.eTag(body.eTag)
     return response.body(body)
 }
@@ -843,6 +855,7 @@ fun EmptyResponse(
  * @param refresh Optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to. Defaults to `null`.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. Defaults to null if no extra headers are needed.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier function that provides the response body content. Defaults to null.
  * @return An HTTP response of type `Response<T>` with the specified status, headers, and body content.
  * @since 1.0.0
@@ -857,6 +870,7 @@ fun <T : Any> OKResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.OK)
@@ -870,6 +884,7 @@ fun <T : Any> OKResponse(
     val result = body?.invoke()
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull()) return re.body(result)
     return re.build()
 }
@@ -885,6 +900,7 @@ fun <T : Any> OKResponse(
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers additional headers to include in the response, defaults to null
+ * @param contentType the content type of the response; if provided, it sets the "Content-Type" header
  * @param body a supplier for the response body content, which can be null
  * @return a Response instance of type T encapsulating the provided configurations
  * @since 1.0.0
@@ -899,6 +915,7 @@ fun <T : Any> OKResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.OK)
@@ -912,6 +929,7 @@ fun <T : Any> OKResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull()) return re.body(result)
     return re.build()
 }
@@ -932,6 +950,7 @@ fun <T : Any> OKResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional headers to include in the response, if specified. Defaults to null.
  * @param includeBody Whether to include the response body. Defaults to `true` if `location` is null.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier for the response body. Defaults to null if no body is required.
  * @return A `Response` object containing the constructed HTTP status, headers, and optional body.
  * @since 1.0.0
@@ -948,6 +967,7 @@ fun <T : Any> CreatedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.CREATED)
@@ -962,6 +982,7 @@ fun <T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull() && includeBody) return re.body(result)
     return re.build()
 }
@@ -979,6 +1000,7 @@ fun <T : Any> CreatedResponse(
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers additional headers to be included in the response
  * @param includeBody a boolean indicating whether to include the body in the response, defaults to true if `location` is null
+ * @param contentType the content type of the response; if provided, it sets the "Content-Type" header
  * @param body a supplier providing the body of the response, invoked if a body is to be included
  * @return a Response object of type T representing the constructed 201 Created response
  * @since 1.0.0
@@ -995,6 +1017,7 @@ fun <T : Any> CreatedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     includeBody: Boolean = location.isNull(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.CREATED)
@@ -1009,6 +1032,7 @@ fun <T : Any> CreatedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull() && includeBody) return re.body(result)
     return re.build()
 }
@@ -1029,6 +1053,7 @@ fun <T : Any> CreatedResponse(
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional HTTP headers to include in the response. Can be null if no additional headers are needed.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier function that provides the response body content. Can be null if no body content is needed.
  * @return The constructed response object containing the specified HTTP status, headers, and body.
  * @since 1.0.0
@@ -1043,6 +1068,7 @@ fun <T : Any> AcceptedResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.ACCEPTED)
@@ -1056,6 +1082,7 @@ fun <T : Any> AcceptedResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull()) return re.body(result)
     return re.build()
 }
@@ -1071,6 +1098,7 @@ fun <T : Any> AcceptedResponse(
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers optional additional headers to include in the response
+ * @param contentType the content type of the response; if provided, it sets the "Content-Type" header
  * @param body optional supplier for the response body content
  * @return a Response object containing the HTTP status, headers, and optionally body content
  * @since 1.0.0
@@ -1085,6 +1113,7 @@ fun <T : Any> AcceptedResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.ACCEPTED)
@@ -1098,6 +1127,7 @@ fun <T : Any> AcceptedResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeETag && result.isNotNull()) re.eTag(result.eTag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull()) return re.body(result)
     return re.build()
 }
@@ -1473,6 +1503,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Additional headers to include in the response, if provided. Defaults to null.
+ * @param contentType The content type of the response. If provided, it sets the "Content-Type" header.
  * @param body A supplier for generating the response body, if needed. Defaults to null.
  * @return A `Response` instance with the configured attributes.
  * @since 1.0.0
@@ -1487,6 +1518,7 @@ fun <T : Any> IMUsedResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.IM_USED)
@@ -1500,6 +1532,7 @@ fun <T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull()) return re.body(result)
     return re.build()
 }
@@ -1516,6 +1549,7 @@ fun <T : Any> IMUsedResponse(
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
  * @param headers Optional additional HTTP headers to be included in the response.
+ * @param contentType An optional content type of the response. If provided, it sets the "Content-Type" header.
  * @param body An optional supplier for generating the body of the response.
  * @return A `Response<T>` instance representing the constructed HTTP response.
  * @since 1.0.0
@@ -1530,6 +1564,7 @@ fun <T : Any> IMUsedResponse(
     refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
+    contentType: MediaType? = null,
     body: Supplier<T>? = null
 ): Response<T> {
     val re = Response.status(org.springframework.http.HttpStatus.IM_USED)
@@ -1543,6 +1578,7 @@ fun <T : Any> IMUsedResponse(
     val result = body?.invoke()
     if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
     if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (contentType.isNotNull()) re.contentType(contentType)
     if (result.isNotNull()) return re.body(result)
     return re.build()
 }
@@ -2429,13 +2465,13 @@ fun ResponseEntity.BodyBuilder.refresh(time: Duration, url: Url? = null): Respon
 /**
  * Adds a "Refresh" header to the response, indicating a periodic refresh or redirect to a specified URL.
  *
- * @param timeAndURL A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
+ * @param timeAndUrl A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
  * @return The updated ResponseEntity.BodyBuilder with the "Refresh" header set.
  * @since 1.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
-fun ResponseEntity.BodyBuilder.refresh(timeAndURL: Pair<Duration, Url?>): ResponseEntity.BodyBuilder =
-    header("Refresh", "${timeAndURL.first.toSeconds()}${timeAndURL.second?.let { "; url=$it" } ?: String.EMPTY}")
+fun ResponseEntity.BodyBuilder.refresh(timeAndUrl: Pair<Duration, Url?>): ResponseEntity.BodyBuilder =
+    header("Refresh", "${timeAndUrl.first.toSeconds()}${timeAndUrl.second?.let { "; url=$it" } ?: String.EMPTY}")
 /**
  * Adds a `Refresh` header to the HTTP response, which specifies the interval 
  * after which the client should automatically refresh or redirect to a given URL.

@@ -2484,13 +2484,13 @@ fun ServerResponse.BodyBuilder.refresh(time: Duration, url: Url? = null): Server
 /**
  * Adds a "Refresh" header to the response, indicating a periodic refresh or redirect to a specified URL.
  *
- * @param timeAndURL A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
+ * @param timeAndUrl A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
  * @return The updated Response.BodyBuilder with the "Refresh" header set.
  * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
-fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, Url?>): ServerResponse.BodyBuilder =
-    header("Refresh", "${timeAndURL.first.toSeconds()}${timeAndURL.second?.let { "; url=$it" } ?: String.EMPTY}")
+fun ServerResponse.BodyBuilder.refresh(timeAndUrl: Pair<Duration, Url?>): ServerResponse.BodyBuilder =
+    header("Refresh", "${timeAndUrl.first.toSeconds()}${timeAndUrl.second?.let { "; url=$it" } ?: String.EMPTY}")
 /**
  * Adds a `Refresh` header to the HTTP response, which specifies the interval 
  * after which the client should automatically refresh or redirect to a given URL.

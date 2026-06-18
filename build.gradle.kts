@@ -9,10 +9,10 @@ import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "dev.tommasop1804"
-version = "4.1.10"
+version = "4.1.11"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260616T141746Z
+// Last update: Tommaso Pastorelli | 20260618T080320Z
 
 
 plugins {

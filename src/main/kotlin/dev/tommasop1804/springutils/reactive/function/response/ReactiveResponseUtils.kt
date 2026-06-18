@@ -29,10 +29,8 @@ import dev.tommasop1804.springutils.response.*
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueWithTypeAndAwait
 import org.springframework.web.reactive.function.server.buildAndAwait
-import java.net.URL
 import java.time.OffsetDateTime
 import java.time.temporal.TemporalAccessor
-import kotlin.text.set
 
 /**
  * Negotiates the response content type based on the `Accept` header from the client request and sets it accordingly.
@@ -69,6 +67,7 @@ suspend inline fun <reified T : Any> ServerResponse.BodyBuilder.negotiateBodyVal
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional headers to include in the response, if provided. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param lazyExceptionIfNotPresent A supplier for the exception to throw if validation preconditions are not present (if required).
  * @param body A supplier for the body of the response. The resource body is only included in the response when the
@@ -86,7 +85,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     includeRequestId: Boolean = true,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -139,6 +138,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Any additional HTTP headers to be included in the response.  HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param lazyExceptionIfNotPresent A lazy supplier for an exception to throw when validators are required
  * but not provided. By default, a PreconditionRequiredException is thrown.
@@ -157,7 +157,7 @@ suspend inline fun <reified T : Any> conditionalGet(
     includeRequestId: Boolean = true,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -212,6 +212,7 @@ suspend inline fun <reified T : Any> conditionalGet(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue A supplier callback used to retrieve the previous state of the resource, if available.
  * @param body A supplier callback used to compute or generate the new value for the resource.
@@ -233,7 +234,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -288,6 +289,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param body A supplier callback used to compute or generate the new value for the resource.
@@ -309,7 +311,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -359,6 +361,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousValue Supplier for the previous value of the resource to validate against the
  *        `eTagIfMatch` parameter.
@@ -381,7 +384,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -435,6 +438,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
  * @param preferenceApplied A list of preference-applied values to include in the response. If provided, it sets the "Preference-Applied" header.
  * @param refresh The refresh duration for the response. If provided, it sets the "Refresh" header.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional HTTP headers to include in the response. HAS LOWER PRIORITY THAN THE NEXT PARAMETES.
  * @param previousETag The previous ETag of the resource.
  * @param body Supplier for the new body of the resource, to be used in the response if conditions are met.
@@ -456,7 +460,7 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     newLastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -521,7 +525,7 @@ suspend fun <T : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousValue: Supplier<T?>?,
@@ -587,7 +591,7 @@ suspend fun <T : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
@@ -650,7 +654,7 @@ suspend fun <T : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousValue: Supplier<T?>?,
@@ -717,7 +721,7 @@ suspend fun <T : Any> conditionalUpdate(
     includeRequestId: Boolean = true,
     newLastModifiedDate: OffsetDateTime? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     previousETag: String?,
@@ -774,7 +778,7 @@ suspend fun EmptyResponse(
     eTag: String? = null,
     lastModified: OffsetDateTime? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
@@ -816,7 +820,7 @@ suspend fun EmptyResponse(
     eTag: String? = null,
     lastModifiedDate: OffsetDateTime? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
@@ -849,6 +853,7 @@ suspend fun EmptyResponse(
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
  * @param refresh Optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to. Defaults to `null`.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. Defaults to null if no extra headers are needed.
  * @param body A supplier function that provides the response body content. Defaults to null.
  * @return An HTTP response of type `Response` with the specified status, headers, and body content.
@@ -862,7 +867,7 @@ suspend inline fun <reified T : Any> OKResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -893,6 +898,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType the content type to use in the response; if not provided, it defaults to the request's `Accept` header if applicable
  * @param headers additional headers to include in the response, defaults to null
  * @param body a supplier for the response body content, which can be null
  * @return a Response instance of type T encapsulating the provided configurations
@@ -906,7 +912,7 @@ suspend inline fun <reified T : Any> OKResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -941,6 +947,7 @@ suspend inline fun <reified T : Any> OKResponse(
  * @param preferenceApplied Optional list of preference-applied values to include in the response. Defaults to an empty list.
  * @param refresh Optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to. Defaults to `null`.
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional headers to include in the response, if specified. Defaults to null.
  * @param includeBody Whether to include the response body. Defaults to `true` if `location` is null.
  * @param body A supplier for the response body. Defaults to null if no body is required.
@@ -956,7 +963,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     location: Uri? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -990,6 +997,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType the content type to use in the response; if not provided, it defaults to the request's `Accept` header if applicable
  * @param headers additional headers to be included in the response
  * @param includeBody a boolean indicating whether to include the body in the response, defaults to true if `location` is null
  * @param body a supplier providing the body of the response, invoked if a body is to be included
@@ -1005,7 +1013,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
     location: Uri? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1043,6 +1051,7 @@ suspend inline fun <reified T : Any> CreatedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. Can be null if no additional headers are needed.
  * @param body A supplier function that provides the response body content. Can be null if no body content is needed.
  * @return The constructed Response object containing the specified HTTP status, headers, and body.
@@ -1056,7 +1065,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1087,6 +1096,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType the content type to use in the response; if not provided, it defaults to the request's `Accept` header if applicable
  * @param headers optional additional headers to include in the response
  * @param body optional supplier for the response body content
  * @return a Response object containing the HTTP status, headers, and optionally body content
@@ -1100,7 +1110,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1132,6 +1142,7 @@ suspend inline fun <reified T : Any> AcceptedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional headers to include in the response.
  * @param action An optional action to execute before building the response. Defaults to `null`.
  * @return A `Response` object with the specified settings and content.
@@ -1144,7 +1155,7 @@ suspend fun ResetContentResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1174,6 +1185,7 @@ suspend fun ResetContentResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional headers to include in the response.
  * @param action an optional action to execute; can be null
  * @return A `Response` object with the specified settings and content.
@@ -1186,7 +1198,7 @@ suspend fun ResetContentResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1336,6 +1348,7 @@ suspend inline fun <reified T : Any> PartialContentResponse(
  * @param includeFeatureCode Flag indicating whether to include the "Feature-Code" header in the response. Defaults to true.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional HTTP headers to include in the response. Can be null or empty.
  * @param responseType The format or structure of the response body. Defaults to MultiStatusResponseType.WEBDAV_XML.
  * @param httpVersion The HTTP version to use when formatting the response status. Defaults to "HTTP/1.1".
@@ -1351,7 +1364,7 @@ suspend fun MultiStatusResponse(
     includeFeatureCode: Boolean = true,
     includeRequestId: Boolean = true,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1380,6 +1393,7 @@ suspend fun MultiStatusResponse(
  * @param featureCode A string representing the feature code to be included in the HTTP header.
  * @param includeRequestId A flag to determine whether to include the "Request-Id" header in the response. Defaults to true.
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional HTTP headers to be included in the response. Defaults to null.
  * @param responseType The type of the multi-status response content. Defaults to `MultiStatusResponseType.WEBDAV_XML`.
  * @param httpVersion The HTTP version string to be used in the response. Defaults to "HTTP/1.1".
@@ -1395,7 +1409,7 @@ suspend fun MultiStatusResponse(
     featureCode: String,
     includeRequestId: Boolean = true,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1499,6 +1513,7 @@ internal fun generateMultiStatusXML(results: List<ResourceResult>, httpVersion: 
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A set of triples containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Additional headers to include in the response, if provided. Defaults to null.
  * @param body A supplier for generating the response body, if needed. Defaults to null.
  * @return A `Response` instance with the configured attributes.
@@ -1512,7 +1527,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -1544,6 +1559,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
  * @param preferenceApplied optional list of preference-applied values to include in the response, defaults to an empty list
  * @param refresh optional pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to, defaults to null
  * @param serverTiming A list of triple containing the "Server-Timing" header label, duration, and description.
+ * @param contentType The content type to use in the response. If not provided, it defaults to the request's `Accept` header if applicable.
  * @param headers Optional additional HTTP headers to be included in the response.
  * @param body An optional supplier for generating the body of the response.
  * @return A `Response` instance representing the constructed HTTP response.
@@ -1557,7 +1573,7 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     lastModifiedDate: OffsetDateTime? = null,
     expires: TemporalAccessor? = null,
     preferenceApplied: List<String> = emptyList(),
-    refresh: Pair<Duration, URL?>? = null,
+    refresh: Pair<Duration, Url?>? = null,
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
@@ -2465,13 +2481,13 @@ fun ServerResponse.BodyBuilder.refresh(time: Duration, url: Url? = null): Server
 /**
  * Adds a "Refresh" header to the response, indicating a periodic refresh or redirect to a specified URL.
  *
- * @param timeAndURL A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
+ * @param timeAndUrl A pair containing the duration after which the client should refresh or perform the redirect and the optional URL to redirect to.
  * @return The updated Response.BodyBuilder with the "Refresh" header set.
  * @since 3.0.0
  */
 @OptIn(RiskyApproximationOfTemporal::class)
-fun ServerResponse.BodyBuilder.refresh(timeAndURL: Pair<Duration, Url?>): ServerResponse.BodyBuilder =
-    header("Refresh", "${timeAndURL.first.toSeconds()}${timeAndURL.second?.let { "; url=$it" } ?: String.EMPTY}")
+fun ServerResponse.BodyBuilder.refresh(timeAndUrl: Pair<Duration, Url?>): ServerResponse.BodyBuilder =
+    header("Refresh", "${timeAndUrl.first.toSeconds()}${timeAndUrl.second?.let { "; url=$it" } ?: String.EMPTY}")
 /**
  * Adds a `Refresh` header to the HTTP response, which specifies the interval 
  * after which the client should automatically refresh or redirect to a given URL.
