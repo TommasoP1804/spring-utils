@@ -15,6 +15,8 @@ import io.restassured.response.ExtractableResponse
 import io.restassured.response.Response
 import io.restassured.response.ValidatableResponse
 import io.restassured.specification.RequestSpecification
+import java.io.File
+import java.io.InputStream
 import kotlin.reflect.KClass
 
 @DslMarker
@@ -226,6 +228,13 @@ class JsonTestRoute @PublishedApi internal constructor(
         TypedTestRoute(method, pathTemplate, returnType, defaults)(spec)
 }
 
+internal data class MultiPart(
+    val controlName: String? = null,
+    val content: Any,
+    val mimeType: MediaType,
+    val fileName: String? = null
+)
+
 // --- REQUEST SPEC ---
 
 /**
@@ -250,10 +259,42 @@ class TestReqSpec {
     internal val queryParams: DataMMap = emptyMMap()
 
     /**
+     * A mutable map used to store form parameters for an HTTP request.
+     * These parameters are typically sent as a part of the request body
+     * in `application/x-www-form-urlencoded` format.
+     * @since 4.2.0
+     */
+    internal val formParams: DataMMap = emptyMMap()
+
+    /**
+     * A mutable map representing the cookies associated with the request specification.
+     *
+     * This map holds the key-value pairs where keys are the cookie names
+     * and values are the corresponding cookie values.
+     * It is initially an empty map but can be populated with cookies as needed
+     * for request customization.
+     * @since 4.2.0
+     */
+    internal val cookies: DataMMapNN = emptyMMap()
+
+    /**
      * HTTP headers for the request.
      * @since 3.2.2
      */
     internal val headers: HttpHeaders = HttpHeaders()
+
+    /**
+     * Represents a collection of multipart entities that can be used
+     * to define file uploads or data submissions within a request.
+     *
+     * Each multipart entity is defined by its control name, associated file,
+     * and MIME type, as encapsulated in the [MultiPart] data class.
+     *
+     * This list is initially empty and can be populated as needed for
+     * constructing multipart/form-data requests.
+     * @since 4.2.0
+     */
+    internal val multiParts: MList<MultiPart> = emptyMList()
 
     /**
      * Optional request body.
@@ -345,6 +386,81 @@ class TestReqSpec {
     }
 
     /**
+     * Adds or updates a cookie with the specified name and value.
+     *
+     * @param name the name of the cookie to be added or updated
+     * @param value the value to associate with the specified cookie name
+     * @since 4.2.0
+     */
+    fun cookie(name: String, value: Any) {
+        cookies[name] = value.toString()
+    }
+
+    /**
+     * Adds a cookie using the given name-value pair.
+     *
+     * @param pair a pair where the first element represents the name of the cookie
+     * and the second element represents the value to associate with the cookie
+     * @since 4.2.0
+     */
+    fun cookie(pair: Pair<String, Any>) {
+        cookie(pair.first, pair.second)
+    }
+
+    /**
+     * Configures cookies using a DSL block. The provided block can be used to define
+     * key-value pairs representing cookie names and their associated values. Only non-null
+     * values are included as cookies.
+     *
+     * @param init a DSL block used to populate cookie key-value pairs. Use `String to Any`
+     * to associate cookie names and values within the block.
+     * @since 4.2.0
+     */
+    fun cookies(init: ReceiverConsumer<ParamSpec>) {
+        val spec = ParamSpec()
+        spec.init()
+        spec.params.filterValues(Any?::isNotNull).forEach { cookie(it.key, it.value!!) }
+    }
+
+    /**
+     * Adds a single form parameter with the specified name and value.
+     *
+     * @param name the name of the form parameter
+     * @param value the value to associate with the form parameter. It will be converted to a string.
+     * @since 4.2.0
+     */
+    fun formParam(name: String, value: Any) {
+        formParams[name] = value.toString()
+    }
+
+    /**
+     * Adds a form parameter using the given name-value pair.
+     *
+     * @param pair a pair where the first element represents the name of the form parameter
+     * and the second element represents the value to associate with the parameter.
+     * @since 4.2.0
+     */
+    fun formParam(pair: Pair<String, Any>) {
+        formParam(pair.first, pair.second)
+    }
+
+    /**
+     * Configures form parameters using a DSL block.
+     *
+     * Allows specifying multiple form parameters through the provided initialization block
+     * that operates on a [ParamSpec] instance. Any non-null key-value pairs defined within the block
+     * will be added as form parameters.
+     *
+     * @param init a DSL block that accepts a [ReceiverConsumer] of [ParamSpec] for defining form parameters
+     * @since 4.2.0
+     */
+    fun formParam(init: ReceiverConsumer<ParamSpec>) {
+        val spec = ParamSpec()
+        spec.init()
+        spec.params.filterValues(Any?::isNotNull).forEach { formParam(it.key, it.value!!) }
+    }
+
+    /**
      * Sets a header with the specified name and value(s).
      * @since 3.2.2
      */
@@ -386,6 +502,156 @@ class TestReqSpec {
      * @since 3.2.4
      */
     fun headers(headers: HttpHeaders) = headers.forEach { this.headers += it }
+
+    /**
+     * Adds a multipart entity with the specified parameters to the request.
+     *
+     * @param controlName the name of the control or field in the form that the server expects.
+     * @param file the file to be uploaded as part of the multipart request.
+     * @param mimeType the MIME type of the file. Defaults to `MediaType.APPLICATION_OCTET_STREAM`.
+     * @param fileName the name of the file as it should appear in the server-side form data.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        file: File,
+        mimeType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
+        fileName: String? = null
+    ) { multiParts += MultiPart(controlName, file, mimeType, fileName) }
+    /**
+     * Adds a multipart file to the request with the specified control name, file, MIME type, and file name.
+     *
+     * @param controlName The name of the form control associated with the file.
+     * @param file The file to be included in the multipart request.
+     * @param mimeType The MIME type of the file. Defaults to `MimeType.APPLICATION_OCTET_STREAM`.
+     * @param fileName The name of the file to be sent in the request.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        file: File,
+        mimeType: MimeType = MimeType.APPLICATION_OCTET_STREAM,
+        fileName: String? = null
+    ) { multiPart(controlName, file, mimeType.toMediaType(), fileName) }
+    /**
+     * Adds a multi-part component to the request.
+     * Commonly used for file uploads or sending binary data as part of a request payload.
+     *
+     * @param controlName the name of the control parameter associated with the multi-part data
+     * @param obj the content of the multi-part data, which can be any object
+     * @param mimeType the MIME type of the multi-part data; defaults to `MediaType.APPLICATION_OCTET_STREAM`
+     * @param fileName the file name to associate with the multi-part data
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        obj: Any,
+        mimeType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
+        fileName: String? = null
+    ) { multiParts += MultiPart(controlName, obj, mimeType, fileName) }
+    /**
+     * Adds a multipart section to the request with the specified details.
+     *
+     * @param controlName the name of the form field that this part corresponds to
+     * @param obj the content to include in the multipart section
+     * @param mimeType the MIME type of the content; defaults to application/json
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        obj: Any,
+        mimeType: MimeType = MimeType.APPLICATION_JSON,
+    ) { multiPart(controlName, obj, mimeType.toMediaType()) }
+    /**
+     * Adds a multi-part component to the request.
+     *
+     * This method allows you to include a multi-part section with a specified control name,
+     * content body, MIME type, and file name. The added multi-part will be stored in the
+     * internal `multiParts` collection of the request.
+     *
+     * @param controlName the name of the control associated with the multi-part section
+     * @param contentBody the content to include as part of the multi-part section
+     * @param mimeType the MIME type of the content, defaults to `MediaType.TEXT_PLAIN`
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        contentBody: String,
+        mimeType: MediaType = MediaType.TEXT_PLAIN,
+    ) { multiParts += MultiPart(controlName, contentBody, mimeType) }
+    /**
+     * Adds a multi-part form data entry to the request body.
+     *
+     * @param controlName The name of the form field for the multipart entry.
+     * @param contentBody The content to be associated with the form field.
+     * @param mimeType The MIME type of the content, with a default of `MimeType.TEXT_PLAIN`.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        contentBody: String,
+        mimeType: MimeType = MimeType.TEXT_PLAIN,
+    ) { multiPart(controlName, controlName, mimeType.toMediaType()) }
+    /**
+     * Adds a multipart section to the request with the specified parameters.
+     *
+     * @param controlName The name of the form control being submitted.
+     * @param contentBody The content of the multipart section as a byte array.
+     * @param mimeType The MIME type of the content. Defaults to `MediaType.APPLICATION_OCTET_STREAM`.
+     * @param fileName The name of the file to associate with the multipart section.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        contentBody: ByteArray,
+        mimeType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
+        fileName: String
+    ) { multiParts += MultiPart(controlName, contentBody, mimeType, fileName) }
+    /**
+     * Prepares a multipart form-data component with the specified parameters.
+     *
+     * @param controlName The name of the control or field in the multipart form-data.
+     * @param contentBody The byte array representing the content of the file or data being sent.
+     * @param mimeType The MIME type of the content. Defaults to application/octet-stream.
+     * @param fileName The name of the file to be associated with the content.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        contentBody: ByteArray,
+        mimeType: MimeType = MimeType.APPLICATION_OCTET_STREAM,
+        fileName: String
+    ) { multiPart(controlName, controlName, mimeType.toMediaType(), fileName) }
+    /**
+     * Adds a multipart part to the collection of multiParts.
+     *
+     * @param controlName The name of the control associated with the multipart part.
+     * @param contentBody The content of the multipart as an InputStream.
+     * @param mimeType The MIME type of the content. Defaults to MediaType.APPLICATION_OCTET_STREAM.
+     * @param fileName The name of the file associated with the multipart part.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        contentBody: InputStream,
+        mimeType: MediaType = MediaType.APPLICATION_OCTET_STREAM,
+        fileName: String
+    ) { multiParts += MultiPart(controlName, contentBody, mimeType, fileName) }
+    /**
+     * Prepares a multipart request with the specified parameters.
+     *
+     * @param controlName The name of the control or field in the multipart request.
+     * @param contentBody The input stream representing the data to be included in the multipart request.
+     * @param mimeType The MIME type of the content, defaults to application/octet-stream.
+     * @param fileName The name of the file being included in the multipart request.
+     * @since 4.2.0
+     */
+    fun multiPart(
+        controlName: String,
+        contentBody: InputStream,
+        mimeType: MimeType = MimeType.APPLICATION_OCTET_STREAM,
+        fileName: String
+    ) { multiPart(controlName, controlName, mimeType.toMediaType(), fileName) }
 
     /**
      * Configures default status validation with an [ExternalServiceHttpException].
@@ -672,8 +938,43 @@ private fun RequestSpecification.applySpec(spec: TestReqSpec): RequestSpecificat
         header(name, values.first(), *(-1)(values).toTypedArray())
     }
 
+    spec.cookies.forEach { (key, value) ->
+        cookie(key, value)
+    }
+
+    spec.formParams.forEach { (key, value) ->
+        when (value) {
+            is Collection<*> -> formParam(key, *value.toTypedArray())
+            is Array<*> -> formParam(key, *value)
+            else -> if (value.isNotNull()) formParam(key, value)
+        }
+    }
+
+    spec.multiParts.forEach {
+        when (it.content) {
+            is File -> {
+                if (it.controlName.isNotNull()) multiPart(it.controlName, it.content, it.mimeType.toString())
+                else multiPart(it.content)
+            }
+            is String -> multiPart(it.controlName, it.content, it.mimeType.toString())
+            is ByteArray -> multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
+            is InputStream -> multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
+            else -> {
+                if (it.fileName.isNotNull()) multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
+                else multiPart(it.controlName, it.content, it.mimeType.toString())
+            }
+        }
+    }
+
     spec.body?.let {
         if (spec.contentType.isNull()) contentType(MediaType.APPLICATION_JSON.toString())
+        when (it) {
+            is String -> body(it)
+            is ByteArray -> body(it)
+            is File -> body(it)
+            is InputStream -> body(it)
+            else -> body(it)
+        }
         body(it)
     }
 }
