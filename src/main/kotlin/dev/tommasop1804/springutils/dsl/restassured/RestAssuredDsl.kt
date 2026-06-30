@@ -530,7 +530,7 @@ class TestReqSpec {
     fun multiPart(
         controlName: String,
         file: File,
-        mimeType: MimeType = MimeType.APPLICATION_OCTET_STREAM,
+        mimeType: MimeType,
         fileName: String? = null
     ) { multiPart(controlName, file, mimeType.toMediaType(), fileName) }
     /**
@@ -554,14 +554,16 @@ class TestReqSpec {
      *
      * @param controlName the name of the form field that this part corresponds to
      * @param obj the content to include in the multipart section
-     * @param mimeType the MIME type of the content; defaults to application/json
+     * @param mimeType the MIME type of the content
+     * @param fileName the file name to associate with the multi-part data
      * @since 4.2.0
      */
     fun multiPart(
         controlName: String,
         obj: Any,
-        mimeType: MimeType = MimeType.APPLICATION_JSON,
-    ) { multiPart(controlName, obj, mimeType.toMediaType()) }
+        mimeType: MimeType,
+        fileName: String? = null
+    ) { multiPart(controlName, obj, mimeType.toMediaType(), fileName) }
     /**
      * Adds a multi-part component to the request.
      *
@@ -590,7 +592,7 @@ class TestReqSpec {
     fun multiPart(
         controlName: String,
         contentBody: String,
-        mimeType: MimeType = MimeType.TEXT_PLAIN,
+        mimeType: MimeType
     ) { multiPart(controlName, controlName, mimeType.toMediaType()) }
     /**
      * Adds a multipart section to the request with the specified parameters.
@@ -619,7 +621,7 @@ class TestReqSpec {
     fun multiPart(
         controlName: String,
         contentBody: ByteArray,
-        mimeType: MimeType = MimeType.APPLICATION_OCTET_STREAM,
+        mimeType: MimeType,
         fileName: String
     ) { multiPart(controlName, controlName, mimeType.toMediaType(), fileName) }
     /**
@@ -649,7 +651,7 @@ class TestReqSpec {
     fun multiPart(
         controlName: String,
         contentBody: InputStream,
-        mimeType: MimeType = MimeType.APPLICATION_OCTET_STREAM,
+        mimeType: MimeType,
         fileName: String
     ) { multiPart(controlName, controlName, mimeType.toMediaType(), fileName) }
 
