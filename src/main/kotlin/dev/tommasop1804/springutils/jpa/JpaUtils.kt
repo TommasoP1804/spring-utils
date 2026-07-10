@@ -677,7 +677,7 @@ fun PageRequest(offset: Int, pageSize: Int, sort: SortOption): PageRequest = Pag
         SortDirection.Ascending -> Sort.Direction.ASC
         SortDirection.Descending -> Sort.Direction.DESC
     },
-    *(sort.field.split(".").toTypedArray())
+    *(sort.property.split(".").toTypedArray())
 ))
 /**
  * Creates a new PageRequest instance with the specified offset, page size, sorting direction,
@@ -811,7 +811,7 @@ internal fun Sort.toSortOption(): List<SortOption> = toList().map { SortOption(i
  */
 fun Collection<SortOption>.toJpaSort(): Sort {
     val list = emptyMList<Sort.Order>()
-    forEach { list.add(Sort.Order(it.direction.toJpaSortDirection(), it.field)) }
+    forEach { list.add(Sort.Order(it.direction.toJpaSortDirection(), it.property)) }
     return Sort.by(list)
 }
 /**
