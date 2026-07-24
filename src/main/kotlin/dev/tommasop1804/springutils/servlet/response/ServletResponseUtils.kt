@@ -99,6 +99,7 @@ fun <T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (contentType.isNotNull()) response.contentType(contentType)
+    if (lastModifiedDate.isNotNull()) response.lastModified(lastModifiedDate.toInstant())
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).body(body ?: body())
@@ -175,6 +176,7 @@ fun <T : Any> conditionalGet(
     if (refresh.isNotNull()) response.refresh(refresh)
     if (includeRequestId) RequestIdProvider.requestIdThreadLocal.get().ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
+    if (lastModifiedDate.isNotNull()) response.lastModified(lastModifiedDate.toInstant())
     if (contentType.isNotNull()) response.contentType(contentType)
     if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).body(body ?: body())

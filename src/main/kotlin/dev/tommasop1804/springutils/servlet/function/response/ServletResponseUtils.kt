@@ -116,6 +116,7 @@ inline fun <reified T : Any> conditionalGet(
     if (includeRequestId) RequestIdProvider.requestId.ifNotNull { response.header(HttpHeader.REQUEST_ID, toString()) }
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
+    if (lastModifiedDate.isNotNull()) response.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
@@ -188,6 +189,7 @@ inline fun <reified T : Any> conditionalGet(
     if (expires.isNotNull()) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (refresh.isNotNull()) response.refresh(refresh)
+    if (lastModifiedDate.isNotNull()) response.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NotModified) return response.build()
     return response.eTag(eTag).negotiateBodyValueWithType(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
