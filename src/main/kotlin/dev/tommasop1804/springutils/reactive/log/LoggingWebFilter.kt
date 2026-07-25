@@ -174,7 +174,6 @@ class LoggingWebFilter(
         }
     }
 
-    @OptIn(ConditionNotPreventingExceptions::class)
     private suspend fun filterWithHandlerFunction(
         exchange: ServerWebExchange,
         chain: CoWebFilterChain

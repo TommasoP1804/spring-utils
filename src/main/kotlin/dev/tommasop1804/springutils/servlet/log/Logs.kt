@@ -4,7 +4,6 @@
 
 package dev.tommasop1804.springutils.servlet.log
 
-import dev.tommasop1804.kutils.ConditionNotPreventingExceptions
 import dev.tommasop1804.kutils.EMPTY
 import dev.tommasop1804.kutils.Instant
 import dev.tommasop1804.kutils.SPACE
@@ -16,7 +15,6 @@ import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.second
 import dev.tommasop1804.kutils.splitAndTrim
-import dev.tommasop1804.kutils.whenTrue
 import dev.tommasop1804.springutils.request.*
 import dev.tommasop1804.springutils.servlet.log.LogExecution.*
 import org.slf4j.LoggerFactory
@@ -28,18 +26,17 @@ import org.springframework.stereotype.Component as SpringComponent
 
 @SpringComponent
 @Suppress("LoggingSimilarMessage")
-@OptIn(ConditionNotPreventingExceptions::class)
 internal object Logs {
     private val LOGGER = LoggerFactory.getLogger(Logs::class.java)!!
 
     fun logStart(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, service: String?, featureCode: String?, id: RequestId, customs: List<String2> = emptyList()) {
-        val clazz = clazz whenTrue (Component.ClassName in components)
-        val method = method whenTrue (Component.FunctionName in components)
-        val username = username whenTrue (Component.User in components)
-        val service = service whenTrue (Component.Service in components)
-        val id = id whenTrue (Component.Id in components)
-        val featureCode = featureCode whenTrue (Component.FeatureCode in components)
-        val path = path whenTrue (Component.Path in components)
+        val clazz = clazz.takeIf { (Component.ClassName in components) }
+        val method = method.takeIf { (Component.FunctionName in components) }
+        val username = username.takeIf { (Component.User in components) }
+        val service = service.takeIf { (Component.Service in components) }
+        val id = id.takeIf { (Component.Id in components) }
+        val featureCode = featureCode.takeIf { (Component.FeatureCode in components) }
+        val path = path.takeIf { (Component.Path in components) }
         val custom = if (customs.isNotEmpty()) buildString {
             customs.forEach {
                 append(", ")
@@ -61,14 +58,15 @@ internal object Logs {
     }
 
     fun logEnd(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, service: String?, featureCode: String?, id: RequestId, customs: List<String2> = emptyList()) {
-        val clazz = clazz whenTrue (Component.ClassName in components)
-        val method = method whenTrue (Component.FunctionName in components)
-        val username = username whenTrue (Component.User in components)
-        val service = service whenTrue (Component.Service in components)
-        val featureCode = featureCode whenTrue (Component.FeatureCode in components)
+        val clazz = clazz.takeIf { (Component.ClassName in components) }
+        val method = method.takeIf { (Component.FunctionName in components) }
+        val username = username.takeIf { (Component.User in components) }
+        val service = service.takeIf { (Component.Service in components) }
+        val featureCode = featureCode.takeIf { (Component.FeatureCode in components) }
         val end = Instant()
-        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ElapsedTime in components)
-        val path = path whenTrue (Component.Path in components)
+        val elapsed =
+            (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())).takeIf { (Component.ElapsedTime in components) }
+        val path = path.takeIf { (Component.Path in components) }
         val custom = if (customs.isNotEmpty()) buildString {
             customs.forEach {
                 append(", ")
@@ -91,14 +89,15 @@ internal object Logs {
     }
 
     fun logException(components: Array<Component>, clazz: String?, method: String?, path: String?, username: String?, status: String, service: String?, featureCode: String?, id: RequestId, e: Throwable?, basePackage: String?, customs: List<String2> = emptyList()) {
-        val clazz = clazz whenTrue (Component.ClassName in components)
-        val method = method whenTrue (Component.FunctionName in components)
-        val username = username whenTrue (Component.User in components)
-        val service = service whenTrue (Component.Service in components)
-        val featureCode = featureCode whenTrue (Component.FeatureCode in components)
+        val clazz = clazz.takeIf { (Component.ClassName in components) }
+        val method = method.takeIf { (Component.FunctionName in components) }
+        val username = username.takeIf { (Component.User in components) }
+        val service = service.takeIf { (Component.Service in components) }
+        val featureCode = featureCode.takeIf { (Component.FeatureCode in components) }
         val end = Instant()
-        val elapsed = (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())) whenTrue (Component.ElapsedTime in components)
-        val status = status whenTrue (Component.Status in components)
+        val elapsed =
+            (Duration.ofMillis(end.toEpochMilli() - id.instant.toEpochMilli())).takeIf { (Component.ElapsedTime in components) }
+        val status = status.takeIf { (Component.Status in components) }
         val stackTrace = e.getPrettyStackTrace(basePackage)
         var index = -1
         for (i in stackTrace.indices) {
@@ -107,7 +106,7 @@ internal object Logs {
                 break
             }
         }
-        val path = path whenTrue (Component.Path in components)
+        val path = path.takeIf { (Component.Path in components) }
         val custom = if (customs.isNotEmpty()) buildString {
             customs.forEach {
                 append(", ")
