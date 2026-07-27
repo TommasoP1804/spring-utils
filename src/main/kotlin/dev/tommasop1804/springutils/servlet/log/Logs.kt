@@ -10,7 +10,6 @@ import dev.tommasop1804.kutils.SPACE
 import dev.tommasop1804.kutils.String2
 import dev.tommasop1804.kutils.compute
 import dev.tommasop1804.kutils.get
-import dev.tommasop1804.kutils.invoke
 import dev.tommasop1804.kutils.isNotNull
 import dev.tommasop1804.kutils.isNotNullOrBlank
 import dev.tommasop1804.kutils.second
@@ -127,7 +126,7 @@ internal object Logs {
                     + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
                     + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
                     + (if (Component.Exception in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
-                    + (if (Component.Stacktrace in components) "\n\u001b[1m\u001b[31m${(-if (index == -1) 0 else index)(stackTrace)}" else String.EMPTY)
+                    + (if (Component.Stacktrace in components) "\n\u001b[1m\u001b[31m${stackTrace.drop(if (index == -1) 0 else index)}" else String.EMPTY)
         )
     }
 
