@@ -44,14 +44,14 @@ internal object Logs {
         } else String.EMPTY
 
         LOGGER.info(
-            (if (id.isNotNull()) "$id | " else String.EMPTY)
+            (if (id.isNotNull) "$id | " else String.EMPTY)
                     + "\u001B[34m▶︎\u001B[0m STARTED "
-                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
-                    + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
-                    + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
-                    + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
-                    + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
+                    + (if (method.isNotNullOrBlank) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
+                    + (if (featureCode.isNotNullOrBlank) " ($featureCode)" else String.EMPTY)
+                    + (if (username.isNotNullOrBlank) ", by: $username" else String.EMPTY)
+                    + (if (path.isNotNullOrBlank) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
+                    + (if (service.isNotNullOrBlank) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + custom
         )
     }
@@ -76,14 +76,14 @@ internal object Logs {
         LOGGER.info(
             (if (Component.Id in components) "$id | " else String.EMPTY)
                     + "\u001B[32m✓\u001B[0m ENDED   "
-                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
-                    + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
-                    + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
-                    + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
-                    + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
+                    + (if (method.isNotNullOrBlank) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
+                    + (if (featureCode.isNotNullOrBlank) " ($featureCode)" else String.EMPTY)
+                    + (if (username.isNotNullOrBlank) ", by: $username" else String.EMPTY)
+                    + (if (path.isNotNullOrBlank) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
+                    + (if (service.isNotNullOrBlank) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + custom
-                    + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
+                    + (if (elapsed.isNotNull) ", elapsed: $elapsed" else String.EMPTY)
         )
     }
 
@@ -116,15 +116,15 @@ internal object Logs {
         LOGGER.error(
             (if (Component.Id in components) "$id | " else String.EMPTY)
                     + "\u001B[31m✖\u001B[0m ENDED   "
-                    + (if (method.isNotNullOrBlank()) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
-                    + (if (clazz.isNotNullOrBlank()) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
-                    + (if (featureCode.isNotNullOrBlank()) " ($featureCode)" else String.EMPTY)
-                    + (if (username.isNotNullOrBlank()) ", by: $username" else String.EMPTY)
-                    + (if (path.isNotNullOrBlank()) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
-                    + (if (service.isNotNullOrBlank()) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
+                    + (if (method.isNotNullOrBlank) "\u001b[1m\u001b[3m $method\u001b[0m" else String.EMPTY)
+                    + (if (clazz.isNotNullOrBlank) " in \u001b[3m$clazz\u001b[0m" else String.EMPTY)
+                    + (if (featureCode.isNotNullOrBlank) " ($featureCode)" else String.EMPTY)
+                    + (if (username.isNotNullOrBlank) ", by: $username" else String.EMPTY)
+                    + (if (path.isNotNullOrBlank) ", path: ${compute { val list = path.splitAndTrim(Char.SPACE, limit = 2); "[${list.first()}] ${list.second()}" }}" else String.EMPTY)
+                    + (if (service.isNotNullOrBlank) ", from \u001b[3m$service\u001b[0m" else String.EMPTY)
                     + custom
-                    + (if (elapsed.isNotNull()) ", elapsed: $elapsed" else String.EMPTY)
-                    + (if (status.isNotNull()) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
+                    + (if (elapsed.isNotNull) ", elapsed: $elapsed" else String.EMPTY)
+                    + (if (status.isNotNull) ", status: \u001b[41;30m$status\u001b[0m" else String.EMPTY)
                     + (if (Component.Exception in components) ", exception: \u001b[1m${stackTrace[(if (index == -1) 0 else index)..<stackTrace.indexOf("\n")]}\u001b[0m" else String.EMPTY)
                     + (if (Component.Stacktrace in components) "\n\u001b[1m\u001b[31m${stackTrace.drop(if (index == -1) 0 else index)}" else String.EMPTY)
         )
@@ -139,7 +139,7 @@ internal object Logs {
         val lines = stackTrace.split(System.lineSeparator().toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val sb = StringBuilder()
         for (line in lines) {
-            if (basePackage.isNotNullOrBlank() && line.trim().startsWith("at $basePackage")) sb.append("\u001B[7m")
+            if (basePackage.isNotNullOrBlank && line.trim().startsWith("at $basePackage")) sb.append("\u001B[7m")
             else if (line.trim().startsWith("Caused by")) sb.append("\u001B[1m")
             sb.append("\u001b[31m").append(line).append(System.lineSeparator()).append("\u001B[0m")
         }

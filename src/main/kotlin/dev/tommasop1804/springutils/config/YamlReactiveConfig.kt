@@ -89,7 +89,7 @@ class YamlHttpMessageReader(private val yamlMapper: YAMLMapper) : HttpMessageRea
     override fun getReadableMediaTypes(): List<MediaType> = YAML_MEDIA_TYPES
 
     override fun canRead(elementType: ResolvableType, mediaType: MediaType?): Boolean =
-        mediaType.isNotNull() && YAML_MEDIA_TYPES.any { it.includes(mediaType) }
+        mediaType.isNotNull && YAML_MEDIA_TYPES.any { it.includes(mediaType) }
 
     override fun read(
         elementType: ResolvableType,
@@ -117,7 +117,7 @@ class YamlHttpMessageWriter(private val yamlMapper: YAMLMapper) : HttpMessageWri
     override fun getWritableMediaTypes(): List<MediaType> = YAML_MEDIA_TYPES
 
     override fun canWrite(elementType: ResolvableType, mediaType: MediaType?): Boolean {
-        val result = mediaType.isNotNull() && YAML_MEDIA_TYPES.any { it.includes(mediaType) }
+        val result = mediaType.isNotNull && YAML_MEDIA_TYPES.any { it.includes(mediaType) }
         log(LogLevel.Debug, "`canWrite` mediaType=`$mediaType` result=`$result`")
         return result
     }

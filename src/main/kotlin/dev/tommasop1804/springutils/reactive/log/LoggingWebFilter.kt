@@ -80,7 +80,7 @@ class LoggingWebFilter(
         var resolvedHandler: Any? = null
 
         val handlerMapping = handlerMappingProvider.ifAvailable
-        if (handlerMapping.isNotNull()) {
+        if (handlerMapping.isNotNull) {
             resolvedHandler = try {
                 handlerMapping.getHandler(sandboxedExchange).awaitSingleOrNull()
             } catch (e: Exception) {
@@ -89,9 +89,9 @@ class LoggingWebFilter(
             }
         }
 
-        if (resolvedHandler.isNull()) {
+        if (resolvedHandler.isNull) {
             val routerFunctionMapping = routerFunctionMappingProvider.ifAvailable
-            if (routerFunctionMapping.isNotNull()) {
+            if (routerFunctionMapping.isNotNull) {
                 resolvedHandler = try {
                     routerFunctionMapping.getHandler(sandboxedExchange).awaitSingleOrNull()
                 } catch (e: Exception) {
@@ -105,7 +105,7 @@ class LoggingWebFilter(
             is HandlerMethod -> filterWithHandlerMethod(exchange, chain, resolvedHandler)
             is HandlerFunction<*> -> filterWithHandlerFunction(exchange, chain)
             else -> {
-                if (resolvedHandler.isNull()) {
+                if (resolvedHandler.isNull) {
                     log.debug("LoggingWebFilter: no handler found for {}", exchange.request.uri.path)
                 } else {
                     log.debug("LoggingWebFilter: unexpected handler type {}", resolvedHandler::class.simpleName)

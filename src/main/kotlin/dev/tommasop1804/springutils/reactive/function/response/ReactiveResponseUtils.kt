@@ -94,29 +94,29 @@ suspend inline fun <reified T : Any> conditionalGet(
 ): Response {
     val eTagNoneMatch = request.ifNoneMatch()
     val ifModifiedSince = request.ifModifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagNoneMatch.isEmpty() && ifModifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagNoneMatch.isEmpty() && ifModifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
     var status = status
     var body: T? = null
-    val eTag = if (resourceETag.isNotNullOrBlank()) resourceETag - Char.QUOTATION_MARK else {
+    val eTag = if (resourceETag.isNotNullOrBlank) resourceETag - Char.QUOTATION_MARK else {
         body = body()
         body.eTag
     }
-    if (eTagNoneMatch.isNotNullOrEmpty() && eTagNoneMatch.any { (it - Char.QUOTATION_MARK) == eTag || it == String.STAR })
+    if (eTagNoneMatch.isNotNullOrEmpty && eTagNoneMatch.any { (it - Char.QUOTATION_MARK) == eTag || it == String.STAR })
         status = HttpStatus.NotModified
-    if (!eTagNoneMatch && ifModifiedSince.isNotNull() && lastModifiedDate.isNotNull() && !lastModifiedDate.isAfter(ifModifiedSince))
+    if (!eTagNoneMatch && ifModifiedSince.isNotNull && lastModifiedDate.isNotNull && !lastModifiedDate.isAfter(ifModifiedSince))
         status = HttpStatus.NotModified
 
 
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
-    if (expires.isNotNull()) response.expires(expires)
+    if (expires.isNotNull) response.expires(expires)
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
-    if (lastModifiedDate.isNotNull()) response.lastModified(lastModifiedDate.toInstant())
+    if (refresh.isNotNull) response.refresh(refresh)
+    if (lastModifiedDate.isNotNull) response.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NotModified) return response.buildAndAwait()
     return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
@@ -167,18 +167,18 @@ suspend inline fun <reified T : Any> conditionalGet(
 ): Response {
     val eTagNoneMatch = request.ifNoneMatch()
     val ifModifiedSince = request.ifModifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagNoneMatch.isEmpty() && ifModifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagNoneMatch.isEmpty() && ifModifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
     var status = status
     var body: T? = null
-    val eTag = if (resourceETag.isNotNullOrBlank()) resourceETag - Char.QUOTATION_MARK else {
+    val eTag = if (resourceETag.isNotNullOrBlank) resourceETag - Char.QUOTATION_MARK else {
         body = body()
         body.eTag
     }
-    if (eTagNoneMatch.isNotNullOrEmpty() && eTagNoneMatch.any { (it - Char.QUOTATION_MARK) == eTag || it == String.STAR  })
+    if (eTagNoneMatch.isNotNullOrEmpty && eTagNoneMatch.any { (it - Char.QUOTATION_MARK) == eTag || it == String.STAR  })
         status = HttpStatus.NotModified
-    if (!eTagNoneMatch && ifModifiedSince.isNotNull() && lastModifiedDate.isNotNull() && !lastModifiedDate.isAfter(ifModifiedSince))
+    if (!eTagNoneMatch && ifModifiedSince.isNotNull && lastModifiedDate.isNotNull && !lastModifiedDate.isAfter(ifModifiedSince))
         status = HttpStatus.NotModified
 
 
@@ -186,10 +186,10 @@ suspend inline fun <reified T : Any> conditionalGet(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (expires.isNotNull()) response.expires(expires)
+    if (expires.isNotNull) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
-    if (lastModifiedDate.isNotNull()) response.lastModified(lastModifiedDate.toInstant())
+    if (refresh.isNotNull) response.refresh(refresh)
+    if (lastModifiedDate.isNotNull) response.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (status == HttpStatus.NotModified) return response.buildAndAwait()
     return response.eTag(eTag).negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body ?: body())
@@ -245,17 +245,17 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousValue.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         val previousValue = previousValue()
-        if (previousValue.isNotNull()) {
+        if (previousValue.isNotNull) {
             val eTag = previousValue.eTag
             if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     val body = body()
@@ -263,11 +263,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (expires.isNotNull()) response.expires(expires)
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
+    if (expires.isNotNull) response.expires(expires)
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
     return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
@@ -322,13 +322,13 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousETag.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     val body = body()
@@ -337,10 +337,10 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (expires.isNotNull()) response.expires(expires)
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
+    if (expires.isNotNull) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
     return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
@@ -395,17 +395,17 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousValue.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         val previousValue = previousValue()
-        if (previousValue.isNotNull()) {
+        if (previousValue.isNotNull) {
             val eTag = previousValue.eTag
             if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     val body = body()
@@ -413,11 +413,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (expires.isNotNull()) response.expires(expires)
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
+    if (expires.isNotNull) response.expires(expires)
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
     return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
@@ -471,13 +471,13 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousETag.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     val body = body()
@@ -485,11 +485,11 @@ suspend inline fun <T : Any, reified R : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
-    if (expires.isNotNull()) response.expires(expires)
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
+    if (expires.isNotNull) response.expires(expires)
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     if (body !is Unit) response.eTag(body.eTag)
     return response.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), body)
@@ -535,17 +535,17 @@ suspend fun <T : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousValue.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         val previousValue = previousValue()
-        if (previousValue.isNotNull()) {
+        if (previousValue.isNotNull) {
             val eTag = previousValue.eTag
             if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     action?.invoke()
@@ -553,10 +553,10 @@ suspend fun <T : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.buildAndAwait()
 }
@@ -601,13 +601,13 @@ suspend fun <T : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousETag.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     action?.invoke()
@@ -615,10 +615,10 @@ suspend fun <T : Any> conditionalUpdate(
     val response = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) response.featureCode()
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.buildAndAwait()
 }
@@ -664,17 +664,17 @@ suspend fun <T : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousValue.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousValue.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         val previousValue = previousValue()
-        if (previousValue.isNotNull()) {
+        if (previousValue.isNotNull) {
             val eTag = previousValue.eTag
             if (eTag !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
                 throw lazyException()
         }
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     action?.invoke()
@@ -683,9 +683,9 @@ suspend fun <T : Any> conditionalUpdate(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.buildAndAwait()
 }
@@ -731,13 +731,13 @@ suspend fun <T : Any> conditionalUpdate(
 ): Response {
     val eTagIfMatch = request.ifMatch()
     val ifUnmodifiedSince = request.ifUnmodifiedSince()?.toOffsetDateTime()
-    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull())
+    if (requireAtLeastOneValidator && eTagIfMatch.isEmpty() && ifUnmodifiedSince.isNull)
         throw lazyExceptionIfNotPresent()
 
-    if (previousETag.isNotNull() && eTagIfMatch.isNotNullOrEmpty()) {
+    if (previousETag.isNotNull && eTagIfMatch.isNotNullOrEmpty) {
         if (previousETag - Char.QUOTATION_MARK !in eTagIfMatch.map { it - Char.QUOTATION_MARK })
             throw lazyException()
-    } else if (previousLastModifiedDate.isNotNull() && ifUnmodifiedSince.isNotNull() && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
+    } else if (previousLastModifiedDate.isNotNull && ifUnmodifiedSince.isNotNull && previousLastModifiedDate.isAfter(ifUnmodifiedSince))
         throw lazyException()
 
     action?.invoke()
@@ -746,9 +746,9 @@ suspend fun <T : Any> conditionalUpdate(
     if (headers.isNotEmpty()) response.headers { it.addAll(headers.toSpringHttpHeaders()) }
     response.featureCode(featureCode)
     if (includeRequestId) response.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (newLastModifiedDate.isNotNull()) response.lastModified(newLastModifiedDate.toInstant())
+    if (newLastModifiedDate.isNotNull) response.lastModified(newLastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) response.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) response.refresh(refresh)
+    if (refresh.isNotNull) response.refresh(refresh)
     if (serverTiming.isNotEmpty()) response.serverTiming(*serverTiming.toTypedArray())
     return response.buildAndAwait()
 }
@@ -785,17 +785,17 @@ suspend fun EmptyResponse(
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
-    if (action.isNotNull())
+    if (action.isNotNull)
         action()
 
     val re = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (includeFeatureCode) re.featureCode()
-    if (eTag.isNotNull()) re.eTag(eTag)
-    if (lastModified.isNotNull()) re.lastModified(lastModified.toInstant())
+    if (eTag.isNotNull) re.eTag(eTag)
+    if (lastModified.isNotNull) re.lastModified(lastModified.toInstant())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.buildAndAwait()
 }
@@ -827,17 +827,17 @@ suspend fun EmptyResponse(
     headers: HttpHeaders = HttpHeaders(),
     action: Action? = null
 ): Response {
-    if (action.isNotNull())
+    if (action.isNotNull)
         action()
 
     val re = Response.status(status.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
-    if (eTag.isNotNull()) re.eTag(eTag)
+    if (eTag.isNotNull) re.eTag(eTag)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.buildAndAwait()
 }
@@ -877,16 +877,16 @@ suspend inline fun <reified T : Any> OKResponse(
 ): Response {
     val re = Response.status(HttpStatus.Ok.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -924,14 +924,14 @@ suspend inline fun <reified T : Any> OKResponse(
     val result = body?.invoke()
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -969,22 +969,22 @@ suspend inline fun <reified T : Any> CreatedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
-    includeBody: Boolean = location.isNull(),
+    includeBody: Boolean = location.isNull,
     noinline body: Supplier<T>? = null
 ): Response {
     val re = Response.status(HttpStatus.Created.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (location.isNotNull()) re.location(location)
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (location.isNotNull) re.location(location)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (result.isNotNull && includeBody) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1019,22 +1019,22 @@ suspend inline fun <reified T : Any> CreatedResponse(
     serverTiming: Set<Triple<String, Duration, String?>> = emptySet(),
     contentType: MediaType? = null,
     headers: HttpHeaders = HttpHeaders(),
-    includeBody: Boolean = location.isNull(),
+    includeBody: Boolean = location.isNull,
     noinline body: Supplier<T>? = null
 ): Response {
     val re = Response.status(HttpStatus.Created.toSpringHttpStatus())
     val result = body?.invoke()
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (location.isNotNull()) re.location(location)
-    if (expires.isNotNull()) re.expires(expires)
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (location.isNotNull) re.location(location)
+    if (expires.isNotNull) re.expires(expires)
     if (includeRequestId) re.header("Request-Id", requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull() && includeBody) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (result.isNotNull && includeBody) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -1077,14 +1077,14 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1122,14 +1122,14 @@ suspend inline fun <reified T : Any> AcceptedResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
     val result = body?.invoke()
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -1167,12 +1167,12 @@ suspend fun ResetContentResponse(
     val re = Response.status(HttpStatus.ResetContent.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
-    if (eTag.isNotNull()) re.eTag(eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (eTag.isNotNull) re.eTag(eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.buildAndAwait()
 }
@@ -1210,13 +1210,13 @@ suspend fun ResetContentResponse(
     val re = Response.status(HttpStatus.ResetContent.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (eTag.isNotNull()) re.eTag(eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (eTag.isNotNull) re.eTag(eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
     return re.buildAndAwait()
 }
 
@@ -1268,19 +1268,19 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
     val result = body?.invoke()
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.contentType(contentType)
     re.contentLength((contentLength convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toLong())
-    re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
-    if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
+    re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull) "/${contentRange.second}" else String.EMPTY}"))
+    if (contentDisposition.isNotNull) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType.toSpringMediaType().asSingleList(), result)
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType.toSpringMediaType().asSingleList(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1327,20 +1327,20 @@ suspend inline fun <reified T : Any> PartialContentResponse(
     val re = Response.status(HttpStatus.PartialContent.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     val result = body?.invoke()
-    if (includeETag && result.isNotNull()) re.eTag(result.eTag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
+    if (includeETag && result.isNotNull) re.eTag(result.eTag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.contentType(contentType)
     re.contentLength((contentLength convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toLong())
-    re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull()) "/${contentRange.second}" else String.EMPTY}"))
-    if (contentDisposition.isNotNull()) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
+    re.header(HttpHeader(HttpHeader.CONTENT_RANGE, "bytes ${contentRange.first.first}-${contentRange.first.last}${if (contentRange.second.isNotNull) "/${contentRange.second}" else String.EMPTY}"))
+    if (contentDisposition.isNotNull) re.header(HttpHeader(HttpHeader.CONTENT_DISPOSITION, contentDisposition))
     if (includeAcceptRanges) re.header(HttpHeader(HttpHeader.ACCEPT_RANGES, "bytes"))
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType.toSpringMediaType().asSingleList(), result)
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType.toSpringMediaType().asSingleList(), result)
     return re.buildAndAwait()
 }
 
@@ -1380,7 +1380,7 @@ suspend fun MultiStatusResponse(
     if (includeFeatureCode) re.featureCode()
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), when(responseType) {
         MultiStatusResponseType.WebdavXml -> generateMultiStatusXML(resources, httpVersion.notation)
@@ -1423,7 +1423,7 @@ suspend fun MultiStatusResponse(
     re.featureCode(featureCode)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), when(responseType) {
         MultiStatusResponseType.WebdavXml -> generateMultiStatusXML(resources, httpVersion.notation)
@@ -1439,7 +1439,7 @@ internal fun generateMultiStatusMap(results: List<ResourceResult>, httpVersion: 
         val map: DataMMap = emptyMMap()
         map["reference"] = result.reference
         map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value + Char.SPACE + result.statusCode.reasonPhrase
-        if (result.properties.isNotNullOrEmpty()) map["properties"] = result.properties
+        if (result.properties.isNotNullOrEmpty) map["properties"] = result.properties
         list += map
     }
     return list
@@ -1451,7 +1451,7 @@ internal fun generateMultiStatusGroupedMap(results: List<ResourceResult>, httpVe
             val map: DataMMap = emptyMMap()
             map["reference"] = result.reference
             map["status"] = "HTTP/" + httpVersion.substringAfter("HTTP/") + Char.SPACE + result.statusCode.value + Char.SPACE + result.statusCode.reasonPhrase
-            if (result.properties.isNotNullOrEmpty()) map["properties"] = result.properties
+            if (result.properties.isNotNullOrEmpty) map["properties"] = result.properties
             map
         }
     }
@@ -1538,15 +1538,15 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     val re = Response.status(HttpStatus.ImUsed.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeFeatureCode) re.featureCode()
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
-    if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (newETag.isNotNullOrEmpty) re.eTag(newETag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 /**
@@ -1584,15 +1584,15 @@ suspend inline fun <reified T : Any> IMUsedResponse(
     val re = Response.status(HttpStatus.ImUsed.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     re.featureCode(featureCode)
-    if (expires.isNotNull()) re.expires(expires)
+    if (expires.isNotNull) re.expires(expires)
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (refresh.isNotNull()) re.refresh(refresh)
+    if (refresh.isNotNull) re.refresh(refresh)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     val result = body?.invoke()
-    if (newETag.isNotNullOrEmpty()) re.eTag(newETag)
-    if (lastModifiedDate.isNotNull()) re.lastModified(lastModifiedDate.toInstant())
-    if (result.isNotNull()) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
+    if (newETag.isNotNullOrEmpty) re.eTag(newETag)
+    if (lastModifiedDate.isNotNull) re.lastModified(lastModifiedDate.toInstant())
+    if (result.isNotNull) return re.negotiateBodyValueWithTypeAndAwait(contentType?.toSpringMediaType()?.asSingleList() ?: request.headers().accept(), result)
     return re.buildAndAwait()
 }
 
@@ -1631,8 +1631,8 @@ suspend fun SeeOtherResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -1665,8 +1665,8 @@ suspend fun SeeOtherResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -1706,7 +1706,7 @@ suspend fun SeeOtherResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -1740,7 +1740,7 @@ suspend fun SeeOtherResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -1776,8 +1776,8 @@ suspend fun FoundResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -1810,8 +1810,8 @@ suspend fun FoundResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -1848,7 +1848,7 @@ suspend fun FoundResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -1882,7 +1882,7 @@ suspend fun FoundResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -1918,8 +1918,8 @@ suspend fun MovedPermanentlyResponse(
     re.location(location)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -1948,9 +1948,9 @@ suspend fun MovedPermanentlyResponse(
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
     re.featureCode(featureCode).location(location)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -1986,7 +1986,7 @@ suspend fun MovedPermanentlyResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2017,7 +2017,7 @@ suspend fun MovedPermanentlyResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -2057,8 +2057,8 @@ suspend fun PermanentRedirectResponse(
     if (includeFeatureCode) re.featureCode()
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2088,8 +2088,8 @@ suspend fun PermanentRedirectResponse(
     re.featureCode(featureCode).location(location)
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2129,7 +2129,7 @@ suspend fun PermanentRedirectResponse(
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2160,7 +2160,7 @@ suspend fun PermanentRedirectResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -2196,8 +2196,8 @@ suspend fun TemporaryRedirectResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2230,8 +2230,8 @@ suspend fun TemporaryRedirectResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (retryAfter.isNotNull()) re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (retryAfter.isNotNull) re.retryAfter(retryAfter)
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2267,7 +2267,7 @@ suspend fun TemporaryRedirectResponse(
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2301,7 +2301,7 @@ suspend fun TemporaryRedirectResponse(
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
     re.retryAfter(retryAfter)
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -2334,13 +2334,13 @@ suspend fun NotModifiedResponse(
 ): Response {
     val re = Response.status(HttpStatus.NotModified.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
-    if (eTag.isNotNull()) re.eTag(eTag)
-    if (expires.isNotNull()) re.expires(expires)
+    if (eTag.isNotNull) re.eTag(eTag)
+    if (expires.isNotNull) re.expires(expires)
     if (includeFeatureCode) re.featureCode()
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 /**
@@ -2372,13 +2372,13 @@ suspend fun NotModifiedResponse(
 ): Response {
     val re = Response.status(HttpStatus.NotModified.toSpringHttpStatus())
     if (headers.isNotEmpty()) re.headers { it.addAll(headers.toSpringHttpHeaders()) }
-    if (eTag.isNotNull()) re.eTag(eTag)
-    if (expires.isNotNull()) re.expires(expires)
+    if (eTag.isNotNull) re.eTag(eTag)
+    if (expires.isNotNull) re.expires(expires)
     re.featureCode(featureCode)
     if (includeRequestId) re.header(HttpHeader.REQUEST_ID, requestId().toString())
     if (preferenceApplied.isNotEmpty()) re.preferenceApplied(*preferenceApplied.toTypedArray())
     if (serverTiming.isNotEmpty()) re.serverTiming(*serverTiming.toTypedArray())
-    if (action.isNotNull()) action()
+    if (action.isNotNull) action()
     return re.buildAndAwait()
 }
 
@@ -2575,7 +2575,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Pair<String, Nu
  */
 @OptIn(RiskyApproximationOfTemporal::class)
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, Duration, String?>): ServerResponse.BodyBuilder =
-    header("Server-Timing", timingMetric.joinToString(", ") { "${it.first};dur=${it.second.toMillis()}" + if (it.third.isNotNull()) ";desc=${it.third}" else "" })
+    header("Server-Timing", timingMetric.joinToString(", ") { "${it.first};dur=${it.second.toMillis()}" + if (it.third.isNotNull) ";desc=${it.third}" else "" })
 /**
  * Adds a `Server-Timing` header to the response with the provided timing metrics.
  *
@@ -2591,7 +2591,7 @@ fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, 
  */
 @JvmName("serverTimingNumberDuration")
 fun ServerResponse.BodyBuilder.serverTiming(vararg timingMetric: Triple<String, Number, String?>): ServerResponse.BodyBuilder =
-    header("Server-Timing", timingMetric.joinToString(", ") { "${it.first};dur=${it.second}" + if (it.third.isNotNull()) ";desc=${it.third}" else "" })
+    header("Server-Timing", timingMetric.joinToString(", ") { "${it.first};dur=${it.second}" + if (it.third.isNotNull) ";desc=${it.third}" else "" })
 
 /**
  * Adds a custom HTTP header to the response.

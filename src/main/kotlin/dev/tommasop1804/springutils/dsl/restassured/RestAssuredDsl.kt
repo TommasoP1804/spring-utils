@@ -154,7 +154,7 @@ class TypedTestRoute<T : Any> @PublishedApi internal constructor(
         val request = RestAssured.given().applySpec(execSpec).`when`()
 
         if (method in listOf(HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Delete)
-            && execSpec.body.isNotNull()
+            && execSpec.body.isNotNull
         ) log(LogLevel.Warn, "Request body will be ignored for $method")
 
         val response = when (method) {
@@ -175,7 +175,7 @@ class TypedTestRoute<T : Any> @PublishedApi internal constructor(
             returnType
         )
 
-        if (execSpec.autoStatusValidation.isNotNull() && result.status.isError) {
+        if (execSpec.autoStatusValidation.isNotNull && result.status.isError) {
             throw when (val exception = execSpec.autoStatusValidation!!()) {
                 is PlaceholderException -> {
                     val effectiveException = ExternalServiceHttpException(
@@ -185,8 +185,8 @@ class TypedTestRoute<T : Any> @PublishedApi internal constructor(
                         method = method,
                         errorMessage = exception.mes,
                         internalErrorCode = exception.internalErrorCode,
-                    ).let { if (exception.causedBy.isNotNull()) it.initCause(exception.causedBy) else it }
-                    if (exception.causeOf.isNotNull()) exception.causeOf.initCause(effectiveException) else effectiveException
+                    ).let { if (exception.causedBy.isNotNull) it.initCause(exception.causedBy) else it }
+                    if (exception.causeOf.isNotNull) exception.causeOf.initCause(effectiveException) else effectiveException
                 }
 
                 else -> exception
@@ -919,9 +919,9 @@ private fun buildUri(pathTemplate: String, spec: TestReqSpec): String {
     val builder = org.springframework.web.util.UriComponentsBuilder.fromUriString(expandedPath)
     spec.queryParams.forEach { (key, value) ->
         when (value) {
-            is Collection<*> -> value.forEach { if (it.isNotNull()) builder.queryParam(key, it) }
-            is Array<*> -> value.forEach { if (it.isNotNull()) builder.queryParam(key, it) }
-            else -> if (value.isNotNull()) builder.queryParam(key, value)
+            is Collection<*> -> value.forEach { if (it.isNotNull) builder.queryParam(key, it) }
+            is Array<*> -> value.forEach { if (it.isNotNull) builder.queryParam(key, it) }
+            else -> if (value.isNotNull) builder.queryParam(key, value)
         }
     }
 
@@ -937,7 +937,7 @@ private fun RequestSpecification.applySpec(spec: TestReqSpec): RequestSpecificat
     spec.port?.let { port(it) }
 
     spec.headers.forEach { [name, values] ->
-        header(name, values.first(), *(-1)(values).toTypedArray())
+        header(name, values.first(), *values.drop(1).toTypedArray())
     }
 
     spec.cookies.forEach { (key, value) ->
@@ -948,28 +948,28 @@ private fun RequestSpecification.applySpec(spec: TestReqSpec): RequestSpecificat
         when (value) {
             is Collection<*> -> formParam(key, *value.toTypedArray())
             is Array<*> -> formParam(key, *value)
-            else -> if (value.isNotNull()) formParam(key, value)
+            else -> if (value.isNotNull) formParam(key, value)
         }
     }
 
     spec.multiParts.forEach {
         when (it.content) {
             is File -> {
-                if (it.controlName.isNotNull()) multiPart(it.controlName, it.content, it.mimeType.toString())
+                if (it.controlName.isNotNull) multiPart(it.controlName, it.content, it.mimeType.toString())
                 else multiPart(it.content)
             }
             is String -> multiPart(it.controlName, it.content, it.mimeType.toString())
             is ByteArray -> multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
             is InputStream -> multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
             else -> {
-                if (it.fileName.isNotNull()) multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
+                if (it.fileName.isNotNull) multiPart(it.controlName, it.fileName, it.content, it.mimeType.toString())
                 else multiPart(it.controlName, it.content, it.mimeType.toString())
             }
         }
     }
 
     spec.body?.let {
-        if (spec.contentType.isNull()) contentType(MediaType.APPLICATION_JSON.toString())
+        if (spec.contentType.isNull) contentType(MediaType.APPLICATION_JSON.toString())
         when (it) {
             is String -> body(it)
             is ByteArray -> body(it)

@@ -488,10 +488,10 @@ inline operator fun <reified T : Any, R> JpaRepository<T, *>.invoke(vararg searc
         property.javaField?.apply { isAccessible = true; set(probe, value) }
             ?: throw PropertyNotAccessibleException("Property ${property.name} is not accessible.")
     }
-    val nullValues = search.filter { it.second.isNull() }
+    val nullValues = search.filter { it.second.isNull }
     val list = findAll(Example.of(probe))
     if (nullValues.isEmpty()) return list
-    list.removeIf { e -> nullValues.any { e.getPropertyValue<T, Any?>(it.first.name).isNotNull() } }
+    list.removeIf { e -> nullValues.any { e.getPropertyValue<T, Any?>(it.first.name).isNotNull } }
     return list
 }
 
@@ -522,7 +522,7 @@ inline fun <reified T : Any, R> JpaRepository<T, *>.count(vararg search: Pair<KP
         property.javaField?.apply { isAccessible = true; set(probe, value) }
             ?: throw PropertyNotAccessibleException("Property ${property.name} is not accessible.")
     }
-    val nullValues = search.filter { it.second.isNull() }
+    val nullValues = search.filter { it.second.isNull }
     return if (nullValues.isEmpty()) count(Example.of(probe))
     else invoke(*search).size.toLong()
 }

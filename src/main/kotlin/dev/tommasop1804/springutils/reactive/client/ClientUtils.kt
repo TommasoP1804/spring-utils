@@ -28,7 +28,6 @@ import org.springframework.web.reactive.function.client.*
 import reactor.core.publisher.Mono
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.databind.module.SimpleModule
-import kotlin.collections.addAll
 
 class JsonSupportingDecoder(mapper: JsonMapper) : JacksonJsonDecoder(mapper) {
     override fun canDecode(
@@ -89,7 +88,7 @@ fun WebClient(
     maxInMemorySize: DataSize? = null,
 ) = WebClient.builder()
     .also {
-        if (baseUrl.isNotNull()) it.baseUrl(baseUrl)
+        if (baseUrl.isNotNull) it.baseUrl(baseUrl)
     }.defaultStatusHandler(statusHandler.first, statusHandler.second)
     .contentType(contentType)
     .accept(accept)
@@ -100,25 +99,25 @@ fun WebClient(
                 addDeserializer(Json::class.java, Companion.Deserializer())
             })
             .build()!!
-        if (maxInMemorySize.isNotNull()) it.defaultCodecs().maxInMemorySize((maxInMemorySize convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toInt())
+        if (maxInMemorySize.isNotNull) it.defaultCodecs().maxInMemorySize((maxInMemorySize convertTo MeasureUnit.DataSizeUnit.BYTES)().value.toInt())
         it.defaultCodecs().jacksonJsonEncoder(JacksonJsonEncoder(mapper))
         it.defaultCodecs().jacksonJsonDecoder(JacksonJsonDecoder(mapper))
         it.defaultCodecs().jacksonJsonDecoder(JsonSupportingDecoder(mapper))
     }.also { builder ->
-        if (fromService.isNotNull()) builder.fromService(fromService)
-        if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
-        if (apiVersionInserter.isNotNull()) builder.apiVersionInserter(apiVersionInserter)
-        if (defaultApiVersion.isNotNull()) builder.defaultApiVersion(defaultApiVersion)
+        if (fromService.isNotNull) builder.fromService(fromService)
+        if (defaultHeaders.isNotNull) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
+        if (apiVersionInserter.isNotNull) builder.apiVersionInserter(apiVersionInserter)
+        if (defaultApiVersion.isNotNull) builder.defaultApiVersion(defaultApiVersion)
         if (defaultUriVariables.isNotEmpty()) builder.defaultUriVariables(defaultUriVariables)
         if (defaultFilters.isNotEmpty()) builder.filters { it.addAll(defaultFilters) }
         if (defaultCookies.isNotEmpty()) builder.defaultCookies { it.addAll(defaultCookies.toMultiValueMap()) }
-        if (defaultRequest.isNotNull()) builder.defaultRequest(defaultRequest)
-        if (clientConnector.isNotNull()) builder.clientConnector(clientConnector)
-        if (codecs.isNotNull()) builder.codecs(codecs)
-        if (exchangeStrategies.isNotNull()) builder.exchangeStrategies(exchangeStrategies)
-        if (exchangeFunction.isNotNull()) builder.exchangeFunction(exchangeFunction)
-        if (observationRegistry.isNotNull()) builder.observationRegistry(observationRegistry)
-        if (observationConvention.isNotNull()) builder.observationConvention(observationConvention)
+        if (defaultRequest.isNotNull) builder.defaultRequest(defaultRequest)
+        if (clientConnector.isNotNull) builder.clientConnector(clientConnector)
+        if (codecs.isNotNull) builder.codecs(codecs)
+        if (exchangeStrategies.isNotNull) builder.exchangeStrategies(exchangeStrategies)
+        if (exchangeFunction.isNotNull) builder.exchangeFunction(exchangeFunction)
+        if (observationRegistry.isNotNull) builder.observationRegistry(observationRegistry)
+        if (observationConvention.isNotNull) builder.observationConvention(observationConvention)
     }.build()
 
 /**

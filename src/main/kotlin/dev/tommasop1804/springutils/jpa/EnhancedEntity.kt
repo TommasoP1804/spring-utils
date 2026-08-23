@@ -123,7 +123,7 @@ abstract class EnhancedEntity<T : EnhancedEntity<T, ID>, ID : Any> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is EnhancedEntity<T, ID>) return false
-        return _getId().isNotNull() && _getId() == other._getId()
+        return _getId().isNotNull && _getId() == other._getId()
     }
 
     /**

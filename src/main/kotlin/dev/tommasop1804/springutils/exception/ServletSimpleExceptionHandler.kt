@@ -69,7 +69,7 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
             e.message?.before(" @@@ ")?.ifBlank { null } ?: internalCode
         ), HttpHeaders().apply {
             val featureCode = findFeatureCode()
-            if (featureCode.isNotNullOrBlank())
+            if (featureCode.isNotNullOrBlank)
                 put("Feature-Code", featureCode.asSingleList())
             requestId.ifNotNull {
                 if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -88,13 +88,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         val cause = ex.mostSpecificCause
         val mismatch = ex.cause as? DatabindException
 
-        val isMissing = mismatch.isNotNull() && cause is MismatchedInputException
+        val isMissing = mismatch.isNotNull && cause is MismatchedInputException
         val path = mismatch?.path?.joinToString(".") {
             val className = when (val from = it.from()) {
                 is Class<*> -> from.kotlin.simpleName
                 else -> from?.javaClass?.kotlin?.simpleName
             }.orEmpty()
-            $$"$$className$${if (it.propertyName.isNotNull()) "$" else ""}$${it.propertyName.orEmpty()}"
+            $$"$$className$${if (it.propertyName.isNotNull) "$" else ""}$${it.propertyName.orEmpty()}"
         }
         val detail = if (isMissing) {
             $$"Missing required property: $$path"
@@ -112,22 +112,22 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
                     }
                 }?.code
         }
-        if (internalCode.isNull()) internalCode = environment
+        if (internalCode.isNull) internalCode = environment
             .getProperty("spring-utils.exceptions.internal-error-code.${cause::class.simpleName}")
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
-            ?: (if (isMissing) environment.getProperty("spring-utils.exceptions.internal-error-code.missing-property") else null)
+                    ?: (if (isMissing) environment.getProperty("spring-utils.exceptions.internal-error-code.missing-property") else null)
 
         val requestId = RequestIdProvider.requestId
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = httpStatus.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = httpStatus.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = detail,
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -153,13 +153,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = $$"Missing path variable: $${ex.variableName} (`$${ex.parameter.containingClass.simpleName}.$${ex.parameter.method?.name}$$${ex.parameter.parameterName}` of type `$${ex.parameter.parameterType.simpleName}`)",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -182,18 +182,18 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         val status = HttpStatus.valueOf(ex.statusCode.value())
 
         val methodParameter = ex.methodParameter
-        val methodParameterPresent = ex.methodParameter.isNotNull()
+        val methodParameterPresent = ex.methodParameter.isNotNull
         val requestId = RequestIdProvider.requestId
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = $$"Missing request param: $${ex.parameterName}$${if (methodParameterPresent) " (`${methodParameter!!.containingClass.simpleName}.${methodParameter.method?.name}$${methodParameter.parameterName}` of type `${methodParameter.parameterType.simpleName}`)" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -219,13 +219,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = $$"Missing request part: $${ex.requestPartName}",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -251,13 +251,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
-                description = "HTTP method not supported: ${ex.method}${if (ex.supportedMethods.isNotNull() && ex.supportedMethods!!.isNotEmpty()) ". Choose one of [${ex.supportedMethods!!.joinToString(", ")}]" else String.EMPTY}",
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
+                description = "HTTP method not supported: ${ex.method}${if (ex.supportedMethods.isNotNull && ex.supportedMethods!!.isNotEmpty()) ". Choose one of [${ex.supportedMethods!!.joinToString(", ")}]" else String.EMPTY}",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -283,13 +283,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "HTTP media type not supported: ${ex.contentType}. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -315,13 +315,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "HTTP media type not acceptable. Choose one of [${ex.supportedMediaTypes.joinToString(", ")}]",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -347,13 +347,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Invalid parameter: ${ex.parameter} ${" (`${ex.parameter.containingClass.simpleName}.${ex.parameter.method?.name}$${ex.parameter.parameterName}` of type `${ex.parameter.parameterType.simpleName}`)"}" + ex.bindingResult.fieldErrors.joinToString(", ") { "; Invalid value for field '${it.field}': ${it.defaultMessage}" },
                 internalErrorCode = internalErrorCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -379,13 +379,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Resource with this path not found: ${ex.resourcePath}",
                 internalErrorCode = internalErrorCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -411,13 +411,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Conversion not supported: ${ex.message}",
                 internalErrorCode = internalErrorCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -443,13 +443,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Type mismatch. Required `${ex.requiredType?.simpleName}`",
                 internalErrorCode = internalErrorCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -475,13 +475,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Maximum upload size exceeded. Allowed: ${(if (ex.maxUploadSize == -1L) "unknown number of" else ex.maxUploadSize)} bytes",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -507,13 +507,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Failed to write HTTP message. ${ex.message}",
                 internalErrorCode = internalCode
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -536,13 +536,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex::class.qualifiedName),
                 description = "Missing API version",
                 internalErrorCode = internalErrorCode,
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -565,13 +565,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex.cause!!::class.qualifiedName),
                 description = "Invalid API version `${ex.version}`",
                 internalErrorCode = internalErrorCode,
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())
@@ -594,13 +594,13 @@ class ServletSimpleExceptionHandler(private val environment: Environment) : Resp
         RequestIdProvider.requestIdThreadLocal.remove()
         return ResponseEntity(
             SimpleErrorResponse(
-                title = status.reasonPhrase + ": " + ex.cause.isNotNull()<String?>({ ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName }, { ex::class.simpleName ?: ex.cause!!::class.qualifiedName }),
+                title = status.reasonPhrase + ": " + if (ex.cause.isNotNull) (ex.cause!!::class.simpleName ?: ex.cause!!::class.qualifiedName) else (ex::class.simpleName ?: ex.cause!!::class.qualifiedName),
                 description = "API version `${ex.version}` is not acceptable",
                 internalErrorCode = internalErrorCode,
             ),
             HttpHeaders().apply {
                 val featureCode = findFeatureCode()
-                if (featureCode.isNotNullOrBlank())
+                if (featureCode.isNotNullOrBlank)
                     put("Feature-Code", featureCode.asSingleList())
                 requestId.ifNotNull {
                     if (environment.getProperty("spring-utils.exceptions.enable-request-id", "true").toBoolean())

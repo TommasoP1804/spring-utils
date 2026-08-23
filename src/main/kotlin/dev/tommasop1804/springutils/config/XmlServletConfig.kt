@@ -76,7 +76,7 @@ class XmlHttpMessageConverter : AbstractHttpMessageConverter<Any>(
         .withConfigOverride(LocalDate::class.java) { it.format = JsonFormat.Value.forPattern("yyyy-MM-dd") }
         .build()
 
-    override fun canWrite(clazz: Class<*>, mediaType: MediaType?) = mediaType.isNotNull() && supportedMediaTypes.any { it.includes(mediaType) }
+    override fun canWrite(clazz: Class<*>, mediaType: MediaType?) = mediaType.isNotNull && supportedMediaTypes.any { it.includes(mediaType) }
 
     override fun supports(clazz: Class<*>): Boolean = true
 

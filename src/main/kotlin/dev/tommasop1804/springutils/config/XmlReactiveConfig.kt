@@ -91,7 +91,7 @@ class XmlHttpMessageReader(private val xmlMapper: XmlMapper) : HttpMessageReader
     override fun getReadableMediaTypes(): List<MediaType> = XML_MEDIA_TYPES
 
     override fun canRead(elementType: ResolvableType, mediaType: MediaType?): Boolean =
-        mediaType.isNotNull() && XML_MEDIA_TYPES.any { it.includes(mediaType) }
+        mediaType.isNotNull && XML_MEDIA_TYPES.any { it.includes(mediaType) }
 
     override fun read(
         elementType: ResolvableType,
@@ -119,7 +119,7 @@ class XmlHttpMessageWriter(private val xmlMapper: XmlMapper) : HttpMessageWriter
     override fun getWritableMediaTypes(): List<MediaType> = XML_MEDIA_TYPES
 
     override fun canWrite(elementType: ResolvableType, mediaType: MediaType?): Boolean {
-        val result = mediaType.isNotNull() && XML_MEDIA_TYPES.any { it.includes(mediaType) }
+        val result = mediaType.isNotNull && XML_MEDIA_TYPES.any { it.includes(mediaType) }
         log(LogLevel.Debug, "`canWrite` mediaType=`$mediaType` result=`$result`")
         return result
     }

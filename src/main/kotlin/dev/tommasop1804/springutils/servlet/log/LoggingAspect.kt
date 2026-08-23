@@ -57,7 +57,7 @@ internal class LoggingAspect(
             val serviceValue: String? = request.getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
-            featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
+            featureCode.ifNotNull { RequestIdProvider.featureCode.set(it) }
 
             isAfterThrowing.set(false)
 
@@ -78,7 +78,7 @@ internal class LoggingAspect(
                     LogExecution.CustomMessage.Type.QueryParam -> request.getParameter(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
                     LogExecution.CustomMessage.Type.PathVariable -> {
                         val uriTemplate = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
-                        val pathVariables = if (uriTemplate.isNotNull()) {
+                        val pathVariables = if (uriTemplate.isNotNull) {
                             AntPathMatcher().extractUriTemplateVariables(uriTemplate, request.requestURI)
                         } else {
                             @Suppress("UNCHECKED_CAST")
@@ -86,7 +86,7 @@ internal class LoggingAspect(
                         }
                         pathVariables[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                     }
-                    LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
+                    LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) it.drop(1) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
                     LogExecution.CustomMessage.Type.Static -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                 }
             }
@@ -105,7 +105,7 @@ internal class LoggingAspect(
             val serviceValue: String? = request.getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
-            featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
+            featureCode.ifNotNull { RequestIdProvider.featureCode.set(it) }
 
             val compontents = annotation.run { exclude to includeOnly }
             val finalComponents = checkExcludeOrInclude(compontents.first, compontents.second)
@@ -120,7 +120,7 @@ internal class LoggingAspect(
                         LogExecution.CustomMessage.Type.QueryParam -> request.getParameter(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
                         LogExecution.CustomMessage.Type.PathVariable -> {
                             val uriTemplate = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
-                            val pathVariables = if (uriTemplate.isNotNull()) {
+                            val pathVariables = if (uriTemplate.isNotNull) {
                                 AntPathMatcher().extractUriTemplateVariables(uriTemplate, request.requestURI)
                             } else {
                                 @Suppress("UNCHECKED_CAST")
@@ -128,7 +128,7 @@ internal class LoggingAspect(
                             }
                             pathVariables[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                         }
-                        LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
+                        LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) it.drop(1) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
                         LogExecution.CustomMessage.Type.Static -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                     }
                 }
@@ -151,12 +151,12 @@ internal class LoggingAspect(
             val serviceValue: String? = request.getHeader(HttpHeader.FROM_SERVICE)
             val featureCode =
                 (signature.method.annotations.find { it.annotationClass == Feature::class } as? Feature)?.code
-            featureCode.ifNotNull { RequestIdProvider.featureCode.set(this) }
+            featureCode.ifNotNull { RequestIdProvider.featureCode.set(it) }
 
             var [basePackage, includeHighlight] = annotation.run { basePackage.ifEmpty { null } to includeHighlight }
             if (!includeHighlight) basePackage = null
             else {
-                if (basePackage.isNull()) basePackage = tryOrNull {
+                if (basePackage.isNull) basePackage = tryOrNull {
                     signature.method.declaringClass.packageName.splitAndTrim(Char.DOT).run { "${first()}.${get(1)}" }
                 } ?: tryOr({
                     joinPoint.target.javaClass.packageName.splitAndTrim(Char.DOT).run { "${first()}.${get(0)}" }
@@ -178,7 +178,7 @@ internal class LoggingAspect(
                     LogExecution.CustomMessage.Type.QueryParam -> request.getParameter(cm.reference)?.let { customs += cm.key to applyAnsi(cm, it) }
                     LogExecution.CustomMessage.Type.PathVariable -> {
                         val uriTemplate = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) as? String
-                        val pathVariables = if (uriTemplate.isNotNull()) {
+                        val pathVariables = if (uriTemplate.isNotNull) {
                             AntPathMatcher().extractUriTemplateVariables(uriTemplate, request.requestURI)
                         } else {
                             @Suppress("UNCHECKED_CAST")
@@ -186,7 +186,7 @@ internal class LoggingAspect(
                         }
                         pathVariables[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                     }
-                    LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) (-1)(it) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
+                    LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) { customs += cm.key to applyAnsi(cm, request.requestURI.let { if (it startsWith Char.SLASH) it.drop(1) else it }.splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull() ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]) }
                     LogExecution.CustomMessage.Type.Static -> cm.reference.let { if (it.isNotBlank()) customs += cm.key to applyAnsi(cm, it) }
                 }
             }

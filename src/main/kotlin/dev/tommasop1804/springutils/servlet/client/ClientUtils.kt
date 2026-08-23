@@ -23,7 +23,6 @@ import org.springframework.http.client.observation.ClientRequestObservationConve
 import org.springframework.http.converter.HttpMessageConverters
 import org.springframework.web.client.ApiVersionInserter
 import org.springframework.web.client.RestClient
-import kotlin.collections.addAll
 
 /**
  * Constructs a new `RestClient` instance with customizable configuration parameters.
@@ -69,26 +68,26 @@ fun RestClient(
     observationConvention: ClientRequestObservationConvention? = null
 ) = RestClient.builder()
     .also {
-        if (baseUrl.isNotNull()) it.baseUrl(baseUrl)
+        if (baseUrl.isNotNull) it.baseUrl(baseUrl)
     }
     .contentType(contentType)
     .accept(accept)
     .also { builder ->
-        if (fromService.isNotNull()) builder.fromService(fromService)
-        if (defaultHeaders.isNotNull()) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
-        if (apiVersionInserter.isNotNull()) builder.apiVersionInserter(apiVersionInserter)
-        if (defaultApiVersion.isNotNull()) builder.defaultApiVersion(defaultApiVersion)
+        if (fromService.isNotNull) builder.fromService(fromService)
+        if (defaultHeaders.isNotNull) builder.defaultHeaders { it.addAll(defaultHeaders.toSpringHttpHeaders()) }
+        if (apiVersionInserter.isNotNull) builder.apiVersionInserter(apiVersionInserter)
+        if (defaultApiVersion.isNotNull) builder.defaultApiVersion(defaultApiVersion)
         if (defaultUriVariables.isNotEmpty()) builder.defaultUriVariables(defaultUriVariables)
         if (defaultCookies.isNotEmpty()) builder.defaultCookies { it.addAll(defaultCookies.toMultiValueMap()) }
-        if (defaultRequest.isNotNull()) builder.defaultRequest(defaultRequest)
-        if (requestInterceptors.isNotNull()) builder.requestInterceptors(requestInterceptors)
-        if (bufferContent.isNotNull()) builder.bufferContent(bufferContent)
-        if (requestInizializers.isNotNull()) builder.requestInitializers(requestInizializers)
-        if (messageConverters.isNotNull()) builder.configureMessageConverters(messageConverters)
-        if (observationRegistry.isNotNull()) builder.observationRegistry(observationRegistry)
-        if (observationConvention.isNotNull()) builder.observationConvention(observationConvention)
+        if (defaultRequest.isNotNull) builder.defaultRequest(defaultRequest)
+        if (requestInterceptors.isNotNull) builder.requestInterceptors(requestInterceptors)
+        if (bufferContent.isNotNull) builder.bufferContent(bufferContent)
+        if (requestInizializers.isNotNull) builder.requestInitializers(requestInizializers)
+        if (messageConverters.isNotNull) builder.configureMessageConverters(messageConverters)
+        if (observationRegistry.isNotNull) builder.observationRegistry(observationRegistry)
+        if (observationConvention.isNotNull) builder.observationConvention(observationConvention)
     }.run {
-        if (statusHandler.isNotNull()) defaultStatusHandler(statusHandler.first, statusHandler.second)
+        if (statusHandler.isNotNull) defaultStatusHandler(statusHandler.first, statusHandler.second)
         else defaultStatusHandler(HttpStatusCode::isError) { _, _ -> }
     }.build()
 

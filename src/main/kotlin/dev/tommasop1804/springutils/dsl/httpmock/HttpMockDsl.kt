@@ -1331,9 +1331,9 @@ object WireMockAdapter {
         if (req.queryParams.isNotEmpty()) {
             val qp = req.queryParams.entries.joinToString(",\n") { [k, v] ->
                 val matcher = when {
-                    v.equalTo.isNotNull() -> "\"equalTo\": \"${v.equalTo}\""
-                    v.contains.isNotNull() -> "\"contains\": \"${v.contains}\""
-                    v.matches.isNotNull() -> "\"matches\": \"${v.matches.pattern}\""
+                    v.equalTo.isNotNull -> "\"equalTo\": \"${v.equalTo}\""
+                    v.contains.isNotNull -> "\"contains\": \"${v.contains}\""
+                    v.matches.isNotNull -> "\"matches\": \"${v.matches.pattern}\""
                     v.absent -> "\"absent\": true"
                     else -> "\"equalTo\": \"\""
                 }

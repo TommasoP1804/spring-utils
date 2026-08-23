@@ -195,16 +195,16 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
 
         val request = when (this.method) {
             HttpMethod.Get -> client.get().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+                if (execSpec.body.isNotNull) log(LogLevel.Warn, "Request body will be ignored")
             }.apply { method = HttpMethod.Get }
             HttpMethod.Head -> client.head().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+                if (execSpec.body.isNotNull) log(LogLevel.Warn, "Request body will be ignored")
             }.apply { method = HttpMethod.Head }
             HttpMethod.Options -> client.options().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+                if (execSpec.body.isNotNull) log(LogLevel.Warn, "Request body will be ignored")
             }.apply { method = HttpMethod.Options }
             HttpMethod.Delete -> client.delete().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).apply {
-                if (execSpec.body.isNotNull()) log(LogLevel.Warn, "Request body will be ignored")
+                if (execSpec.body.isNotNull) log(LogLevel.Warn, "Request body will be ignored")
             }.apply { method = HttpMethod.Delete }
             HttpMethod.Post -> client.post().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Post }
             HttpMethod.Put -> client.put().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Put }
@@ -219,7 +219,7 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
             uri!!,
             method!!
         )
-        if (execSpec.autoStatusValidation.isNotNull() && result.status.isError) {
+        if (execSpec.autoStatusValidation.isNotNull && result.status.isError) {
             throw when (val exception = execSpec.autoStatusValidation!!()) {
                 is PlaceholderException -> {
                     val effectiveException = ExternalServiceHttpException(
@@ -229,8 +229,8 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
                         method = method,
                         errorMessage = exception.mes,
                         internalErrorCode = exception.internalErrorCode,
-                    ).let { if (exception.causedBy.isNotNull()) it.initCause(exception.causedBy) else it }
-                    if (exception.causeOf.isNotNull()) exception.causeOf.initCause(effectiveException) else effectiveException
+                    ).let { if (exception.causedBy.isNotNull) it.initCause(exception.causedBy) else it }
+                    if (exception.causeOf.isNotNull) exception.causeOf.initCause(effectiveException) else effectiveException
                 }
                 else -> exception
             }
@@ -851,9 +851,9 @@ internal fun buildUri(builder: org.springframework.web.util.UriBuilder, pathTemp
 
     spec.queryParams.forEach { (key, value) ->
         when (value) {
-            is Collection<*> -> value.forEach { if (it.isNotNull()) builder.queryParam(key, it) }
-            is Array<*> -> value.forEach { if (it.isNotNull()) builder.queryParam(key, it) }
-            else -> if (value.isNotNull()) builder.queryParam(key, value)
+            is Collection<*> -> value.forEach { if (it.isNotNull) builder.queryParam(key, it) }
+            is Array<*> -> value.forEach { if (it.isNotNull) builder.queryParam(key, it) }
+            else -> if (value.isNotNull) builder.queryParam(key, value)
         }
     }
 
@@ -869,7 +869,7 @@ internal fun buildUri(builder: org.springframework.web.util.UriBuilder, pathTemp
  */
 internal fun <S : RestClient.RequestHeadersSpec<S>> S.applyHeaders(spec: ReqSpec): S = apply {
     val autoAuthorizationHeader = spec.autoAuthorizationHeader
-    if (autoAuthorizationHeader.isNotNull() && autoAuthorizationHeader !in spec.headers) {
+    if (autoAuthorizationHeader.isNotNull && autoAuthorizationHeader !in spec.headers) {
         header(autoAuthorizationHeader, token(autoAuthorizationHeader).toString(true))
     }
     spec.headers.forEach { [name, values] ->
@@ -888,6 +888,6 @@ internal fun <S : RestClient.RequestHeadersSpec<S>> S.applyHeaders(spec: ReqSpec
  * @since 3.1.0
  */
 internal fun RestClient.RequestBodySpec.applyBody(spec: ReqSpec): RestClient.RequestBodySpec = apply {
-    if (spec.body.isNull()) return@apply
+    if (spec.body.isNull) return@apply
     body(spec.body!!)
 }

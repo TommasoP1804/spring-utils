@@ -73,7 +73,7 @@ class LogHandler(
                             LogExecution.CustomMessage.Type.PathVariable -> request.pathVariables()[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                             LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) {
                                 customs += cm.key to applyAnsi(cm, request.path()
-                                    .let { if (it startsWith Char.SLASH) (-1)(it) else it }
+                                    .let { if (it startsWith Char.SLASH) it.drop(1) else it }
                                     .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
                                     ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
                                 ) }
@@ -111,7 +111,7 @@ class LogHandler(
                             LogExecution.CustomMessage.Type.PathVariable -> request.pathVariables()[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                             LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) {
                                 customs += cm.key to applyAnsi(cm, request.path()
-                                    .let { if (it startsWith Char.SLASH) (-1)(it) else it }
+                                    .let { if (it startsWith Char.SLASH) it.drop(1) else it }
                                     .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
                                     ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
                                 ) }
@@ -154,7 +154,7 @@ class LogHandler(
                             LogExecution.CustomMessage.Type.PathVariable -> request.pathVariables()[cm.reference]?.let { customs += cm.key to applyAnsi(cm, it) }
                             LogExecution.CustomMessage.Type.PathIndex -> tryOr({}) {
                                 customs += cm.key to applyAnsi(cm, request.path()
-                                    .let { if (it startsWith Char.SLASH) (-1)(it) else it }
+                                    .let { if (it startsWith Char.SLASH) it.drop(1) else it }
                                     .splitAndTrim(Char.SLASH)[cm.reference.toIntOrNull()
                                     ?: throw ConfigurationException("Path index must be a number (got ${cm.reference}")]
                                 ) }

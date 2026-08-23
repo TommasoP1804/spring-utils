@@ -13,7 +13,7 @@ abstract class ResponseException : RuntimeException {
     internal abstract val status: HttpStatus
 
     constructor() : super()
-    constructor(message: String?, internalErrorCode: String? = null) : super((if (internalErrorCode.isNotNullOrBlank()) internalErrorCode.plus(" @@@ ") else String.EMPTY) + if (message.isNotNullOrBlank()) message else String.EMPTY)
-    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(if (internalErrorCode.isNotNullOrBlank()) internalErrorCode.plus(" @@@ ") else String.EMPTY, cause)
-    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super((if (internalErrorCode.isNotNullOrBlank()) internalErrorCode.plus(" @@@ ") else String.EMPTY) + if (message.isNotNullOrBlank()) message else String.EMPTY, cause)
+    constructor(message: String?, internalErrorCode: String? = null) : super((if (internalErrorCode.isNotNullOrBlank) internalErrorCode.plus(" @@@ ") else String.EMPTY) + if (message.isNotNullOrBlank) message else String.EMPTY)
+    constructor(cause: Throwable?, internalErrorCode: String? = null) : super(if (internalErrorCode.isNotNullOrBlank) internalErrorCode.plus(" @@@ ") else String.EMPTY, cause)
+    constructor(message: String?, cause: Throwable?, internalErrorCode: String? = null) : super((if (internalErrorCode.isNotNullOrBlank) internalErrorCode.plus(" @@@ ") else String.EMPTY) + if (message.isNotNullOrBlank) message else String.EMPTY, cause)
 }

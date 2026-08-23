@@ -50,10 +50,10 @@ fun ProblemDetail(
     extensions: DataMapNN = emptyMap()
 ): ExtendedProblemDetail {
     val result = ProblemDetail.forStatus(status)
-    if (title.isNotNull()) result.title = title
-    if (type.isNotNull()) result.type = type
-    if (detail.isNotNull()) result.detail = detail
-    if (instance.isNotNull()) result.instance = instance
+    if (title.isNotNull) result.title = title
+    if (type.isNotNull) result.type = type
+    if (detail.isNotNull) result.detail = detail
+    if (instance.isNotNull) result.instance = instance
     for ((key, value) in extensions) result.setProperty(key, value)
     return ExtendedProblemDetail(result, internalErrorCode, exception)
 }
@@ -82,10 +82,10 @@ fun ProblemDetail(
     extensions: DataMapNN = emptyMap()
 ): ExtendedProblemDetail {
     val result = ProblemDetail.forStatus(status)
-    if (title.isNotNull()) result.title = title
-    if (type.isNotNull()) result.type = type
-    if (detail.isNotNull()) result.detail = detail
-    if (instance.isNotNull()) result.instance = instance
+    if (title.isNotNull) result.title = title
+    if (type.isNotNull) result.type = type
+    if (detail.isNotNull) result.detail = detail
+    if (instance.isNotNull) result.instance = instance
     for ((key, value) in extensions) result.setProperty(key, value)
     return ExtendedProblemDetail(result, internalErrorCode, exception)
 }
@@ -106,7 +106,7 @@ internal fun findCallerMethod(): Method? = tryOrNull {
                 it.name == element.methodName
             }
 
-            if (method?.getAnnotation(Feature::class.java).isNotNull())
+            if (method?.getAnnotation(Feature::class.java).isNotNull)
                 return@tryOrNull method
         } catch (e: Exception) {
             continue

@@ -4,12 +4,8 @@
 
 package dev.tommasop1804.springutils.exception
 
-import dev.tommasop1804.kutils.QUOTATION_MARK
-import dev.tommasop1804.kutils.before
-import dev.tommasop1804.kutils.isNotNull
-import dev.tommasop1804.kutils.isNull
-import dev.tommasop1804.springutils.findCorrectException
-import dev.tommasop1804.springutils.getStatus
+import dev.tommasop1804.kutils.*
+import dev.tommasop1804.springutils.*
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.core.Ordered
@@ -80,7 +76,7 @@ class ReactiveSimpleExceptionHandler(
         val databindEx = findCause<DatabindException>(ex)
         val mismatchEx = findCause<MismatchedInputException>(ex)
 
-        val isMissing = mismatchEx.isNotNull()
+        val isMissing = mismatchEx.isNotNull
         val path = databindEx?.path?.joinToString(".") { ref ->
             val className = when (val from = ref.from()) {
                 is Class<*> -> from.kotlin.simpleName
@@ -88,7 +84,7 @@ class ReactiveSimpleExceptionHandler(
             }.orEmpty()
             buildString {
                 append(className)
-                if (ref.propertyName.isNotNull()) {
+                if (ref.propertyName.isNotNull) {
                     append(".")
                     append(ref.propertyName)
                 }
@@ -127,7 +123,7 @@ class ReactiveSimpleExceptionHandler(
                 append(reason)
             }
             val methodParam = ex.methodParameter
-            if (methodParam.isNotNull()) {
+            if (methodParam.isNotNull) {
                 append(" (`${methodParam.containingClass.simpleName}")
                 append(".${methodParam.method?.name}")
                 append(".${methodParam.parameterName}`")
@@ -279,14 +275,14 @@ class ReactiveSimpleExceptionHandler(
     )
 
     private fun resolveInternalErrorCode(key: String?): String? {
-        if (key.isNull()) return resolveInternalErrorCode("default")
+        if (key.isNull) return resolveInternalErrorCode("default")
         return environment.getProperty("spring-utils.exceptions.internal-error-code.$key")
             ?: environment.getProperty("spring-utils.exceptions.internal-error-code.default")
     }
 
     private inline fun <reified T> findCause(ex: Throwable): T? {
         var current: Throwable? = ex
-        while (current.isNotNull()) {
+        while (current.isNotNull) {
             if (current is T) return current
             current = current.cause
         }

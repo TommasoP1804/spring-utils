@@ -32,14 +32,14 @@ data class ExtendedProblemDetail(
         class Serializer : ValueSerializer<ExtendedProblemDetail>() {
             override fun serialize(value: ExtendedProblemDetail, gen: JsonGenerator, ctxt: SerializationContext) {
                 gen.writeStartObject()
-                if (value.title.isNotNull()) gen.writeStringProperty("title", value.title)
-                if (value.type.isNotNull()) gen.writeStringProperty("type", value.type.toString())
-                if (value.status.isNotNull()) gen.writeNumberProperty("status", value.status)
-                if (value.detail.isNotNull()) gen.writeStringProperty("detail", value.detail)
-                if (value.instance.isNotNull()) gen.writeStringProperty("instance", value.instance.toString())
-                if (value.internalErrorCode.isNotNull()) gen.writeStringProperty("internalErrorCode", value.internalErrorCode)
-                if (value.exception.isNotNull()) gen.writeStringProperty("exception", value.exception)
-                if (value.properties.isNotNullOrEmpty()) gen.writePOJOProperty("properties", value.properties)
+                if (value.title.isNotNull) gen.writeStringProperty("title", value.title)
+                if (value.type.isNotNull) gen.writeStringProperty("type", value.type.toString())
+                if (value.status.isNotNull) gen.writeNumberProperty("status", value.status)
+                if (value.detail.isNotNull) gen.writeStringProperty("detail", value.detail)
+                if (value.instance.isNotNull) gen.writeStringProperty("instance", value.instance.toString())
+                if (value.internalErrorCode.isNotNull) gen.writeStringProperty("internalErrorCode", value.internalErrorCode)
+                if (value.exception.isNotNull) gen.writeStringProperty("exception", value.exception)
+                if (value.properties.isNotNullOrEmpty) gen.writePOJOProperty("properties", value.properties)
                 gen.writeEndObject()
             }
         }
@@ -47,17 +47,17 @@ data class ExtendedProblemDetail(
         class OldSerializer : JsonSerializer<ExtendedProblemDetail>() {
             override fun serialize(value: ExtendedProblemDetail, gen: com.fasterxml.jackson.core.JsonGenerator, serializers: SerializerProvider) {
                 gen.writeStartObject()
-                if (value.title.isNotNull()) gen.writeStringField("title", value.title)
-                if (value.type.isNotNull()) gen.writeStringField("type", value.type.toString())
-                if (value.status.isNotNull()) gen.writeNumberField("status", value.status)
-                if (value.detail.isNotNull()) gen.writeStringField("detail", value.detail)
-                if (value.instance.isNotNull()) gen.writeStringField("instance", value.instance.toString())
-                if (value.internalErrorCode.isNotNull()) gen.writeStringField(
+                if (value.title.isNotNull) gen.writeStringField("title", value.title)
+                if (value.type.isNotNull) gen.writeStringField("type", value.type.toString())
+                if (value.status.isNotNull) gen.writeNumberField("status", value.status)
+                if (value.detail.isNotNull) gen.writeStringField("detail", value.detail)
+                if (value.instance.isNotNull) gen.writeStringField("instance", value.instance.toString())
+                if (value.internalErrorCode.isNotNull) gen.writeStringField(
                     "internalErrorCode",
                     value.internalErrorCode
                 )
-                if (value.exception.isNotNull()) gen.writeStringField("exception", value.exception)
-                if (value.properties.isNotNullOrEmpty()) gen.writeObjectField("properties", value.properties)
+                if (value.exception.isNotNull) gen.writeStringField("exception", value.exception)
+                if (value.properties.isNotNullOrEmpty) gen.writeObjectField("properties", value.properties)
                 gen.writeEndObject()
             }
         }

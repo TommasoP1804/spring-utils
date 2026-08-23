@@ -6,7 +6,7 @@ package dev.tommasop1804.springutils.exception
 
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
-import dev.tommasop1804.kutils.isNotNullOrBlank
+import dev.tommasop1804.kutils.*
 import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
@@ -25,7 +25,7 @@ data class SimpleErrorResponse(
                 gen.writeStartObject()
                 gen.writeStringProperty("title", value.title)
                 gen.writeStringProperty("description", value.description)
-                if (value.internalErrorCode.isNotNullOrBlank()) gen.writeStringProperty("internalErrorCode", value.internalErrorCode)
+                if (value.internalErrorCode.isNotNullOrBlank) gen.writeStringProperty("internalErrorCode", value.internalErrorCode)
                 gen.writeEndObject()
             }
         }
@@ -35,7 +35,7 @@ data class SimpleErrorResponse(
                 gen.writeStartObject()
                 gen.writeStringField("title", value.title)
                 gen.writeStringField("description", value.description)
-                if (value.internalErrorCode.isNotNullOrBlank()) gen.writeStringField("internalErrorCode", value.internalErrorCode)
+                if (value.internalErrorCode.isNotNullOrBlank) gen.writeStringField("internalErrorCode", value.internalErrorCode)
                 gen.writeEndObject()
             }
         }

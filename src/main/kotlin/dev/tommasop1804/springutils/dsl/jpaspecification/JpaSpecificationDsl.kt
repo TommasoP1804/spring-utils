@@ -62,7 +62,7 @@ class EqNode<T>(val path: String, val value: Any?) : PredicateNode<T> {
      * @since 3.1.0
      */
     override fun toPredicate(root: Root<T>, query: CriteriaQuery<*>, cb: CriteriaBuilder): Predicate =
-        if (value.isNull()) cb.isNull(root.resolvePath<Any>(path))
+        if (value.isNull) cb.isNull(root.resolvePath<Any>(path))
         else cb.equal(root.resolvePath<Any>(path), value)
 }
 
@@ -90,7 +90,7 @@ class NeqNode<T>(val path: String, val value: Any?) : PredicateNode<T> {
      * @since 3.1.0
      */
     override fun toPredicate(root: Root<T>, query: CriteriaQuery<*>, cb: CriteriaBuilder): Predicate =
-        if (value.isNull()) cb.isNotNull(root.resolvePath<Any>(path))
+        if (value.isNull) cb.isNotNull(root.resolvePath<Any>(path))
         else cb.notEqual(root.resolvePath<Any>(path), value)
 }
 
