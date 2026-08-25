@@ -186,12 +186,9 @@ fun dev.tommasop1804.kutils.classes.web.MimeType.toSpringMimeType() = MimeType(t
  * Spring Framework `HttpMethod` representation.
  *
  * @return The equivalent `org.springframework.http.HttpMethod` based on the name of the current `HttpMethod`.
- * @throws NoSuchEntryException if no matching Spring HTTP method exists for the current `HttpMethod.name`.
  * @since 3.3.0
  */
-fun HttpMethod.toSpringHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpMethod::class, name) }) {
-    org.springframework.http.HttpMethod.valueOf(name)
-}
+fun HttpMethod.toSpringHttpMethod() = org.springframework.http.HttpMethod.valueOf(value)
 
 /**
  * Converts a Spring `HttpMethod` to its corresponding `HttpMethod` in the Kutils library.
@@ -203,9 +200,8 @@ fun HttpMethod.toSpringHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpM
  * @throws NoSuchEntryException NoSuchEntryException → if no matching HTTP method exists for the current HttpMethod in the enum.
  * @since 3.3.0
  */
-fun org.springframework.http.HttpMethod.toKutilsHttpMethod() = tryOrThrow({ -> NoSuchEntryException(HttpMethod::class, name()) }) {
-    HttpMethod.valueOf(name())
-}
+fun org.springframework.http.HttpMethod.toKutilsHttpMethod() =
+    (HttpMethod of name()) ?: NoSuchEntryException(HttpMethod::class, name())
 
 /**
  * Converts the custom HttpStatus instance to a Spring Framework HttpStatus instance.
