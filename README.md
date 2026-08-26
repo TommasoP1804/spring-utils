@@ -1,7 +1,7 @@
 # Spring-Utils
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-blue.svg)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.10-blue.svg)](https://kotlinlang.org)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-green.svg)](https://spring.io/projects/spring-boot)
 [![JDK](https://img.shields.io/badge/JDK-21-orange.svg)](https://openjdk.org)
 
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.tommasop1804:spring-utils:4.5.0")
+    implementation("dev.tommasop1804:spring-utils:4.6.0")
 }
 ```
 
@@ -28,7 +28,7 @@ Full documentation is available at: [https://tommasop1804.notion.site/spring-uti
 ## Requirements
 
 - JDK 21+
-- Kotlin 2.4.0+
+- Kotlin 2.4.10+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

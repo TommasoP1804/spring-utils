@@ -2,7 +2,7 @@
  * Copyright © 2026 Tommaso Pastorelli (TommasoP1804) | Spring-Utils
  */
 
-@file:JvmName("SecurityUtilsKt")
+@file:JvmName("ServletSecurityUtilsKt")
 @file:Suppress("unused", "kutils_null_check")
 @file:MustUseReturnValues
 

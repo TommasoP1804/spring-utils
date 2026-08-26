@@ -18,6 +18,7 @@ import io.restassured.specification.RequestSpecification
 import java.io.File
 import java.io.InputStream
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 @DslMarker
 annotation class RestAssuredDslMarker
@@ -159,6 +160,7 @@ class TypedTestRoute<T : Any> @PublishedApi internal constructor(
 
         val response = when (method) {
             HttpMethod.Get -> request.get(uri)
+            HttpMethod.Query -> request.request(HttpMethod.Query.value, uri)
             HttpMethod.Head -> request.head(uri)
             HttpMethod.Options -> request.options(uri)
             HttpMethod.Post -> request.post(uri)
@@ -809,6 +811,31 @@ class RestAssuredDslScope(
     ) = buildRoute<T>(HttpMethod.Post, path, spec)
 
     /**
+     * Builds a JSON `QUERY` test route for the given HTTP path and optional specification.
+     *
+     * @param path The endpoint path for the query route.
+     * @param spec An optional consumer for configuring the test request specification.
+     * @since 4
+     */
+    fun QUERY(
+        path: String,
+        spec: ReceiverConsumer<TestReqSpec>? = null,
+    ) = buildJsonRoute(HttpMethod.Query, path, spec)
+
+    /**
+     * Builds a typed `QUERY` test route.
+     *
+     * @param T The type of the expected response body.
+     * @param path The relative path of the endpoint to query.
+     * @param spec An optional customization block for the request specification.
+     * @since 4.6.0
+     */
+    inline fun <reified T : Any> QUERY(
+        path: String,
+        noinline spec: ReceiverConsumer<TestReqSpec>? = null,
+    ) = buildRoute<T>(HttpMethod.Query, path, spec)
+
+    /**
      * Builds a JSON `PUT` test route.
      * @since 3.2.2
      */
@@ -1009,4 +1036,50 @@ fun restAssuredRouter(prefix: String, init: ReceiverConsumer<RestAssuredDslScope
     val scope = RestAssuredDslScope(prefix)
     scope.init()
     return scope
+}
+
+/**
+ * Validates the HTTP status of the response against the expected status.
+ * If the actual status does not match the expected status, an exception is thrown.
+ *
+ * @param status The expected HTTP status to compare with the response status. Defaults to `HttpStatus.Ok`.
+ * @param property The property representing the status for error context. Defaults to this response's `status` property.
+ * @param variableName An optional variable name for identification in case of a mismatch.
+ * @param causeOf An optional transformer to generate a `Throwable` cause if the expected status is not met.
+ * @param cause An optional transformer to generate a secondary `Throwable` cause for further exception chaining.
+ * @return The current instance of [ExtendedTestResponse] for method chaining.
+ * @throws ExpectationMismatchException If the actual status of the response does not match the expected status.
+ * @since 4.6.0
+ */
+@IgnorableReturnValue
+fun <T : Any> ExtendedTestResponse<T>.expectStatus(
+    status: HttpStatus = HttpStatus.Ok,
+    property: KProperty<*> = this::status,
+    variableName: String? = null,
+    causeOf: Transformer<ExtendedTestResponse<T>, Throwable>? = null,
+    cause: Transformer<ExtendedTestResponse<T>, Throwable>? = null
+): ExtendedTestResponse<T> {
+    if (this.status != status) throw if (causeOf == null) ExpectationMismatchException(property, variableName, status, this, cause?.invoke(this)) else causeOf(this).initCause(ExpectationMismatchException(property, variableName, status, this, cause?.invoke(this)))
+    return this
+}
+/**
+ * Verifies that the status of the current HTTP response matches the expected status.
+ * Throws an exception if the status does not match.
+ *
+ * @param status the expected HTTP status. Defaults to `HttpStatus.Ok`.
+ * @param causeOf a transformer function that provides a cause for the exception based on the current response. Can be null.
+ * @param cause a transformer function that determines the cause of the exception if `causeOf` is absent. Can be null.
+ * @param lazyMesage a transformer function to generate the error message in case of a status mismatch.
+ * @return the current `ExtendedTestResponse` instance for further validation or chaining operations.
+ * @since 4.6.0
+ */
+@IgnorableReturnValue
+fun <T : Any> ExtendedTestResponse<T>.expectStatus(
+    status: HttpStatus = HttpStatus.Ok,
+    causeOf: Transformer<ExtendedTestResponse<T>, Throwable>? = null,
+    cause: Transformer<ExtendedTestResponse<T>, Throwable>? = null,
+    lazyMesage: Transformer<ExtendedTestResponse<T>, Any>
+): ExtendedTestResponse<T> {
+    if (this.status != status) throw if (causeOf == null) ExpectationMismatchException(lazyMesage(this).toString()) else causeOf(this).initCause(ExpectationMismatchException(lazyMesage(this).toString()))
+    return this
 }

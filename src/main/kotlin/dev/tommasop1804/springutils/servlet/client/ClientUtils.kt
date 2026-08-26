@@ -227,3 +227,26 @@ fun RestClient.Builder.defaultHeader(header: HttpHeader) = defaultHeader(header.
 fun RestClient.Builder.defaultHeaders(headers: HttpHeaders) = defaultHeaders {
     it.addAll(headers.toSpringHttpHeaders())
 }
+
+/**
+ * Sets the HTTP method for this RestClient to the specified method.
+ *
+ * @param method The HTTP method to be set, represented as an instance of `dev.tommasop1804.kutils.classes.web.HttpMethod`.
+ * @since 4.6.0
+ */
+fun RestClient.method(method: dev.tommasop1804.kutils.classes.web.HttpMethod) = method(HttpMethod.valueOf(method.value))
+/**
+ * Executes an HTTP request using the QUERY method.
+ *
+ * This function sends a request using the QUERY HTTP method by leveraging the
+ * existing RestClient and HttpMethod functionalities. It is useful for making
+ * requests where QUERY semantics are supported or required.
+ *
+ * Note: The QUERY HTTP method is not part of the standard HTTP/1.1 specification
+ * and might not be recognized by all servers or intermediaries.
+ *
+ * @receiver The RestClient instance used to execute the query.
+ * @return The result of the HTTP request execution.
+ * @since 4.6.0
+ */
+fun RestClient.query() = method(HttpMethod.valueOf("QUERY"))

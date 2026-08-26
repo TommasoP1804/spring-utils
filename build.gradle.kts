@@ -9,16 +9,16 @@ import io.freefair.gradle.plugins.aspectj.AspectjCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "dev.tommasop1804"
-version = "4.5.0"
+version = "4.6.0"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260825T163134Z
+// Last update: Tommaso Pastorelli | 20260826T115311Z
 
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.0"
-    id("org.jetbrains.kotlin.plugin.spring") version "2.4.0"
-    id("org.jetbrains.kotlin.plugin.jpa") version "2.4.0"
+    id("org.jetbrains.kotlin.jvm") version "2.4.10"
+    id("org.jetbrains.kotlin.plugin.spring") version "2.4.10"
+    id("org.jetbrains.kotlin.plugin.jpa") version "2.4.10"
     id("org.springframework.boot") version "4.0.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "9.1.0"

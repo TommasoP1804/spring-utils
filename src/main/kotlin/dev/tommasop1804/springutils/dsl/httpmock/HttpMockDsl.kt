@@ -608,6 +608,15 @@ class RequestMatcherBuilder {
      */
     fun post() { method = HttpMethod.Post }
     /**
+     * Sets the HTTP method of the request matcher to `QUERY`.
+     *
+     * This function updates the `method` property of the `RequestMatcherBuilder`
+     * to `HttpMethod.Query`. It is commonly used within the DSL to configure the
+     * matcher to specifically handle requests made with the `QUERY` HTTP method.
+     * @since 4.6.0
+     */
+    fun query() { method = HttpMethod.Query }
+    /**
      * Sets the HTTP method of the request matcher to `PUT`.
      *
      * This function is part of the `RequestMatcherBuilder` class and is used to define the HTTP
@@ -1312,7 +1321,7 @@ object WireMockAdapter {
         appendLine("      \"request\": {")
         val req = stub.request
         val parts: MList<String> = emptyMList()
-        req.method?.let { parts += "        \"method\": \"${it.name}\"" }
+        req.method?.let { parts += "        \"method\": \"${it.value}\"" }
 
         val resolvedPath = req.path?.let { path ->
             var resolved = path
@@ -1418,7 +1427,7 @@ object SpringMockAdapter {
             appendLine("server.expect(")
             stub.request.method?.let { append("    requestTo(\"$baseUrl${stub.request.path ?: "/"}\")") }
             appendLine(")")
-            stub.request.method?.let { appendLine("    .andExpect(method(HttpMethod.${it.name}))") }
+            stub.request.method?.let { appendLine("    .andExpect(method(HttpMethod.${it.value}))") }
             stub.request.headers.forEach { [k, v] ->
                 appendLine("    .andExpect(header(\"$k\", \"$v\"))")
             }

@@ -11,6 +11,7 @@ import dev.tommasop1804.kutils.classes.coding.*
 import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.servlet.*
+import dev.tommasop1804.springutils.servlet.client.*
 import dev.tommasop1804.springutils.servlet.response.*
 import dev.tommasop1804.springutils.servlet.security.*
 import org.springframework.http.ResponseEntity
@@ -207,6 +208,7 @@ class TypedRequestRoute<T : Any> @PublishedApi internal constructor(
                 if (execSpec.body.isNotNull) log(LogLevel.Warn, "Request body will be ignored")
             }.apply { method = HttpMethod.Delete }
             HttpMethod.Post -> client.post().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Post }
+            HttpMethod.Query -> client.query().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Query }
             HttpMethod.Put -> client.put().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Put }
             HttpMethod.Patch -> client.patch().uri { uri = buildUri(it, pathTemplate, execSpec); uri }.applyHeaders(execSpec).applyBody(execSpec).apply { method = HttpMethod.Patch }
             else -> throw ConfigurationException()
@@ -397,6 +399,35 @@ class RestClientDslScope(
         path: String,
         noinline spec: ReceiverConsumer<ReqSpec>? = null,
     ) = buildRoute<T>(HttpMethod.Post, path, spec)
+
+    /**
+     * Constructs a JSON route with the HTTP method `Query`.
+     *
+     * @param path The endpoint path for the query. This defines the API route to be accessed.
+     * @param spec Optional consumer for specifying additional request configurations.
+     *             It allows customization of the request specifications.
+     * @return The constructed JSON route for the provided path and query method.
+     * @since 4.6.0
+     */
+    fun QUERY(
+        path: String,
+        spec: ReceiverConsumer<ReqSpec>? = null,
+    ) = buildJsonRoute(HttpMethod.Query, path, spec)
+
+    /**
+     * Builds and executes a query request for the specified type `T`.
+     *
+     * @param T The target type for the response object.
+     * @param path The relative path of the query endpoint.
+     * @param spec An optional lambda function to customize the request specification.
+     *             This can be used to configure headers, query parameters, and other request properties.
+     * @return A response object of type `T`.
+     * @since 4.6.0
+     */
+    inline fun <reified T : Any> QUERY(
+        path: String,
+        noinline spec: ReceiverConsumer<ReqSpec>? = null,
+    ) = buildRoute<T>(HttpMethod.Query, path, spec)
 
     /**
      * Defines a PUT request route.
@@ -890,4 +921,61 @@ internal fun <S : RestClient.RequestHeadersSpec<S>> S.applyHeaders(spec: ReqSpec
 internal fun RestClient.RequestBodySpec.applyBody(spec: ReqSpec): RestClient.RequestBodySpec = apply {
     if (spec.body.isNull) return@apply
     body(spec.body!!)
+}
+
+/**
+ * Validates the HTTP status of the response against the provided rules.
+ * If the status does not meet the validation criteria and is not in the ignored list,
+ * an exception is thrown based on the provided exception transformer.
+ *
+ * @param clientName the name of the client to which the request was sent; used in exception messages
+ * @param ignore a collection of HTTP statuses to be excluded from validation
+ * @param lazyException a transformer function that generates an exception to throw
+ *                      when validation fails
+ * @param predicate a predicate function that determines whether a status is considered valid
+ *                  (default is any non-error status)
+ * @return the same response instance to allow for further method chaining
+ * @since 4.6.0
+ */
+fun <T : Any> ExtendedResponse<T>.validateStatus(
+    clientName: String? = null,
+    ignore: Iterable<HttpStatus> = [],
+    lazyException: Transformer<ExtendedResponse<T>, Throwable> = {
+        ExternalServiceHttpException(
+            clientName,
+            statusCode = status,
+            uri = path,
+            method = method
+        )
+    },
+    predicate: Predicate<HttpStatus> = { !it.isError },
+) = apply {
+    if (!predicate(status) && status !in ignore) throw lazyException(this)
+}
+/**
+ * Validates the HTTP status of an ExtendedResponse, throwing an exception if the status
+ * does not satisfy the specified conditions or is not in the ignored statuses.
+ *
+ * @param clientName optional name of the client making the request, used for exception logging.
+ * @param ignore statuses to be excluded from validation, allowing them to bypass the predicate checks.
+ * @param message optional error message to include in the exception if validation fails.
+ * @param internalErrorCode optional internal error code to include in the exception metadata.
+ * @param predicate condition that the status must satisfy; defaults to checking if the status is not an error.
+ * @since 4.6.0
+ */
+fun <T : Any> ExtendedResponse<T>.validateStatus(
+    clientName: String? = null,
+    ignore: Iterable<HttpStatus> = [],
+    message: String? = null,
+    internalErrorCode: String? = null,
+    predicate: Predicate<HttpStatus> = { !it.isError },
+) = apply {
+    if (!predicate(status) && status !in ignore) throw  ExternalServiceHttpException(
+        clientName,
+        statusCode = status,
+        uri = path,
+        method = method,
+        errorMessage = message,
+        internalErrorCode = internalErrorCode
+    )
 }

@@ -18,6 +18,7 @@ import dev.tommasop1804.kutils.classes.web.*
 import dev.tommasop1804.springutils.*
 import io.micrometer.observation.ObservationRegistry
 import org.springframework.core.ResolvableType
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.http.codec.ClientCodecConfigurer
@@ -181,3 +182,25 @@ fun WebClient.Builder.defaultHeader(header: HttpHeader) = defaultHeader(header.n
 fun WebClient.Builder.defaultHeaders(headers: HttpHeaders) = defaultHeaders {
     it.addAll(headers.toSpringHttpHeaders())
 }
+
+/**
+ * Sets the HTTP method for the WebClient request.
+ *
+ * @param method The HTTP method to be used for the request, represented by
+ *               an instance of dev.tommasop1804.kutils.classes.web.HttpMethod.
+ * @since 4.6.0
+ */
+fun WebClient.method(method: dev.tommasop1804.kutils.classes.web.HttpMethod) = method(org.springframework.http.HttpMethod.valueOf(method.value))
+/**
+ * Sets the HTTP method of the request to QUERY for the WebClient.
+ *
+ * This extension function modifies the WebClient instance to use the
+ * QUERY HTTP method for the outgoing request. QUERY is a custom or
+ * less frequently used HTTP method, and using it requires the server
+ * to support it.
+ *
+ * @receiver WebClient instance used to send the HTTP request.
+ * @return The WebClient instance with the HTTP method set to QUERY.
+ * @since 4.6.0
+ */
+fun WebClient.query() = method(HttpMethod.valueOf("QUERY"))
