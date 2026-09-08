@@ -6,13 +6,15 @@
 @file:Suppress("AvoidDuplicateDependencies")
 
 import io.freefair.gradle.plugins.aspectj.AspectjCompile
+import org.jetbrains.kotlin.gradle.idea.proto.com.google.protobuf.api
+import org.jetbrains.kotlin.gradle.internal.backend.common.serialization.metadata.DynamicTypeDeserializer.id
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "dev.tommasop1804"
-version = "4.6.0"
+version = "4.6.1"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260826T115311Z
+// Last update: Tommaso Pastorelli | 20260908T092751Z
 
 
 plugins {

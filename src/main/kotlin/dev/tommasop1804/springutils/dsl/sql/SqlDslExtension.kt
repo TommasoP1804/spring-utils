@@ -238,51 +238,6 @@ infix fun KProperty1<*, *>.eq(value: Any) =
  * }
  * ```
  *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.eq(value: Any) =
-    "$this = $value"
-/**
- * Typed `=` condition.
- *
- * ```kotlin
- * where {
- *     condition(User::status eq "'ACTIVE'")
- * }
- * ```
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.eq(value: Any) =
-    "$this = $value"
-/**
- * Typed `=` condition.
- *
- * ```kotlin
- * where {
- *     condition(User::status eq "'ACTIVE'")
- * }
- * ```
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.eq(value: Any) =
-    "$this = $value"
-/**
- * Typed `=` condition.
- *
- * ```kotlin
- * where {
- *     condition(User::status eq "'ACTIVE'")
- * }
- * ```
- *
  * @since 3.4.0
  */
 @SqlDslMarker
@@ -627,39 +582,6 @@ infix fun KProperty1<*, *>.neq(value: Any) =
  *
  * Use it in a condition/and/or.
  *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.neq(value: Any) =
-    "$this != $value"
-/**
- * Typed `!=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.neq(value: Any) =
-    "$this != $value"
-/**
- * Typed `!=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.neq(value: Any) =
-    "$this != $value"
-/**
- * Typed `!=` condition.
- *
- * Use it in a condition/and/or.
- *
  * @since 3.4.0
  */
 @SqlDslMarker
@@ -919,39 +841,6 @@ infix fun KProperty1<*, Comparable<*>>.gt(value: Any) =
 context(_: JoinScope)
 infix fun KProperty1<*, Comparable<*>>.gt(value: Any) =
     "${toColumnName()} > $value"
-/**
- * Typed `>` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.gt(value: Any) =
-    "$this > $value"
-/**
- * Typed `>` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.gt(value: Any) =
-    "$this > $value"
-/**
- * Typed `>` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.gt(value: Any) =
-    "$this > $value"
 /**
  * Typed `>` condition.
  *
@@ -1221,39 +1110,6 @@ infix fun KProperty1<*, Comparable<*>>.lt(value: Any) =
  *
  * Use it in a condition/and/or.
  *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.lt(value: Any) =
-    "$this < $value"
-/**
- * Typed `<` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.lt(value: Any) =
-    "$this < $value"
-/**
- * Typed `<` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.lt(value: Any) =
-    "$this < $value"
-/**
- * Typed `<` condition.
- *
- * Use it in a condition/and/or.
- *
  * @since 3.4.0
  */
 @SqlDslMarker
@@ -1518,39 +1374,6 @@ infix fun KProperty1<*, Comparable<*>>.gte(value: Any) =
  *
  * Use it in a condition/and/or.
  *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.gte(value: Any) =
-    "$this >= $value"
-/**
- * Typed `>=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.gte(value: Any) =
-    "$this >= $value"
-/**
- * Typed `>=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.gte(value: Any) =
-    "$this >= $value"
-/**
- * Typed `>=` condition.
- *
- * Use it in a condition/and/or.
- *
  * @since 3.4.0
  */
 @SqlDslMarker
@@ -1810,39 +1633,6 @@ infix fun KProperty1<*, Comparable<*>>.lte(value: Any) =
 context(_: JoinScope)
 infix fun KProperty1<*, Comparable<*>>.lte(value: Any) =
     "${toColumnName()} <= $value"
-/**
- * Typed `<=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.lte(value: Any) =
-    "$this <= $value"
-/**
- * Typed `<=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.lte(value: Any) =
-    "$this <= $value"
-/**
- * Typed `<=` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.lte(value: Any) =
-    "$this <= $value"
 /**
  * Typed `<=` condition.
  *
@@ -2116,39 +1906,6 @@ infix fun KProperty1<*, CharSequence>.like(value: Any) =
  */
 @SqlDslMarker
 context(_: SqlBuilder)
-infix fun String.like(value: Any) =
-    "$this LIKE '$value'"
-/**
- * Typed `like` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.like(value: Any) =
-    "$this LIKE '$value'"
-/**
- * Typed `like` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.like(value: Any) =
-    "$this LIKE '$value'"
-/**
- * Typed `like` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
 infix fun KProperty1<*, CharSequence>.like(property: KProperty1<*, CharSequence>) =
     "${toColumnName()} LIKE '${property.toColumnName()}'"
 /**
@@ -2404,39 +2161,6 @@ infix fun KProperty1<*, CharSequence>.ilike(value: Any) =
 context(_: JoinScope)
 infix fun KProperty1<*, CharSequence>.ilike(value: Any) =
     "${toColumnName()} ILIKE '$value'"
-/**
- * Typed `ilike` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 3.5.2
- */
-@SqlDslMarker
-context(_: SqlBuilder)
-infix fun String.ilike(value: Any) =
-    "$this ILIKE '$value'"
-/**
- * Typed `ilike` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: WhereScope)
-infix fun String.ilike(value: Any) =
-    "$this ILIKE '$value'"
-/**
- * Typed `ilike` condition.
- *
- * Use it in a condition/and/or.
- *
- * @since 4.1.2
- */
-@SqlDslMarker
-context(_: JoinScope)
-infix fun String.ilike(value: Any) =
-    "$this ILIKE '$value'"
 /**
  * Typed `ilike` condition.
  *

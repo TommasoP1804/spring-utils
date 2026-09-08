@@ -138,7 +138,7 @@ class LoggingWebFilter(
                 if (map.isEmpty()) string
                 else {
                     string += "?"
-                    string += map.entries.joinToString("&") { [k, v] -> "$k=$v" }
+                    string += map.entries.joinToString("&") { [k, v] -> "$k=${v.joinToString(Char.COMMA)}" }
                     string
                 }
             }}"
@@ -192,7 +192,7 @@ class LoggingWebFilter(
                 if (map.isEmpty()) string
                 else {
                     string += "?"
-                    string += map.entries.joinToString("&") { [k, v] -> "$k=$v" }
+                    string += map.entries.joinToString("&") { [k, v] -> "$k=${v.joinToString(Char.COMMA)}" }
                     string
                 }
             }}"
