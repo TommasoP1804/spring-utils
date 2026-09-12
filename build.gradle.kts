@@ -6,22 +6,20 @@
 @file:Suppress("AvoidDuplicateDependencies")
 
 import io.freefair.gradle.plugins.aspectj.AspectjCompile
-import org.jetbrains.kotlin.gradle.idea.proto.com.google.protobuf.api
-import org.jetbrains.kotlin.gradle.internal.backend.common.serialization.metadata.DynamicTypeDeserializer.id
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "dev.tommasop1804"
-version = "4.6.1"
+version = "5.0.0"
 // Spring-Utils
 // Tommaso Pastorelli
-// Last update: Tommaso Pastorelli | 20260908T092751Z
+// Last update: Tommaso Pastorelli | 20260912T143947Z
 
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.10"
-    id("org.jetbrains.kotlin.plugin.spring") version "2.4.10"
-    id("org.jetbrains.kotlin.plugin.jpa") version "2.4.10"
-    id("org.springframework.boot") version "4.0.5"
+    id("org.jetbrains.kotlin.jvm") version "2.4.20"
+    id("org.jetbrains.kotlin.plugin.spring") version "2.4.20"
+    id("org.jetbrains.kotlin.plugin.jpa") version "2.4.20"
+    id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("io.freefair.lombok") version "9.1.0"
     id("io.freefair.aspectj.post-compile-weaving") version "9.1.0"
@@ -65,8 +63,8 @@ dependencies {
     implementation("org.aspectj:aspectjweaver:1.9.24")
     implementation("org.slf4j:slf4j-api:2.0.13")
     implementation("org.slf4j:jul-to-slf4j:2.0.13")
-    aspect("dev.tommasop1804:kotlin-utils:5.0.0")
-    api("dev.tommasop1804:kotlin-utils:5.0.0")
+    aspect("dev.tommasop1804:kotlin-utils:6.0.0")
+    api("dev.tommasop1804:kotlin-utils:6.0.0")
 
     implementation("io.rest-assured:rest-assured:5.5.0")
     implementation("io.rest-assured:kotlin-extensions:5.5.0")

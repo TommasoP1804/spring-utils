@@ -36,6 +36,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import kotlin.reflect.KClass
+import kotlin.uuid.Uuid
 
 /**
  * Retrieves all request parameters from the server request and converts them to a `MultiMap`.
