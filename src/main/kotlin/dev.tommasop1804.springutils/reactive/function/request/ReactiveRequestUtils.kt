@@ -31,6 +31,8 @@ import dev.tommasop1804.kutils.errors.*
 import dev.tommasop1804.kutils.exceptions.*
 import dev.tommasop1804.springutils.*
 import dev.tommasop1804.springutils.exception.*
+import dev.tommasop1804.springutils.servlet.function.request.pathVariableOrError
+import dev.tommasop1804.springutils.servlet.function.request.pathVariableOrThrow
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.HttpHeaders
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -42,6 +44,7 @@ import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.util.*
 import kotlin.reflect.KClass
+import kotlin.toString
 import kotlin.uuid.Uuid
 
 /**
@@ -76,6 +79,17 @@ val ServerRequest.headers get() = headers().asHttpHeaders().toKutilsHttpHeaders(
  * @since 3.0.2
  */
 val ServerRequest.pathVariables: StringMap get() = pathVariables()
+/**
+ * Retrieves the HTTP method of the current server request.
+ *
+ * This extension property maps the HTTP method from the underlying servlet request
+ * to an instance of the `HttpMethod` enum.
+ *
+ * @receiver ServerRequest The server request from which the HTTP method is extracted.
+ * @return The HTTP method as an `HttpMethod` enum constant.
+ * @since 5.2.1
+ */
+val ServerRequest.method: HttpMethod get() = method().name().toEnumConst()
 
 /**
  * Retrieves the value of a query parameter by its name or throws an exception if it is missing.
